@@ -1,54 +1,85 @@
 # Fudan Project Management Course Project
 
-This repository is for the semester-long 项目管理 course project.
+This repository is for the full semester-long 项目管理 course project.
 
-## Current role focus
+## Scope
 
-We are working from the **Team A** side.
-That means the main priority is the product and business-facing track, especially:
-- business plan
-- product MVP v1.0
-- final product version
-- roadshow materials
-- final defense package
+This repo is now structured for the **whole project**, not only Team A.
+That means it can hold:
+- shared course references
+- project manager materials
+- Team A product and business work
+- Team B agent and tooling work
+- integration work across both teams
+- roadshow and final defense materials
+- simulation, audit, and closure records
 
-## Repo structure
+Leonardo is in **Team A**, so Team A work will still be the main execution focus, but the repository itself is organized for the entire project lifecycle.
 
-- `docs/reference/`
-  - course references, schedule screenshots, extracted notes
-- `docs/management/`
-  - management documents such as kickoff notes, role commitment, decision records, coordination materials
-- `docs/business-plan/`
-  - business plan drafts and final materials
-- `docs/roadshow/`
-  - roadshow scripts, outlines, and supporting docs
-- `docs/final-defense/`
-  - final defense planning and supporting documents
-- `product/mvp-v1/`
-  - Team A MVP prototype materials
-- `product/final-version/`
-  - final product version and release-ready assets
-- `product/assets/`
-  - UI assets, diagrams, images, and reusable materials
+## Repository structure
+
+- `reference/`
+  - course references, screenshots, extracted notes, schedule materials
+
+- `project-manager/`
+  - project-wide coordination materials
+  - decision logs
+  - simulation run records
+
+- `team-a/`
+  - business plan
+  - MVP v1
+  - final product
+  - Team A assets
+
+- `team-b/`
+  - AI agent architecture
+  - WBS assistant
+  - risk warning agent
+  - stakeholder simulation materials
+
+- `integration/`
+  - AI system v2.0
+  - ethics review and prompt revision
+  - shared integration assets
+
+- `roadshows/`
+  - roadshow 1
+  - roadshow 2
+  - final defense
+
+- `reports/`
+  - stakeholder strategy report
+  - development method tailoring report
+  - simulation-related materials
+  - closure report
+
 - `meeting-notes/`
-  - meeting notes and weekly progress notes
-- `presentations/`
-  - slides and presentation assets
-- `reports/closure/`
-  - closure and retrospective materials
+  - shared notes
+  - Team A notes
+  - Team B notes
 
-## What we already know from the course schedule
+## Course timeline already captured
 
-- Weeks 4 to 6 focus on team formation, kickoff, business plan, MVP v1.0, and early system design.
-- Weeks 7 to 8 are the first roadshow stage.
-- Weeks 9 to 10 focus on risk, stakeholder strategy, method tailoring, final product work, and AI ethics review.
-- Weeks 11 to 12 are the second roadshow stage.
-- Weeks 13 to 17 cover simulation, audit/closure, and final defense.
+- Weeks 4 to 6: team formation, kickoff, business plan, MVP v1.0, architecture v1.0, WBS assistant prototype
+- Weeks 7 to 8: first roadshow
+- Weeks 9 to 10: risk warning, stakeholder strategy, method tailoring, final product work, AI system v2.0, ethics review
+- Weeks 11 to 12: second roadshow
+- Weeks 13 to 14: simulation, audit, closure
+- Weeks 15 to 17: final roadshow and defense
+
+## Suggested working rule
+
+- Keep **project-wide** materials in shared folders.
+- Keep **team-specific** materials in `team-a/` or `team-b/`.
+- Put anything that combines both sides into `integration/`.
+- Put presentation-facing outputs into `roadshows/`.
+- Put retrospective and formal reporting outputs into `reports/`.
 
 ## Immediate next steps
 
-1. Confirm the exact Team A product direction.
-2. Add the project brief and company/team information.
-3. Start the business plan folder structure.
-4. Define the MVP scope for Team A.
-5. Prepare the first roadshow materials.
+1. Add the project brief and company/team setup.
+2. Clarify the exact Team A product direction.
+3. Add the Team B agent/tool scope.
+4. Define how Team A, Team B, and the project manager interact.
+5. Start filling the first round of business-plan and MVP materials.
