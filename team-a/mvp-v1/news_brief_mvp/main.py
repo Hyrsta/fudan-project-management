@@ -26,6 +26,7 @@ def create_app(service=None, artifact_root: Optional[Path] = None) -> FastAPI:
                 "request": request,
                 "brief": None,
                 "error_message": None,
+                "recent_briefs": app.state.service.list_recent_briefs(),
             },
         )
 
@@ -69,7 +70,12 @@ def create_app(service=None, artifact_root: Optional[Path] = None) -> FastAPI:
             raise HTTPException(status_code=404, detail="Brief not found.") from exc
         return templates.TemplateResponse(
             "index.html",
-            {"request": request, "brief": brief, "error_message": None},
+            {
+                "request": request,
+                "brief": brief,
+                "error_message": None,
+                "recent_briefs": app.state.service.list_recent_briefs(),
+            },
         )
 
     @app.get("/briefs/{brief_id}/export")
@@ -86,6 +92,10 @@ def create_app(service=None, artifact_root: Optional[Path] = None) -> FastAPI:
         except FileNotFoundError as exc:
             raise HTTPException(status_code=404, detail="Handoff artifact not found.") from exc
         return JSONResponse(content=handoff.model_dump(mode="json"))
+
+    @app.get("/health")
+    def health_check():
+        return {"status": "ok"}
 
     return app
 

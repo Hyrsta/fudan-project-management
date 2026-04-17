@@ -8,6 +8,7 @@ from uuid import uuid4
 from .data_loader import load_fallback_dataset, load_source_registry
 from .live_retriever import GoogleNewsRSSRetriever
 from .llm import OpenAICompatibleLLMClient
+from .local_sections import build_heuristic_sections
 from .models import (
     ArticleCitation,
     ArticleRecord,
@@ -16,6 +17,7 @@ from .models import (
     BriefSections,
     FallbackDataset,
     HandoffArtifact,
+    SectionGenerationMode,
 )
 from .ranking import deduplicate_articles, score_articles
 from .storage import ArtifactStore
@@ -77,7 +79,7 @@ class BriefService:
                 warnings.append("fallback_used")
                 selected_articles = self._prepare_fallback_articles(request_model.topic)
 
-        sections = self._generate_sections(
+        sections, section_generation_mode = self._generate_sections(
             topic=request_model.topic,
             persona=request_model.persona,
             articles=selected_articles,
@@ -102,6 +104,7 @@ class BriefService:
             topic=request_model.topic,
             created_at=created_at,
             mode_used=mode_used,
+            section_generation_mode=section_generation_mode,
             articles=selected_articles,
             overview=sections.overview,
             key_takeaways=sections.key_takeaways,
@@ -116,6 +119,7 @@ class BriefService:
             topic=request_model.topic,
             created_at=created_at,
             mode_used=mode_used,
+            section_generation_mode=section_generation_mode,
             selected_source_ids=[article.id for article in selected_articles],
             sections={
                 "overview": sections.overview,
@@ -137,6 +141,9 @@ class BriefService:
     def get_export_path(self, brief_id: str) -> Path:
         return self.artifact_store.export_path(brief_id)
 
+    def list_recent_briefs(self, limit: int = 6) -> List[BriefResponse]:
+        return self.artifact_store.list_briefs(limit=limit)
+
     def _prepare_live_articles(self, articles: Sequence[ArticleRecord], topic: str) -> List[ArticleRecord]:
         scored = score_articles(articles, topic=topic)
         deduplicated = deduplicate_articles(scored)
@@ -153,14 +160,21 @@ class BriefService:
         articles: Sequence[ArticleRecord],
         mode_used: str,
         warnings: List[str],
-    ) -> BriefSections:
+    ) -> tuple[BriefSections, SectionGenerationMode]:
         try:
-            return self.llm_client.generate_sections(topic=topic, persona=persona, articles=articles)
-        except Exception as exc:
-            if mode_used == "fallback":
-                warnings.append("precomputed_sections_used")
-                return self.fallback_dataset.precomputed_sections
-            raise LiveRunFailed("The live report model failed. Please retry the request.") from exc
+            sections = self.llm_client.generate_sections(topic=topic, persona=persona, articles=articles)
+            return sections, "llm"
+        except Exception:
+            warnings.append("llm_generation_failed")
+            try:
+                sections = build_heuristic_sections(topic=topic, persona=persona, articles=articles)
+                warnings.append("heuristic_sections_used")
+                return sections, "heuristic"
+            except Exception as exc:
+                if mode_used == "fallback":
+                    warnings.append("precomputed_sections_used")
+                    return self.fallback_dataset.precomputed_sections, "precomputed"
+                raise LiveRunFailed("The live report model failed. Please retry the request.") from exc
 
 
 def build_default_service(app_root: Path) -> BriefService:

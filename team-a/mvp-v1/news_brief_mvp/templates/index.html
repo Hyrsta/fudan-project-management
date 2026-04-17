@@ -105,6 +105,34 @@
         display: grid;
         gap: 1rem;
       }
+      .recent-list {
+        display: grid;
+        gap: 0.9rem;
+        padding-left: 0;
+        list-style: none;
+        margin: 0;
+      }
+      .recent-list li {
+        border: 1px solid rgba(214, 211, 209, 0.75);
+        border-radius: 16px;
+        padding: 0.9rem 1rem;
+        background: rgba(255, 253, 249, 0.7);
+      }
+      .recent-list a {
+        color: var(--ink);
+        font-weight: bold;
+        text-decoration: none;
+      }
+      .badge {
+        display: inline-block;
+        margin-top: 0.35rem;
+        margin-right: 0.35rem;
+        padding: 0.2rem 0.55rem;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-size: 0.82rem;
+      }
       @media (min-width: 860px) {
         .grid-2 {
           grid-template-columns: 1.2fr 0.8fr;
@@ -180,6 +208,30 @@
               </p>
             </div>
           {% endif %}
+
+          <div class="card">
+            <strong>Recent briefs</strong>
+            <p class="helper">
+              Reopen recent runs quickly during a demo without re-querying the topic.
+            </p>
+            {% if recent_briefs %}
+              <ul class="recent-list">
+                {% for item in recent_briefs %}
+                  <li>
+                    <a href="/briefs/{{ item.brief_id }}">{{ item.topic }}</a><br>
+                    <span class="helper">{{ item.created_at.strftime('%Y-%m-%d %H:%M UTC') }}</span><br>
+                    <span class="badge">mode: {{ item.mode_used }}</span>
+                    <span class="badge">sections: {{ item.section_generation_mode }}</span>
+                    {% if item.warnings %}
+                      <span class="badge">warnings: {{ item.warnings|join(', ') }}</span>
+                    {% endif %}
+                  </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="helper">No saved briefs yet. Generate one to create the first local artifact set.</p>
+            {% endif %}
+          </div>
         </div>
       </section>
     </main>

@@ -2,7 +2,8 @@
   <article class="card">
     <p class="helper">
       Brief ID: <strong>{{ brief.brief_id }}</strong><br>
-      Mode used: <strong>{{ brief.mode_used }}</strong>
+      Mode used: <strong>{{ brief.mode_used }}</strong><br>
+      Sections built with: <strong>{{ brief.section_generation_mode }}</strong>
       {% if brief.warnings %}
         <br>Warnings:
         {% for warning in brief.warnings %}

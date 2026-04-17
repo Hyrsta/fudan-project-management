@@ -61,6 +61,9 @@ class BriefSections(BaseModel):
     uncertainties: List[str]
 
 
+SectionGenerationMode = Literal["llm", "heuristic", "precomputed"]
+
+
 class BriefResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -68,6 +71,7 @@ class BriefResponse(BaseModel):
     topic: str
     created_at: datetime
     mode_used: Literal["live", "fallback"]
+    section_generation_mode: SectionGenerationMode
     articles: List[ArticleRecord]
     overview: str
     key_takeaways: List[str]
@@ -85,6 +89,7 @@ class HandoffArtifact(BaseModel):
     topic: str
     created_at: datetime
     mode_used: Literal["live", "fallback"]
+    section_generation_mode: SectionGenerationMode
     selected_source_ids: List[str]
     sections: Dict[str, object]
     warnings: List[str] = Field(default_factory=list)

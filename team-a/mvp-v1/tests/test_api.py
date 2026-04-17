@@ -15,6 +15,7 @@ class StubService:
             topic="AI chip export controls",
             created_at=datetime(2026, 4, 17, 12, 0, tzinfo=timezone.utc),
             mode_used="fallback",
+            section_generation_mode="precomputed",
             articles=[
                 ArticleRecord(
                     id="fallback-1",
@@ -51,6 +52,7 @@ class StubService:
             topic="AI chip export controls",
             created_at=datetime(2026, 4, 17, 12, 0, tzinfo=timezone.utc),
             mode_used="fallback",
+            section_generation_mode="precomputed",
             selected_source_ids=["fallback-1"],
             sections={
                 "overview": "Fallback overview",
@@ -73,6 +75,9 @@ class StubService:
     def load_handoff(self, brief_id: str):
         return self.handoff
 
+    def list_recent_briefs(self):
+        return [self.response]
+
 
 def test_post_api_briefs_returns_json_contract(tmp_path) -> None:
     export_path = tmp_path / "brief.html"
@@ -92,6 +97,7 @@ def test_post_api_briefs_returns_json_contract(tmp_path) -> None:
     payload = response.json()
     assert payload["brief_id"] == "brief-123"
     assert payload["mode_used"] == "fallback"
+    assert payload["section_generation_mode"] == "precomputed"
     assert payload["export_html_path"].endswith("brief.html")
 
 
@@ -103,7 +109,12 @@ def test_export_and_handoff_routes_surface_saved_artifacts(tmp_path) -> None:
     export_response = client.get("/briefs/brief-123/export")
     handoff_response = client.get("/briefs/brief-123/handoff")
 
+    health_response = client.get("/health")
+
     assert export_response.status_code == 200
     assert "Brief" in export_response.text
     assert handoff_response.status_code == 200
     assert handoff_response.json()["warnings"] == ["fallback_used"]
+    assert handoff_response.json()["section_generation_mode"] == "precomputed"
+    assert health_response.status_code == 200
+    assert health_response.json()["status"] == "ok"

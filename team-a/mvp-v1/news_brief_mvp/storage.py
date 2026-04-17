@@ -40,6 +40,24 @@ class ArtifactStore:
     def load_handoff(self, brief_id: str) -> HandoffArtifact:
         return HandoffArtifact.model_validate_json(self.handoff_path(brief_id).read_text())
 
+    def list_briefs(self, limit: int = 6) -> list[BriefResponse]:
+        briefs = []
+        if not self.root.exists():
+            return briefs
+        for child in sorted(self.root.iterdir(), key=lambda item: item.stat().st_mtime, reverse=True):
+            if not child.is_dir():
+                continue
+            brief_path = child / "brief.json"
+            if not brief_path.exists():
+                continue
+            try:
+                briefs.append(BriefResponse.model_validate_json(brief_path.read_text()))
+            except Exception:
+                continue
+            if len(briefs) >= limit:
+                break
+        return briefs
+
 
 def _render_export_html(response: BriefResponse) -> str:
     article_items = []
@@ -74,7 +92,7 @@ def _render_export_html(response: BriefResponse) -> str:
   </head>
   <body>
     <h1>{html.escape(response.topic)}</h1>
-    <p class="meta">Mode used: {html.escape(response.mode_used)} | Brief ID: {html.escape(response.brief_id)}</p>
+    <p class="meta">Mode used: {html.escape(response.mode_used)} | Sections: {html.escape(response.section_generation_mode)} | Brief ID: {html.escape(response.brief_id)}</p>
     <div class="callout">
       <strong>Overview</strong>
       <p>{html.escape(response.overview)}</p>

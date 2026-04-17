@@ -1,15 +1,13 @@
 import json
 from datetime import datetime, timedelta, timezone
 
-import pytest
-
 from news_brief_mvp.models import (
     ArticleRecord,
     BriefRequest,
     BriefSections,
     FallbackDataset,
 )
-from news_brief_mvp.service import BriefService, LiveRunFailed
+from news_brief_mvp.service import BriefService
 from news_brief_mvp.storage import ArtifactStore
 
 
@@ -138,18 +136,21 @@ def test_generate_brief_auto_falls_back_and_uses_precomputed_sections_on_llm_fai
     )
 
     assert response.mode_used == "fallback"
+    assert response.section_generation_mode == "heuristic"
     assert "fallback_used" in response.warnings
-    assert response.overview.startswith("The curated demo dataset")
+    assert "heuristic_sections_used" in response.warnings
+    assert response.overview.startswith("For the topic 'AI chip export controls'")
     assert len(response.articles) == 4
     assert store.export_path(response.brief_id).exists()
 
     handoff_payload = json.loads(store.handoff_path(response.brief_id).read_text())
     assert handoff_payload["mode_used"] == "fallback"
+    assert handoff_payload["section_generation_mode"] == "heuristic"
     assert "fallback_used" in handoff_payload["warnings"]
     assert handoff_payload["sections"]["overview"] == response.overview
 
 
-def test_generate_brief_live_mode_raises_retryable_error_when_llm_fails(tmp_path) -> None:
+def test_generate_brief_live_mode_uses_heuristic_sections_when_llm_fails(tmp_path) -> None:
     store = ArtifactStore(tmp_path / "artifacts")
     service = BriefService(
         live_retriever=FakeLiveRetriever(
@@ -166,10 +167,15 @@ def test_generate_brief_live_mode_raises_retryable_error_when_llm_fails(tmp_path
         minimum_live_articles=4,
     )
 
-    with pytest.raises(LiveRunFailed):
-        service.generate_brief(
-            BriefRequest(topic="AI chip export controls", mode="live", persona="research_analyst")
-        )
+    response = service.generate_brief(
+        BriefRequest(topic="AI chip export controls", mode="live", persona="research_analyst")
+    )
+
+    assert response.mode_used == "live"
+    assert response.section_generation_mode == "heuristic"
+    assert "llm_generation_failed" in response.warnings
+    assert "heuristic_sections_used" in response.warnings
+    assert response.overview.startswith("For the topic 'AI chip export controls'")
 
 
 def test_generate_brief_live_mode_returns_ranked_articles_and_sections(tmp_path) -> None:
@@ -194,6 +200,7 @@ def test_generate_brief_live_mode_returns_ranked_articles_and_sections(tmp_path)
     )
 
     assert response.mode_used == "live"
+    assert response.section_generation_mode == "llm"
     assert response.articles[0].total_score >= response.articles[-1].total_score
     assert response.key_takeaways[0] == "Policy direction is still evolving."
     assert response.citations[0].article_id == response.articles[0].id
