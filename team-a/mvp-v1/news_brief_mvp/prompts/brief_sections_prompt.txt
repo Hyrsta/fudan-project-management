@@ -1,0 +1,19 @@
+Topic: {topic}
+Persona: {persona}
+
+You are preparing a concise analyst brief from the article set below.
+Return a JSON object with exactly these keys:
+- overview: string
+- key_takeaways: array of 3 to 5 strings
+- framing_comparison: string
+- uncertainties: array of 2 to 3 strings
+
+Focus on:
+- what matters most for a research analyst
+- how sources frame the story differently
+- visible limits and uncertainty
+- language that stays grounded in the cited material
+
+Articles:
+{articles}
+

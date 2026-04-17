@@ -1,0 +1,20 @@
+{
+  "weights": {
+    "default": 0.45,
+    "reuters": 0.98,
+    "ap": 0.95,
+    "associated press": 0.95,
+    "bbc": 0.93,
+    "bbc news": 0.93,
+    "financial times": 0.92,
+    "the financial times": 0.92,
+    "the wall street journal": 0.9,
+    "wall street journal": 0.9,
+    "bloomberg": 0.9,
+    "cnbc": 0.82,
+    "the verge": 0.75,
+    "techcrunch": 0.72,
+    "google news": 0.4
+  }
+}
+

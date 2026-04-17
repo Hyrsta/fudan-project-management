@@ -2,6 +2,8 @@
 __pycache__/
 *.pyc
 .venv/
+team-a/mvp-v1/artifacts/
+team-a/mvp-v1/.pytest_cache/
 node_modules/
 dist/
 build/

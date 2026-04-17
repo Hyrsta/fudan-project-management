@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Team A MVP | Analyst Brief App</title>
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <style>
+      :root {
+        --bg: #f5efe7;
+        --ink: #1c1917;
+        --muted: #57534e;
+        --card: rgba(255, 255, 255, 0.9);
+        --line: #d6d3d1;
+        --accent: #9a3412;
+        --accent-soft: rgba(154, 52, 18, 0.12);
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: Georgia, "Times New Roman", serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at top right, rgba(217, 119, 6, 0.18), transparent 28%),
+          linear-gradient(180deg, #fbf7f0 0%, var(--bg) 100%);
+        min-height: 100vh;
+      }
+      .page {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 2rem 1.25rem 3rem;
+      }
+      .hero {
+        display: grid;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+      }
+      .eyebrow {
+        color: var(--accent);
+        font-size: 0.92rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      h1 {
+        margin: 0;
+        font-size: clamp(2rem, 5vw, 4rem);
+        line-height: 0.95;
+      }
+      .hero p {
+        max-width: 760px;
+        margin: 0;
+        color: var(--muted);
+        font-size: 1.05rem;
+      }
+      .shell {
+        display: grid;
+        gap: 1.25rem;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid rgba(214, 211, 209, 0.75);
+        border-radius: 22px;
+        padding: 1.25rem;
+        box-shadow: 0 24px 60px rgba(28, 25, 23, 0.08);
+      }
+      form {
+        display: grid;
+        gap: 1rem;
+      }
+      .form-grid {
+        display: grid;
+        gap: 0.9rem;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      }
+      label {
+        display: grid;
+        gap: 0.35rem;
+        font-size: 0.95rem;
+      }
+      input, select, button {
+        font: inherit;
+      }
+      input, select {
+        width: 100%;
+        border-radius: 14px;
+        border: 1px solid var(--line);
+        padding: 0.9rem 0.95rem;
+        background: #fffdf9;
+      }
+      button {
+        border: 0;
+        border-radius: 999px;
+        padding: 0.9rem 1.35rem;
+        background: var(--accent);
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+        justify-self: start;
+      }
+      .helper {
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+      .grid-2 {
+        display: grid;
+        gap: 1rem;
+      }
+      @media (min-width: 860px) {
+        .grid-2 {
+          grid-template-columns: 1.2fr 0.8fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="hero">
+        <span class="eyebrow">Team A MVP</span>
+        <h1>Analyst brief generation with live-or-fallback news research.</h1>
+        <p>
+          Enter a topic, pull fresh RSS coverage when available, and generate a
+          structured research brief with citations, source comparison, export,
+          and a Team B handoff artifact.
+        </p>
+      </section>
+
+      <section class="shell">
+        <div class="card">
+          <form
+            hx-post="/api/briefs"
+            hx-target="#result-panel"
+            hx-swap="innerHTML"
+          >
+            <label>
+              Topic
+              <input
+                type="text"
+                name="topic"
+                placeholder="Example: AI chip export controls"
+                required
+              >
+            </label>
+            <div class="form-grid">
+              <label>
+                Retrieval mode
+                <select name="mode">
+                  <option value="auto" selected>Auto live-or-fallback</option>
+                  <option value="live">Live only</option>
+                  <option value="fallback">Fallback dataset only</option>
+                </select>
+              </label>
+              <label>
+                Persona
+                <select name="persona">
+                  <option value="research_analyst" selected>Research analyst</option>
+                </select>
+              </label>
+            </div>
+            <button type="submit">Generate brief</button>
+            <p class="helper">
+              Auto mode attempts live RSS retrieval first. If fewer than four
+              usable articles arrive in time, the app falls back to the curated
+              demo dataset and labels the run clearly.
+            </p>
+          </form>
+        </div>
+
+        <div id="result-panel">
+          {% if error_message %}
+            {% include "partials/error.html" %}
+          {% elif brief %}
+            {% include "partials/brief_result.html" %}
+          {% else %}
+            <div class="card">
+              <strong>Ready for a class demo.</strong>
+              <p class="helper">
+                The first successful path is intentionally narrow: topic input,
+                ranked sources, framing comparison, final brief, HTML export,
+                and JSON handoff.
+              </p>
+            </div>
+          {% endif %}
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
+
