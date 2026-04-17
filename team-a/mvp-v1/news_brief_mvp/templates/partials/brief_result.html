@@ -1,0 +1,55 @@
+<div class="grid-2">
+  <article class="card">
+    <p class="helper">
+      Brief ID: <strong>{{ brief.brief_id }}</strong><br>
+      Mode used: <strong>{{ brief.mode_used }}</strong>
+      {% if brief.warnings %}
+        <br>Warnings:
+        {% for warning in brief.warnings %}
+          <span>{{ warning }}</span>{% if not loop.last %}, {% endif %}
+        {% endfor %}
+      {% endif %}
+    </p>
+    <h2>{{ brief.topic }}</h2>
+    <p><strong>Overview.</strong> {{ brief.overview }}</p>
+    <h3>Key takeaways</h3>
+    <ul>
+      {% for item in brief.key_takeaways %}
+        <li>{{ item }}</li>
+      {% endfor %}
+    </ul>
+    <h3>Source framing comparison</h3>
+    <p>{{ brief.framing_comparison }}</p>
+    <h3>Uncertainties and limits</h3>
+    <ul>
+      {% for item in brief.uncertainties %}
+        <li>{{ item }}</li>
+      {% endfor %}
+    </ul>
+    <p class="helper">
+      <a href="/briefs/{{ brief.brief_id }}">Open detail page</a> |
+      <a href="/briefs/{{ brief.brief_id }}/export">Download HTML export</a> |
+      <a href="/briefs/{{ brief.brief_id }}/handoff">Open Team B handoff JSON</a>
+    </p>
+  </article>
+
+  <aside class="card">
+    <h3>Selected sources</h3>
+    <ol>
+      {% for article in brief.articles %}
+        <li>
+          <strong>{{ article.title }}</strong><br>
+          <span>{{ article.source }}</span><br>
+          <span class="helper">
+            score {{ '%.2f'|format(article.total_score) }} |
+            freshness {{ '%.2f'|format(article.freshness_score) }} |
+            topic match {{ '%.2f'|format(article.match_score) }}
+          </span>
+          <p>{{ article.summary or article.snippet }}</p>
+          <a href="{{ article.url }}">Source link</a>
+        </li>
+      {% endfor %}
+    </ol>
+  </aside>
+</div>
+
