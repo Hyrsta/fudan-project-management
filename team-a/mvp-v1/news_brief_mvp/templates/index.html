@@ -3,238 +3,796 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#fdf9f4">
     <title>Team A MVP | Analyst Brief App</title>
     <script src="https://unpkg.com/htmx.org@1.9.12"></script>
     <style>
       :root {
-        --bg: #f5efe7;
-        --ink: #1c1917;
-        --muted: #57534e;
-        --card: rgba(255, 255, 255, 0.9);
-        --line: #d6d3d1;
+        --space-xs: clamp(0.5rem, 0.4rem + 0.3vw, 0.7rem);
+        --space-sm: clamp(0.75rem, 0.65rem + 0.5vw, 1rem);
+        --space-md: clamp(1rem, 0.8rem + 0.9vw, 1.4rem);
+        --space-lg: clamp(1.35rem, 1rem + 1.2vw, 2rem);
+        --space-xl: clamp(1.8rem, 1.35rem + 2vw, 3rem);
+        --bg: #f7f1ea;
+        --bg-strong: #fffaf4;
+        --surface: rgba(255, 255, 255, 0.88);
+        --surface-strong: #ffffff;
+        --ink: #1f1a17;
+        --muted: #645a52;
+        --line: rgba(120, 113, 108, 0.2);
+        --line-strong: rgba(120, 113, 108, 0.35);
         --accent: #9a3412;
+        --accent-strong: #7c2d12;
         --accent-soft: rgba(154, 52, 18, 0.12);
+        --success: #166534;
+        --success-soft: rgba(22, 101, 52, 0.12);
+        --warning: #92400e;
+        --warning-soft: rgba(146, 64, 14, 0.14);
+        --shadow: 0 24px 60px rgba(28, 25, 23, 0.08);
       }
-      * { box-sizing: border-box; }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        color-scheme: light;
+        scroll-behavior: smooth;
+      }
+
       body {
         margin: 0;
-        font-family: Georgia, "Times New Roman", serif;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         color: var(--ink);
         background:
-          radial-gradient(circle at top right, rgba(217, 119, 6, 0.18), transparent 28%),
-          linear-gradient(180deg, #fbf7f0 0%, var(--bg) 100%);
+          radial-gradient(circle at top right, rgba(217, 119, 6, 0.18), transparent 24%),
+          radial-gradient(circle at top left, rgba(249, 115, 22, 0.08), transparent 22%),
+          linear-gradient(180deg, #fdf9f4 0%, var(--bg) 100%);
         min-height: 100vh;
+        -webkit-tap-highlight-color: rgba(154, 52, 18, 0.12);
       }
+
+      a {
+        color: var(--accent-strong);
+        text-underline-offset: 0.14em;
+      }
+
+      a:hover {
+        color: var(--accent);
+      }
+
+      button,
+      input,
+      select {
+        font: inherit;
+        touch-action: manipulation;
+      }
+
+      button:focus-visible,
+      input:focus-visible,
+      select:focus-visible,
+      a:focus-visible {
+        outline: 3px solid rgba(154, 52, 18, 0.28);
+        outline-offset: 2px;
+      }
+
+      .skip-link {
+        position: absolute;
+        left: 1rem;
+        top: -3rem;
+        z-index: 10;
+        border-radius: 999px;
+        padding: 0.7rem 0.95rem;
+        background: var(--surface-strong);
+        border: 1px solid var(--line-strong);
+        box-shadow: var(--shadow);
+      }
+
+      .skip-link:focus-visible {
+        top: 1rem;
+      }
+
       .page {
-        max-width: 1100px;
+        max-width: 1180px;
         margin: 0 auto;
-        padding: 2rem 1.25rem 3rem;
+        padding: var(--space-xl) var(--space-md) calc(var(--space-xl) + 0.8rem);
       }
+
       .hero {
         display: grid;
-        gap: 1rem;
-        margin-bottom: 1.5rem;
+        gap: var(--space-md);
+        margin-bottom: var(--space-md);
       }
+
       .eyebrow {
-        color: var(--accent);
-        font-size: 0.92rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        width: fit-content;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent-strong);
+        padding: 0.42rem 0.78rem;
+        font-size: 0.82rem;
+        font-weight: 700;
         letter-spacing: 0.08em;
         text-transform: uppercase;
       }
-      h1 {
-        margin: 0;
-        font-size: clamp(2rem, 5vw, 4rem);
-        line-height: 0.95;
+
+      .hero-grid {
+        display: grid;
+        gap: var(--space-md);
+        container-type: inline-size;
+        container-name: hero;
       }
-      .hero p {
-        max-width: 760px;
+
+      .hero-copy {
+        display: grid;
+        gap: var(--space-md);
+        min-width: 0;
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        line-height: 1.05;
+        letter-spacing: -0.02em;
+        text-wrap: balance;
+      }
+
+      h1 {
+        max-width: 10ch;
+        font-size: clamp(2.3rem, 5.4vw, 4.7rem);
+      }
+
+      .lead {
+        max-width: 62ch;
         margin: 0;
         color: var(--muted);
-        font-size: 1.05rem;
+        font-size: 1.02rem;
+        line-height: 1.68;
       }
-      .shell {
+
+      .hero-highlights {
         display: grid;
-        gap: 1.25rem;
+        gap: var(--space-sm);
+        grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr));
       }
-      .card {
-        background: var(--card);
-        border: 1px solid rgba(214, 211, 209, 0.75);
-        border-radius: 22px;
-        padding: 1.25rem;
-        box-shadow: 0 24px 60px rgba(28, 25, 23, 0.08);
+
+      .highlight {
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.58);
+        padding: var(--space-sm);
+        backdrop-filter: blur(8px);
       }
-      form {
-        display: grid;
-        gap: 1rem;
-      }
-      .form-grid {
-        display: grid;
-        gap: 0.9rem;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      }
-      label {
-        display: grid;
-        gap: 0.35rem;
+
+      .highlight strong {
+        display: block;
+        margin-bottom: 0.28rem;
         font-size: 0.95rem;
       }
-      input, select, button {
-        font: inherit;
-      }
-      input, select {
-        width: 100%;
-        border-radius: 14px;
-        border: 1px solid var(--line);
-        padding: 0.9rem 0.95rem;
-        background: #fffdf9;
-      }
-      button {
-        border: 0;
-        border-radius: 999px;
-        padding: 0.9rem 1.35rem;
-        background: var(--accent);
-        color: white;
-        font-weight: bold;
-        cursor: pointer;
-        justify-self: start;
-      }
-      .helper {
+
+      .highlight span {
         color: var(--muted);
         font-size: 0.92rem;
+        line-height: 1.5;
       }
+
+      .shell {
+        display: grid;
+        gap: var(--space-md);
+      }
+
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        padding: var(--space-md);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(12px);
+        min-width: 0;
+        overflow-wrap: anywhere;
+      }
+
+      .card-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: var(--space-sm);
+        margin-bottom: var(--space-sm);
+      }
+
+      .card-header p,
+      .section-copy,
+      .helper {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.94rem;
+        line-height: 1.6;
+      }
+
+      .helper-inline {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+
+      form {
+        display: grid;
+        gap: var(--space-sm);
+      }
+
+      .label-copy {
+        display: grid;
+        gap: 0.34rem;
+      }
+
+      label {
+        display: grid;
+        gap: 0.45rem;
+        font-size: 0.95rem;
+        font-weight: 600;
+      }
+
+      .field-note {
+        color: var(--muted);
+        font-weight: 400;
+        font-size: 0.88rem;
+        line-height: 1.5;
+      }
+
+      input,
+      select {
+        width: 100%;
+        min-height: 48px;
+        border-radius: 16px;
+        border: 1px solid var(--line-strong);
+        padding: 0.95rem 1rem;
+        background: var(--bg-strong);
+        color: var(--ink);
+        transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+      }
+
+      input:hover,
+      select:hover {
+        border-color: rgba(154, 52, 18, 0.3);
+      }
+
+      input:focus,
+      select:focus {
+        border-color: rgba(154, 52, 18, 0.45);
+        box-shadow: 0 0 0 4px rgba(154, 52, 18, 0.08);
+      }
+
+      .form-grid {
+        display: grid;
+        gap: var(--space-sm);
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      }
+
+      .example-topics {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+      }
+
+      .chip-button,
+      .chip,
+      .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        border-radius: 999px;
+        padding: 0.4rem 0.7rem;
+        font-size: 0.84rem;
+        line-height: 1;
+      }
+
+      .chip-button {
+        border: 1px solid rgba(154, 52, 18, 0.2);
+        background: rgba(255, 255, 255, 0.75);
+        color: var(--ink);
+        cursor: pointer;
+        transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+      }
+
+      .chip-button:hover {
+        transform: translateY(-1px);
+        border-color: rgba(154, 52, 18, 0.38);
+        background: #fff;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-sm);
+      }
+
+      .primary-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.65rem;
+        min-height: 48px;
+        border: 0;
+        border-radius: 999px;
+        padding: 0.92rem 1.3rem;
+        background: linear-gradient(135deg, var(--accent) 0%, #b45309 100%);
+        color: white;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
+        box-shadow: 0 14px 28px rgba(154, 52, 18, 0.22);
+      }
+
+      .primary-button:hover {
+        transform: translateY(-1px);
+        filter: brightness(1.02);
+      }
+
+      .primary-button .loading-label {
+        display: none;
+      }
+
+      form.htmx-request .primary-button .default-label {
+        display: none;
+      }
+
+      form.htmx-request .primary-button .loading-label {
+        display: inline;
+      }
+
+      .primary-button:disabled {
+        opacity: 0.68;
+        cursor: progress;
+      }
+
+      .htmx-indicator {
+        display: none;
+      }
+
+      .htmx-request .htmx-indicator,
+      .htmx-request.htmx-indicator {
+        display: inline-flex;
+      }
+
+      .spinner {
+        width: 1rem;
+        height: 1rem;
+        border: 2px solid rgba(255, 255, 255, 0.4);
+        border-top-color: white;
+        border-radius: 999px;
+        animation: spin 0.8s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .status-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.65rem;
+      }
+
+      .status-pill {
+        background: rgba(255, 255, 255, 0.75);
+        border: 1px solid var(--line);
+        color: var(--muted);
+      }
+
+      .status-pill strong {
+        color: var(--ink);
+      }
+
+      .panel-grid,
       .grid-2 {
         display: grid;
-        gap: 1rem;
+        gap: var(--space-md);
       }
-      .recent-list {
+
+      .empty-state {
+        display: grid;
+        gap: 0.75rem;
+      }
+
+      .metrics-grid {
+        display: grid;
+        gap: 0.85rem;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        margin-top: var(--space-sm);
+      }
+
+      .metric-card {
+        border-radius: 18px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.72);
+        padding: 0.95rem 1rem;
+      }
+
+      .metric-card strong {
+        display: block;
+        font-size: 1.05rem;
+      }
+
+      .metric-card span {
+        color: var(--muted);
+        font-size: 0.86rem;
+      }
+
+      .recent-list,
+      .link-list,
+      .list-clean {
         display: grid;
         gap: 0.9rem;
         padding-left: 0;
         list-style: none;
         margin: 0;
       }
-      .recent-list li {
-        border: 1px solid rgba(214, 211, 209, 0.75);
-        border-radius: 16px;
-        padding: 0.9rem 1rem;
-        background: rgba(255, 253, 249, 0.7);
+
+      .recent-list li,
+      .source-card {
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: var(--space-sm);
+        background: rgba(255, 253, 249, 0.76);
+        content-visibility: auto;
       }
-      .recent-list a {
+
+      .recent-link {
         color: var(--ink);
-        font-weight: bold;
+        font-weight: 700;
         text-decoration: none;
       }
-      .badge {
-        display: inline-block;
-        margin-top: 0.35rem;
-        margin-right: 0.35rem;
-        padding: 0.2rem 0.55rem;
-        border-radius: 999px;
-        background: var(--accent-soft);
-        color: var(--accent);
-        font-size: 0.82rem;
+
+      .recent-link:hover {
+        text-decoration: underline;
       }
-      @media (min-width: 860px) {
+
+      .chip {
+        background: var(--accent-soft);
+        color: var(--accent-strong);
+      }
+
+      .chip.success {
+        background: var(--success-soft);
+        color: var(--success);
+      }
+
+      .chip.warning {
+        background: var(--warning-soft);
+        color: var(--warning);
+      }
+
+      .section-block {
+        display: grid;
+        gap: 0.7rem;
+        margin-top: var(--space-sm);
+      }
+
+      .section-block:first-of-type {
+        margin-top: 0;
+      }
+
+      .section-block h3 {
+        font-size: 1rem;
+      }
+
+      .section-panel {
+        border-radius: 18px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.68);
+        padding: var(--space-sm);
+      }
+
+      .section-panel p,
+      .section-panel li {
+        line-height: 1.65;
+      }
+
+      .section-panel ul,
+      .section-panel ol {
+        margin: 0;
+        padding-left: 1.15rem;
+      }
+
+      .actions-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.7rem;
+      }
+
+      .text-link-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        padding: 0.55rem 0.85rem;
+        background: rgba(255, 255, 255, 0.74);
+        text-decoration: none;
+        font-weight: 600;
+      }
+
+      .score-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.55rem;
+        margin: 0.5rem 0 0.75rem;
+      }
+
+      .score-pill {
+        border-radius: 999px;
+        background: rgba(28, 25, 23, 0.06);
+        color: var(--muted);
+        padding: 0.35rem 0.65rem;
+        font-size: 0.8rem;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .source-card h4 {
+        margin: 0 0 0.45rem;
+        font-size: 1rem;
+        line-height: 1.35;
+      }
+
+      .source-meta {
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      .error-card {
+        border-color: rgba(185, 28, 28, 0.18);
+        background: rgba(254, 242, 242, 0.96);
+      }
+
+      .divider {
+        width: 100%;
+        height: 1px;
+        margin: 0.35rem 0 0.2rem;
+        background: var(--line);
+      }
+
+      .result-frame {
+        container-type: inline-size;
+        container-name: result-panel;
+      }
+
+      @container result-panel (min-width: 48rem) {
+        .result-frame .grid-2 {
+          grid-template-columns: 1.18fr 0.82fr;
+        }
+      }
+
+      @container hero (min-width: 56rem) {
+        .hero-grid {
+          grid-template-columns: minmax(0, 1.12fr) minmax(320px, 0.88fr);
+          align-items: end;
+        }
+      }
+
+      @media (min-width: 880px) {
         .grid-2 {
-          grid-template-columns: 1.2fr 0.8fr;
+          grid-template-columns: 1.18fr 0.82fr;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .page {
+          padding: 1.15rem 0.95rem 2rem;
+        }
+
+        .card {
+          border-radius: 20px;
+          padding: 1rem;
+        }
+
+        h1 {
+          max-width: 13ch;
+        }
+
+        .actions {
+          align-items: stretch;
+        }
+
+        .primary-button {
+          width: 100%;
+          justify-content: center;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
         }
       }
     </style>
   </head>
   <body>
-    <main class="page">
+    <a class="skip-link" href="#main-content">Skip to Main Content</a>
+    <main class="page" id="main-content">
       <section class="hero">
         <span class="eyebrow">Team A MVP</span>
-        <h1>Analyst brief generation with live-or-fallback news research.</h1>
-        <p>
-          Enter a topic, pull fresh RSS coverage when available, and generate a
-          structured research brief with citations, source comparison, export,
-          and a Team B handoff artifact.
-        </p>
+        <div class="hero-grid">
+          <div class="hero-copy">
+            <h1>Analyst Brief Generation with Live-or-Fallback News Research</h1>
+            <p class="lead">
+              Enter a topic, pull fresh RSS coverage when available, and generate a
+              structured research brief with ranked sources, framing comparison, export,
+              and a Team B handoff artifact.
+            </p>
+            <div class="hero-highlights" aria-label="Product highlights">
+              <div class="highlight">
+                <strong>Graceful fallback</strong>
+                <span>Live retrieval can degrade safely into heuristic or precomputed output.</span>
+              </div>
+              <div class="highlight">
+                <strong>Traceable output</strong>
+                <span>Every run keeps source lists, export HTML, and handoff JSON locally.</span>
+              </div>
+              <div class="highlight">
+                <strong>Demo-ready flow</strong>
+                <span>Recent briefs stay visible so you can reopen strong examples quickly.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h2>Generate a Brief</h2>
+                <p class="section-copy">
+                  Start with a single topic and let the app choose the best available path.
+                </p>
+              </div>
+              <span class="chip success">Local-first</span>
+            </div>
+
+            <form
+              hx-post="/api/briefs"
+              hx-target="#result-panel"
+              hx-swap="innerHTML"
+              aria-label="Generate analyst brief"
+            >
+              <label>
+                <span class="label-copy">
+                  <span>Topic</span>
+                  <span class="field-note">Use a clear event, policy, or company storyline.</span>
+                </span>
+                <input
+                  id="topic-input"
+                  type="text"
+                  name="topic"
+                  placeholder="Example: AI chip export controls…"
+                  inputmode="search"
+                  autocomplete="off"
+                  required
+                >
+              </label>
+
+              <div class="example-topics" aria-label="Example topics">
+                <button type="button" class="chip-button" onclick="document.getElementById('topic-input').value='AI chip export controls'; document.getElementById('topic-input').focus();">AI chip export controls</button>
+                <button type="button" class="chip-button" onclick="document.getElementById('topic-input').value='US inflation outlook'; document.getElementById('topic-input').focus();">US inflation outlook</button>
+                <button type="button" class="chip-button" onclick="document.getElementById('topic-input').value='Open-source AI model competition'; document.getElementById('topic-input').focus();">Open-source AI model competition</button>
+              </div>
+
+              <div class="form-grid">
+                <label>
+                  <span class="label-copy">
+                    <span>Retrieval mode</span>
+                    <span class="field-note">Auto is best for demos. Fallback is best for predictable output.</span>
+                  </span>
+                  <select name="mode">
+                    <option value="auto" selected>Auto live-or-fallback</option>
+                    <option value="live">Live only</option>
+                    <option value="fallback">Fallback dataset only</option>
+                  </select>
+                </label>
+                <label>
+                  <span class="label-copy">
+                    <span>Persona</span>
+                    <span class="field-note">Current MVP supports a single analyst persona.</span>
+                  </span>
+                  <select name="persona">
+                    <option value="research_analyst" selected>Research analyst</option>
+                  </select>
+                </label>
+              </div>
+
+              <div class="actions">
+                <button type="submit" class="primary-button">
+                  <span class="htmx-indicator"><span class="spinner" aria-hidden="true"></span></span>
+                  <span class="default-label">Generate Brief</span>
+                  <span class="loading-label">Generating…</span>
+                </button>
+                <span class="helper helper-inline">Auto mode retries gracefully when live retrieval is weak.</span>
+              </div>
+            </form>
+          </div>
+        </div>
       </section>
 
       <section class="shell">
-        <div class="card">
-          <form
-            hx-post="/api/briefs"
-            hx-target="#result-panel"
-            hx-swap="innerHTML"
-          >
-            <label>
-              Topic
-              <input
-                type="text"
-                name="topic"
-                placeholder="Example: AI chip export controls"
-                required
-              >
-            </label>
-            <div class="form-grid">
-              <label>
-                Retrieval mode
-                <select name="mode">
-                  <option value="auto" selected>Auto live-or-fallback</option>
-                  <option value="live">Live only</option>
-                  <option value="fallback">Fallback dataset only</option>
-                </select>
-              </label>
-              <label>
-                Persona
-                <select name="persona">
-                  <option value="research_analyst" selected>Research analyst</option>
-                </select>
-              </label>
-            </div>
-            <button type="submit">Generate brief</button>
-            <p class="helper">
-              Auto mode attempts live RSS retrieval first. If fewer than four
-              usable articles arrive in time, the app falls back to the curated
-              demo dataset and labels the run clearly.
-            </p>
-          </form>
-        </div>
-
-        <div id="result-panel">
+        <div id="result-panel" class="result-frame" aria-live="polite">
           {% if error_message %}
             {% include "partials/error.html" %}
           {% elif brief %}
             {% include "partials/brief_result.html" %}
           {% else %}
-            <div class="card">
-              <strong>Ready for a class demo.</strong>
-              <p class="helper">
-                The first successful path is intentionally narrow: topic input,
-                ranked sources, framing comparison, final brief, HTML export,
-                and JSON handoff.
-              </p>
+            <div class="card empty-state">
+              <div class="card-header">
+                <div>
+                  <h2>Ready for a class demo</h2>
+                  <p class="section-copy">
+                    The current MVP proves a narrow but complete loop: topic input,
+                    source selection, synthesis, export, and Team B handoff.
+                  </p>
+                </div>
+                <span class="chip">MVP v1</span>
+              </div>
+
+              <div class="metrics-grid">
+                <div class="metric-card">
+                  <strong>3</strong>
+                  <span>artifact outputs per brief</span>
+                </div>
+                <div class="metric-card">
+                  <strong>3</strong>
+                  <span>section generation paths</span>
+                </div>
+                <div class="metric-card">
+                  <strong>1</strong>
+                  <span>simple operator workflow</span>
+                </div>
+              </div>
             </div>
           {% endif %}
+        </div>
 
-          <div class="card">
-            <strong>Recent briefs</strong>
-            <p class="helper">
-              Reopen recent runs quickly during a demo without re-querying the topic.
-            </p>
-            {% if recent_briefs %}
-              <ul class="recent-list">
-                {% for item in recent_briefs %}
-                  <li>
-                    <a href="/briefs/{{ item.brief_id }}">{{ item.topic }}</a><br>
-                    <span class="helper">{{ item.created_at.strftime('%Y-%m-%d %H:%M UTC') }}</span><br>
-                    <span class="badge">mode: {{ item.mode_used }}</span>
-                    <span class="badge">sections: {{ item.section_generation_mode }}</span>
-                    {% if item.warnings %}
-                      <span class="badge">warnings: {{ item.warnings|join(', ') }}</span>
-                    {% endif %}
-                  </li>
-                {% endfor %}
-              </ul>
-            {% else %}
-              <p class="helper">No saved briefs yet. Generate one to create the first local artifact set.</p>
-            {% endif %}
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h2>Recent briefs</h2>
+              <p class="section-copy">
+                Reopen recent runs quickly during a demo without re-querying the topic.
+              </p>
+            </div>
+            <span class="chip">Saved locally</span>
           </div>
+
+          {% if recent_briefs %}
+            <ul class="recent-list">
+              {% for item in recent_briefs %}
+                <li>
+                  <a class="recent-link" href="/briefs/{{ item.brief_id }}">{{ item.topic }}</a>
+                  <p class="helper">{{ item.created_at.strftime('%Y-%m-%d %H:%M UTC') }}</p>
+                  <div class="status-row">
+                    <span class="status-pill"><strong>mode</strong> {{ item.mode_used }}</span>
+                    <span class="status-pill"><strong>sections</strong> {{ item.section_generation_mode }}</span>
+                    {% if item.warnings %}
+                      <span class="status-pill"><strong>warnings</strong> {{ item.warnings|join(', ') }}</span>
+                    {% endif %}
+                  </div>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="helper">No saved briefs yet. Generate one to create the first local artifact set.</p>
+          {% endif %}
         </div>
       </section>
     </main>
   </body>
 </html>
-

@@ -1,5 +1,19 @@
-<div class="card">
-  <strong>Live run needs a retry.</strong>
-  <p class="helper">{{ error_message }}</p>
+<div class="card error-card">
+  <div class="card-header">
+    <div>
+      <h2>Live run needs a retry</h2>
+      <p class="section-copy">
+        The app could not complete the requested live-only path in this run.
+      </p>
+    </div>
+    <span class="chip warning">Retry needed</span>
+  </div>
+  <div class="section-panel">
+    <p>{{ error_message }}</p>
+    <div class="divider"></div>
+    <p class="helper">
+      For a predictable class demo, try <strong>Auto live-or-fallback</strong> or
+      <strong>Fallback dataset only</strong> instead of <strong>Live only</strong>.
+    </p>
+  </div>
 </div>
-

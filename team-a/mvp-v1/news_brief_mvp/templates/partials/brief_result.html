@@ -1,56 +1,110 @@
 <div class="grid-2">
   <article class="card">
-    <p class="helper">
-      Brief ID: <strong>{{ brief.brief_id }}</strong><br>
-      Mode used: <strong>{{ brief.mode_used }}</strong><br>
-      Sections built with: <strong>{{ brief.section_generation_mode }}</strong>
-      {% if brief.warnings %}
-        <br>Warnings:
-        {% for warning in brief.warnings %}
-          <span>{{ warning }}</span>{% if not loop.last %}, {% endif %}
-        {% endfor %}
-      {% endif %}
-    </p>
-    <h2>{{ brief.topic }}</h2>
-    <p><strong>Overview.</strong> {{ brief.overview }}</p>
-    <h3>Key takeaways</h3>
-    <ul>
-      {% for item in brief.key_takeaways %}
-        <li>{{ item }}</li>
-      {% endfor %}
-    </ul>
-    <h3>Source framing comparison</h3>
-    <p>{{ brief.framing_comparison }}</p>
-    <h3>Uncertainties and limits</h3>
-    <ul>
-      {% for item in brief.uncertainties %}
-        <li>{{ item }}</li>
-      {% endfor %}
-    </ul>
-    <p class="helper">
-      <a href="/briefs/{{ brief.brief_id }}">Open detail page</a> |
-      <a href="/briefs/{{ brief.brief_id }}/export">Download HTML export</a> |
-      <a href="/briefs/{{ brief.brief_id }}/handoff">Open Team B handoff JSON</a>
-    </p>
+    <div class="card-header">
+      <div>
+        <h2>{{ brief.topic }}</h2>
+        <p class="section-copy">
+          Analyst-style brief generated from the currently selected source set.
+        </p>
+      </div>
+      <span class="chip success">Brief ready</span>
+    </div>
+
+    <div class="status-row" aria-label="Brief metadata">
+      <span class="status-pill"><strong>ID</strong> {{ brief.brief_id }}</span>
+      <span class="status-pill"><strong>mode</strong> {{ brief.mode_used }}</span>
+      <span class="status-pill"><strong>sections</strong> {{ brief.section_generation_mode }}</span>
+      <span class="status-pill"><strong>sources</strong> {{ brief.articles|length }}</span>
+    </div>
+
+    {% if brief.warnings %}
+      <div class="section-block">
+        <h3>Warnings</h3>
+        <div class="section-panel">
+          <div class="status-row">
+            {% for warning in brief.warnings %}
+              <span class="chip warning">{{ warning }}</span>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+    <section class="section-block">
+      <h3>Overview</h3>
+      <div class="section-panel">
+        <p>{{ brief.overview }}</p>
+      </div>
+    </section>
+
+    <section class="section-block">
+      <h3>Key takeaways</h3>
+      <div class="section-panel">
+        <ul>
+          {% for item in brief.key_takeaways %}
+            <li>{{ item }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </section>
+
+    <section class="section-block">
+      <h3>Source framing comparison</h3>
+      <div class="section-panel">
+        <p>{{ brief.framing_comparison }}</p>
+      </div>
+    </section>
+
+    <section class="section-block">
+      <h3>Uncertainties and limits</h3>
+      <div class="section-panel">
+        <ul>
+          {% for item in brief.uncertainties %}
+            <li>{{ item }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </section>
+
+    <section class="section-block">
+      <h3>Artifacts</h3>
+      <div class="section-panel">
+        <div class="actions-list">
+          <a class="text-link-button" href="/briefs/{{ brief.brief_id }}">Open detail page</a>
+          <a class="text-link-button" href="/briefs/{{ brief.brief_id }}/export">Download HTML export</a>
+          <a class="text-link-button" href="/briefs/{{ brief.brief_id }}/handoff">Open Team B handoff JSON</a>
+        </div>
+      </div>
+    </section>
   </article>
 
   <aside class="card">
-    <h3>Selected sources</h3>
-    <ol>
+    <div class="card-header">
+      <div>
+        <h2>Selected sources</h2>
+        <p class="section-copy">
+          Ranked and deduplicated articles used to build this brief.
+        </p>
+      </div>
+      <span class="chip">Traceable</span>
+    </div>
+
+    <div class="list-clean" aria-label="Selected sources list">
       {% for article in brief.articles %}
-        <li>
-          <strong>{{ article.title }}</strong><br>
-          <span>{{ article.source }}</span><br>
-          <span class="helper">
-            score {{ '%.2f'|format(article.total_score) }} |
-            freshness {{ '%.2f'|format(article.freshness_score) }} |
-            topic match {{ '%.2f'|format(article.match_score) }}
-          </span>
-          <p>{{ article.summary or article.snippet }}</p>
+        <section class="source-card">
+          <h4>{{ article.title }}</h4>
+          <div class="source-meta">{{ article.source }}</div>
+
+          <div class="score-grid">
+            <span class="score-pill">score {{ '%.2f'|format(article.total_score) }}</span>
+            <span class="score-pill">freshness {{ '%.2f'|format(article.freshness_score) }}</span>
+            <span class="score-pill">topic match {{ '%.2f'|format(article.match_score) }}</span>
+          </div>
+
+          <p class="helper">{{ article.summary or article.snippet }}</p>
           <a href="{{ article.url }}">Source link</a>
-        </li>
+        </section>
       {% endfor %}
-    </ol>
+    </div>
   </aside>
 </div>
-
