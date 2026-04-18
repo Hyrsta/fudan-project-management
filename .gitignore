@@ -9,3 +9,7 @@ dist/
 build/
 *.zip
 *.tmp
+
+task_plan.md
+findings.md
+progress.md
