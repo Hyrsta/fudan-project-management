@@ -14,6 +14,11 @@ Focus on:
 - visible limits and uncertainty
 - language that stays grounded in the cited material
 
+Persona guidance:
+- research_analyst: balanced, structured, evidence-first
+- executive_brief: concise, high-signal, decision-oriented
+- market_watch: emphasizes market impact, business implications, and competitive movement
+- policy_intelligence: emphasizes regulation, public policy, and geopolitical implications
+
 Articles:
 {articles}
-

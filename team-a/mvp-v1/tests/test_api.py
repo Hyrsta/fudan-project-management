@@ -118,3 +118,28 @@ def test_export_and_handoff_routes_surface_saved_artifacts(tmp_path) -> None:
     assert handoff_response.json()["section_generation_mode"] == "precomputed"
     assert health_response.status_code == 200
     assert health_response.json()["status"] == "ok"
+
+
+def test_recent_briefings_render_inspect_actions(tmp_path) -> None:
+    export_path = tmp_path / "brief.html"
+    export_path.write_text("<html><body>Brief</body></html>")
+    client = TestClient(create_app(service=StubService(export_path), artifact_root=tmp_path))
+
+    response = client.get("/")
+
+    assert response.status_code == 200
+    assert 'hx-get="/briefs/brief-123"' in response.text
+    assert ">Inspect<" in response.text
+    assert '/briefs/brief-123/handoff' in response.text
+
+
+def test_show_brief_returns_partial_for_htmx_inspection(tmp_path) -> None:
+    export_path = tmp_path / "brief.html"
+    export_path.write_text("<html><body>Brief</body></html>")
+    client = TestClient(create_app(service=StubService(export_path), artifact_root=tmp_path))
+
+    response = client.get("/briefs/brief-123", headers={"HX-Request": "true"})
+
+    assert response.status_code == 200
+    assert "Fallback overview" in response.text
+    assert "Recent Briefings" not in response.text

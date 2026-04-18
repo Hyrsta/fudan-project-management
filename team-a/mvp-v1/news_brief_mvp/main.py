@@ -68,6 +68,11 @@ def create_app(service=None, artifact_root: Optional[Path] = None) -> FastAPI:
             brief = app.state.service.load_brief_response(brief_id)
         except FileNotFoundError as exc:
             raise HTTPException(status_code=404, detail="Brief not found.") from exc
+        if request.headers.get("HX-Request") == "true":
+            return templates.TemplateResponse(
+                "partials/brief_result.html",
+                {"request": request, "brief": brief},
+            )
         return templates.TemplateResponse(
             "index.html",
             {

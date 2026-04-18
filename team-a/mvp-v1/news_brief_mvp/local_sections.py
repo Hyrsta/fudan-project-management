@@ -27,9 +27,7 @@ def build_heuristic_sections(topic: str, persona: str, articles: Sequence[Articl
         key_takeaways.append(f"{article.source} emphasizes that {signal}")
 
     if len(key_takeaways) < 3:
-        key_takeaways.append(
-            f"The current {persona.replace('_', ' ')} brief is based on a narrow but traceable source set."
-        )
+        key_takeaways.append(_persona_takeaway(persona, len(articles)))
     if len(key_takeaways) < 4:
         key_takeaways.append(
             f"Source ranking favors credibility, recency, and topic overlap instead of raw article volume."
@@ -46,8 +44,8 @@ def build_heuristic_sections(topic: str, persona: str, articles: Sequence[Articl
     framing_comparison = "; ".join(framing_parts) + "."
 
     uncertainties = [
-        "This version uses a local heuristic section builder instead of a model-written synthesis.",
         f"The brief is based on {len(articles)} selected articles, so coverage breadth is still limited.",
+        _persona_uncertainty(persona),
     ]
     if len(source_names) < 3:
         uncertainties.append(
@@ -96,3 +94,23 @@ def _format_source_list(sources: Sequence[str]) -> str:
     if len(sources) == 2:
         return f"{sources[0]} and {sources[1]}"
     return ", ".join(sources[:-1]) + f", and {sources[-1]}"
+
+
+def _persona_takeaway(persona: str, article_count: int) -> str:
+    if persona == "executive_brief":
+        return f"The strongest executive signal comes from a focused set of {article_count} ranked sources."
+    if persona == "market_watch":
+        return "The current coverage highlights the clearest business and market signals across the selected sources."
+    if persona == "policy_intelligence":
+        return "The current coverage highlights the clearest regulatory and geopolitical signals across the selected sources."
+    return f"The current briefing is grounded in a focused but traceable set of {article_count} selected sources."
+
+
+def _persona_uncertainty(persona: str) -> str:
+    if persona == "executive_brief":
+        return "Near-term implications are clearer than long-range strategic outcomes in the current coverage."
+    if persona == "market_watch":
+        return "Market reaction and business impact may shift as additional reporting and company signals emerge."
+    if persona == "policy_intelligence":
+        return "Policy direction and enforcement details may evolve as agencies and officials clarify next steps."
+    return "Some important context may still be missing while the story continues to develop across sources."

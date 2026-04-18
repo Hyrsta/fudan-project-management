@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import html
 import re
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
@@ -40,15 +41,16 @@ class GoogleNewsRSSRetriever:
             if len(results) >= limit:
                 break
 
-            title = entry.get("title", "").strip()
-            source_name = _extract_source(entry, title)
-            snippet = TAG_RE.sub("", entry.get("summary", "")).strip()
+            raw_title = html.unescape(entry.get("title", ""))
+            title = _normalize_text(raw_title)
+            source_name = _extract_source(entry, raw_title)
+            snippet = _normalize_text(html.unescape(TAG_RE.sub("", entry.get("summary", ""))))
             if not title or not entry.get("link"):
                 continue
 
             article = ArticleRecord(
                 id=f"live-{index}",
-                title=_clean_title(title, source_name),
+                title=_clean_title(raw_title, source_name),
                 source=source_name,
                 url=entry.get("link"),
                 published_at=_parse_published_at(entry.get("published")),
@@ -67,16 +69,23 @@ def _extract_source(entry, title: str) -> str:
     if hasattr(source, "get"):
         source_title = source.get("title")
         if source_title:
-            return source_title.strip()
-    if " - " in title:
-        return title.rsplit(" - ", 1)[-1].strip()
+            return _normalize_text(html.unescape(source_title))
+    normalized_title = _normalize_text(title)
+    if " - " in normalized_title:
+        return normalized_title.rsplit(" - ", 1)[-1].strip()
     return "Google News"
 
 
 def _clean_title(title: str, source_name: str) -> str:
-    if title.endswith(f" - {source_name}"):
-        return title[: -(len(source_name) + 3)]
-    return title
+    cleaned = title.replace("\xa0", " ")
+    if source_name:
+        escaped_source = re.escape(source_name)
+        cleaned = re.sub(rf"(?:\s*[-–—]\s*|\s{{2,}}){escaped_source}\s*$", "", cleaned)
+    return _normalize_text(cleaned)
+
+
+def _normalize_text(value: str) -> str:
+    return " ".join(value.replace("\xa0", " ").split())
 
 
 def _parse_published_at(value: str):
@@ -89,4 +98,3 @@ def _parse_published_at(value: str):
     if parsed.tzinfo is None:
         return parsed.replace(tzinfo=timezone.utc)
     return parsed.astimezone(timezone.utc)
-

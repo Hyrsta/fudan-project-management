@@ -7,7 +7,12 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 BriefMode = Literal["auto", "live", "fallback"]
-Persona = Literal["research_analyst"]
+Persona = Literal[
+    "research_analyst",
+    "executive_brief",
+    "market_watch",
+    "policy_intelligence",
+]
 
 
 class BriefRequest(BaseModel):
@@ -101,4 +106,3 @@ class FallbackDataset(BaseModel):
     dataset_topic: str
     articles: List[ArticleRecord]
     precomputed_sections: BriefSections
-

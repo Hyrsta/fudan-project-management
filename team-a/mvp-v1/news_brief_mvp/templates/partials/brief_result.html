@@ -4,27 +4,28 @@
       <div>
         <h2>{{ brief.topic }}</h2>
         <p class="section-copy">
-          Analyst-style brief generated from the currently selected source set.
+          A concise briefing built from the selected coverage.
         </p>
       </div>
-      <span class="chip success">Brief ready</span>
+      <span class="chip success">Ready</span>
     </div>
 
     <div class="status-row" aria-label="Brief metadata">
-      <span class="status-pill"><strong>ID</strong> {{ brief.brief_id }}</span>
-      <span class="status-pill"><strong>mode</strong> {{ brief.mode_used }}</span>
-      <span class="status-pill"><strong>sections</strong> {{ brief.section_generation_mode }}</span>
-      <span class="status-pill"><strong>sources</strong> {{ brief.articles|length }}</span>
+      <span class="status-pill"><strong>Sources</strong> {{ brief.articles|length }}</span>
+      <span class="status-pill"><strong>Status</strong> Ready</span>
     </div>
 
-    {% if brief.warnings %}
+    {% if brief.warnings and ('fallback_used' in brief.warnings or 'live_results_incomplete' in brief.warnings) %}
       <div class="section-block">
-        <h3>Warnings</h3>
+        <h3>Coverage Notes</h3>
         <div class="section-panel">
           <div class="status-row">
-            {% for warning in brief.warnings %}
-              <span class="chip warning">{{ warning }}</span>
-            {% endfor %}
+            {% if 'fallback_used' in brief.warnings %}
+              <span class="chip warning">Backup Coverage Used</span>
+            {% endif %}
+            {% if 'live_results_incomplete' in brief.warnings and 'fallback_used' not in brief.warnings %}
+              <span class="chip warning">Live Coverage Limited</span>
+            {% endif %}
           </div>
         </div>
       </div>
@@ -38,7 +39,7 @@
     </section>
 
     <section class="section-block">
-      <h3>Key takeaways</h3>
+      <h3>Key Takeaways</h3>
       <div class="section-panel">
         <ul>
           {% for item in brief.key_takeaways %}
@@ -49,14 +50,14 @@
     </section>
 
     <section class="section-block">
-      <h3>Source framing comparison</h3>
+      <h3>Coverage Comparison</h3>
       <div class="section-panel">
         <p>{{ brief.framing_comparison }}</p>
       </div>
     </section>
 
     <section class="section-block">
-      <h3>Uncertainties and limits</h3>
+      <h3>Points to Watch</h3>
       <div class="section-panel">
         <ul>
           {% for item in brief.uncertainties %}
@@ -67,12 +68,12 @@
     </section>
 
     <section class="section-block">
-      <h3>Artifacts</h3>
+      <h3>Exports</h3>
       <div class="section-panel">
         <div class="actions-list">
-          <a class="text-link-button" href="/briefs/{{ brief.brief_id }}">Open detail page</a>
-          <a class="text-link-button" href="/briefs/{{ brief.brief_id }}/export">Download HTML export</a>
-          <a class="text-link-button" href="/briefs/{{ brief.brief_id }}/handoff">Open Team B handoff JSON</a>
+          <a class="text-link-button" href="/briefs/{{ brief.brief_id }}">Open Brief</a>
+          <a class="text-link-button" href="/briefs/{{ brief.brief_id }}/export">Download HTML</a>
+          <a class="text-link-button" href="/briefs/{{ brief.brief_id }}/handoff">Open JSON</a>
         </div>
       </div>
     </section>
@@ -81,12 +82,12 @@
   <aside class="card">
     <div class="card-header">
       <div>
-        <h2>Selected sources</h2>
+        <h2>Selected Sources</h2>
         <p class="section-copy">
-          Ranked and deduplicated articles used to build this brief.
+          Top coverage behind this briefing.
         </p>
       </div>
-      <span class="chip">Traceable</span>
+      <span class="chip">Sources</span>
     </div>
 
     <div class="list-clean" aria-label="Selected sources list">
@@ -96,13 +97,13 @@
           <div class="source-meta">{{ article.source }}</div>
 
           <div class="score-grid">
-            <span class="score-pill">score {{ '%.2f'|format(article.total_score) }}</span>
-            <span class="score-pill">freshness {{ '%.2f'|format(article.freshness_score) }}</span>
-            <span class="score-pill">topic match {{ '%.2f'|format(article.match_score) }}</span>
+            <span class="score-pill">Rank {{ '%.2f'|format(article.total_score) }}</span>
+            <span class="score-pill">Freshness {{ '%.2f'|format(article.freshness_score) }}</span>
+            <span class="score-pill">Topic Fit {{ '%.2f'|format(article.match_score) }}</span>
           </div>
 
           <p class="helper">{{ article.summary or article.snippet }}</p>
-          <a href="{{ article.url }}">Source link</a>
+          <a href="{{ article.url }}">Read Source</a>
         </section>
       {% endfor %}
     </div>
