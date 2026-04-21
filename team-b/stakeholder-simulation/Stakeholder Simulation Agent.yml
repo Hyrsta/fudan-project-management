@@ -1,0 +1,235 @@
+app:
+  description: ''
+  icon: money_mouth_face
+  icon_background: '#D3F8DF'
+  icon_type: emoji
+  mode: workflow
+  name: Stakeholder Simulation Agent
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/anthropic:0.3.10@4c9f48873be942854bc7c73965ce6f9266fa4985ac426fb88e5001dfa744649c
+    version: null
+kind: app
+version: 0.6.0
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      allowed_file_extensions:
+      - .JPG
+      - .JPEG
+      - .PNG
+      - .GIF
+      - .WEBP
+      - .SVG
+      allowed_file_types:
+      - image
+      allowed_file_upload_methods:
+      - local_file
+      - remote_url
+      enabled: false
+      fileUploadConfig:
+        attachment_image_file_size_limit: 2
+        audio_file_size_limit: 50
+        batch_count_limit: 5
+        file_size_limit: 15
+        file_upload_limit: 50
+        image_file_batch_limit: 10
+        image_file_size_limit: 10
+        single_chunk_attachment_limit: 10
+        video_file_size_limit: 100
+        workflow_file_upload_limit: 10
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
+      number_limits: 3
+    opening_statement: ''
+    retriever_resource:
+      enabled: true
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: start
+        targetType: llm
+      id: 1776743790816-source-1776743922921-target
+      source: '1776743790816'
+      sourceHandle: source
+      target: '1776743922921'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: llm
+        targetType: end
+      id: 1776743922921--1776744009279-target
+      source: '1776743922921'
+      sourceHandle: ''
+      target: '1776744009279'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    nodes:
+    - data:
+        selected: false
+        title: User Input
+        type: start
+        variables:
+        - default: ''
+          hint: ''
+          label: Project Situation
+          max_length: 1000
+          options: []
+          placeholder: ''
+          required: true
+          type: paragraph
+          variable: project_situation
+        - default: ''
+          hint: ''
+          label: Stakeholder Type (leave blank for all)
+          max_length: 100
+          options: []
+          placeholder: ''
+          required: false
+          type: text-input
+          variable: stakeholder_type
+      height: 135
+      id: '1776743790816'
+      position:
+        x: 80
+        y: 282
+      positionAbsolute:
+        x: 80
+        y: 282
+      selected: true
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        desc: Simulates stakeholder reactions and generates communication strategy
+          recommendations
+        model:
+          completion_params:
+            temperature: 0.7
+          mode: chat
+          name: claude-sonnet-4-20250514
+          provider: langgenius/anthropic/anthropic
+        prompt_template:
+        - id: f4b298cc-cd17-4216-b821-c48732ec1582
+          role: system
+          text: 'You are a Stakeholder Simulation Agent for a project management system.
+            Your job is to simulate how different stakeholders would react to a given
+            project situation and recommend communication strategies for the project
+            manager.
+
+
+            For each stakeholder group, provide:
+
+
+            1. Stakeholder Group: (e.g. Investors, End Users, Development Team, Course
+            Instructors/Evaluators)
+
+            2. Primary Concern: What they care most about in this situation
+
+            3. Likely Reaction: How they would emotionally and practically respond
+
+            4. Key Questions They Would Ask: 2-3 questions this stakeholder would
+            raise
+
+            5. Recommended Communication Approach: How the PM should communicate with
+            this group
+
+            6. Key Message: The single most important thing to tell this stakeholder
+
+
+            At the end provide:
+
+            - A Communication Priority Matrix showing which stakeholders need immediate
+            attention vs monitoring
+
+            - An overall Communication Strategy Summary for the PM
+
+
+            The product context is: an AI-powered multi-agent news research and analysis
+            platform being developed by a 4-person student team over 5 weeks.
+
+
+            Be specific and practical. Focus on actionable advice the project manager
+            can use immediately.'
+        - id: 75e3ea06-474b-48c1-97fc-2c41149a2dc4
+          role: user
+          text: 'Please simulate stakeholder reactions and provide communication strategies
+            for the following project situation:
+
+
+            Project Situation: {{#1776743790816.project_situation#}} Specific Stakeholder
+            Focus (if any): {{#1776743790816.stakeholder_type#}}'
+        selected: false
+        title: Stakeholder Simulation Agent
+        type: llm
+        vision:
+          enabled: false
+      height: 148
+      id: '1776743922921'
+      position:
+        x: 382
+        y: 282
+      positionAbsolute:
+        x: 382
+        y: 282
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        outputs:
+        - value_selector:
+          - '1776743922921'
+          - text
+          value_type: string
+          variable: communication_strategy
+        selected: false
+        title: Output
+        type: end
+      height: 88
+      id: '1776744009279'
+      position:
+        x: 684
+        y: 282
+      positionAbsolute:
+        x: 684
+        y: 282
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    viewport:
+      x: 41.92408197956502
+      y: 197.43819965880513
+      zoom: 0.757858283255199
+  rag_pipeline_variables: []
