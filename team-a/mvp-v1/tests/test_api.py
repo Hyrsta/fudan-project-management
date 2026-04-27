@@ -141,3 +141,21 @@ def test_show_brief_returns_partial_for_htmx_inspection(tmp_path) -> None:
     assert response.status_code == 200
     assert "Fallback overview" in response.text
     assert "Recent Briefings" not in response.text
+
+
+def test_report_controls_have_action_handlers(tmp_path) -> None:
+    export_path = tmp_path / "brief.html"
+    export_path.write_text("<html><body>Brief</body></html>")
+    client = TestClient(create_app(service=StubService(export_path), artifact_root=tmp_path))
+
+    full_response = client.get("/briefs/brief-123")
+    partial_response = client.get("/briefs/brief-123", headers={"HX-Request": "true"})
+
+    assert full_response.status_code == 200
+    assert partial_response.status_code == 200
+    assert 'id="toast-region"' in full_response.text
+    assert "function handleActionClick" in full_response.text
+    assert 'data-action="copy-link"' in partial_response.text
+    assert 'data-action="save-report"' in partial_response.text
+    assert 'data-action="toggle-more-menu"' in partial_response.text
+    assert 'data-action="toggle-section"' in partial_response.text

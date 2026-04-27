@@ -271,6 +271,12 @@
         white-space: nowrap;
       }
 
+      button.status-chip,
+      button.text-link-button,
+      button.avatar-chip {
+        cursor: pointer;
+      }
+
       .status-chip.sync {
         border-color: transparent;
         background: transparent;
@@ -609,6 +615,11 @@
         position: relative;
       }
 
+      .more-menu {
+        position: relative;
+        display: inline-flex;
+      }
+
       .export-menu summary {
         list-style: none;
       }
@@ -617,7 +628,8 @@
         display: none;
       }
 
-      .export-dropdown {
+      .export-dropdown,
+      .more-dropdown {
         position: absolute;
         right: 0;
         top: calc(100% + 8px);
@@ -632,10 +644,19 @@
         padding: 6px;
       }
 
-      .export-dropdown .text-link-button {
+      .more-dropdown {
+        width: 190px;
+      }
+
+      .export-dropdown .text-link-button,
+      .more-dropdown .text-link-button {
         justify-content: flex-start;
         border-color: transparent;
         background: transparent;
+      }
+
+      [hidden] {
+        display: none !important;
       }
 
       .coverage-note {
@@ -1186,6 +1207,32 @@
         background: var(--green);
       }
 
+      .toast-region {
+        position: fixed;
+        right: 18px;
+        bottom: 18px;
+        z-index: 20;
+        display: grid;
+        gap: 8px;
+        pointer-events: none;
+      }
+
+      .toast-message {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: min(320px, calc(100vw - 32px));
+        min-height: 40px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--foreground);
+        color: #fff;
+        box-shadow: 0 18px 40px rgba(15, 23, 42, 0.16);
+        padding: 10px 12px;
+        font-size: 0.86rem;
+        font-weight: 720;
+      }
+
       .preview-sections {
         display: grid;
         grid-template-columns: minmax(0, 1.25fr) minmax(300px, 0.75fr);
@@ -1367,6 +1414,17 @@
           display: none;
         }
 
+        .more-menu,
+        .more-menu .text-link-button {
+          width: 100%;
+        }
+
+        .more-dropdown {
+          left: 0;
+          right: auto;
+          width: 100%;
+        }
+
         .report-actions .text-link-button {
           width: 100%;
         }
@@ -1456,9 +1514,9 @@
             </div>
             <div class="top-actions" aria-label="Workspace status">
               <span class="status-chip sync">Local data synced</span>
-              <span class="status-chip"><i data-lucide="bookmark"></i>Saved</span>
-              <span class="status-chip"><i data-lucide="bell"></i>Alerts</span>
-              <span class="avatar-chip" aria-label="Current workspace">AV</span>
+              <button class="status-chip" type="button" data-action="open-recent"><i data-lucide="bookmark"></i>Saved</button>
+              <button class="status-chip" type="button" data-action="scroll-alerts"><i data-lucide="bell"></i>Alerts</button>
+              <button class="avatar-chip" type="button" data-action="show-profile" aria-label="Current workspace">AV</button>
             </div>
           </header>
 
@@ -1466,7 +1524,7 @@
             <section class="command-panel" aria-label="Report controls">
               <div class="command-head">
                 <span class="command-title"><i data-lucide="file-search"></i>Research command</span>
-                <span class="status-chip"><i data-lucide="database"></i>Trusted sources</span>
+                <button class="status-chip" type="button" data-action="open-sources"><i data-lucide="database"></i>Trusted sources</button>
               </div>
 
               <form
@@ -1527,7 +1585,7 @@
                 </div>
               </form>
 
-              <details class="history-panel">
+              <details class="history-panel" id="recent-reports">
                 <summary>
                   <span class="history-summary">
                     <span><i data-lucide="history" aria-hidden="true"></i>Recent reports</span>
@@ -1700,6 +1758,8 @@
       </main>
     </div>
 
+    <div class="toast-region" id="toast-region" aria-live="polite" aria-atomic="true"></div>
+
     <script>
       function renderIcons() {
         if (window.lucide) {
@@ -1707,7 +1767,174 @@
         }
       }
 
+      function showToast(message) {
+        const region = document.getElementById("toast-region");
+        if (!region) return;
+        region.innerHTML = '<div class="toast-message"><i data-lucide="circle-check" aria-hidden="true"></i><span></span></div>';
+        region.querySelector("span").textContent = message;
+        renderIcons();
+        window.clearTimeout(window.__newsToastTimer);
+        window.__newsToastTimer = window.setTimeout(() => {
+          region.innerHTML = "";
+        }, 2400);
+      }
+
+      function copyText(text) {
+        const input = document.createElement("textarea");
+        input.value = text;
+        input.setAttribute("readonly", "");
+        input.style.position = "fixed";
+        input.style.opacity = "0";
+        document.body.appendChild(input);
+        input.focus();
+        input.select();
+        let copied = false;
+        try {
+          copied = document.execCommand("copy");
+        } catch (error) {
+          copied = false;
+        }
+        input.remove();
+        return copied;
+      }
+
+      function copyLinkFromButton(button, event) {
+        if (event) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+        const url = new URL(button.dataset.url || window.location.href.split("#")[0], window.location.origin).href;
+        const copied = copyText(url);
+        showToast(copied ? (button.dataset.toast || "Report link copied") : "Use the address bar to copy this report link");
+      }
+
+      function saveReportFromButton(button, event) {
+        if (event) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+        const briefId = button.dataset.briefId || window.location.pathname.split("/").pop();
+        const saved = JSON.parse(localStorage.getItem("news-intel-saved") || "[]");
+        if (briefId && !saved.includes(briefId)) {
+          saved.unshift(briefId);
+          localStorage.setItem("news-intel-saved", JSON.stringify(saved.slice(0, 24)));
+        }
+        setButtonSaved(button);
+        showToast("Report saved locally");
+      }
+
+      function toggleSectionFromButton(button, event) {
+        if (event) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+        const target = document.querySelector(button.dataset.target);
+        if (!target) return;
+        const isExpanded = button.getAttribute("aria-expanded") !== "false";
+        target.hidden = isExpanded;
+        button.setAttribute("aria-expanded", String(!isExpanded));
+        button.innerHTML = `${isExpanded ? "Expand" : "Collapse"} section <i data-lucide="chevron-down" aria-hidden="true"></i>`;
+        renderIcons();
+      }
+
+      function openDetailsAndScroll(selector, fallbackMessage) {
+        const target = document.querySelector(selector);
+        if (!target) {
+          showToast(fallbackMessage);
+          return;
+        }
+        if (target.tagName === "DETAILS") {
+          target.open = true;
+        }
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+
+      function setButtonSaved(button) {
+        button.classList.add("success");
+        button.innerHTML = '<i data-lucide="circle-check" aria-hidden="true"></i>Saved';
+        renderIcons();
+      }
+
+      async function handleActionClick(event) {
+        const button = event.target.closest("[data-action]");
+        if (!button) return;
+
+        const action = button.dataset.action;
+        if (action === "copy-link") {
+          copyLinkFromButton(button, event);
+          return;
+        }
+
+        if (action === "save-report") {
+          saveReportFromButton(button, event);
+          return;
+        }
+
+        if (action === "toggle-more-menu") {
+          const menu = document.getElementById(button.getAttribute("aria-controls"));
+          if (!menu) return;
+          const nextOpen = menu.hidden;
+          document.querySelectorAll(".more-dropdown").forEach((item) => {
+            item.hidden = true;
+          });
+          menu.hidden = !nextOpen;
+          button.setAttribute("aria-expanded", String(nextOpen));
+          return;
+        }
+
+        if (action === "toggle-section") {
+          toggleSectionFromButton(button, event);
+          return;
+        }
+
+        if (action === "print-report") {
+          window.print();
+          return;
+        }
+
+        if (action === "open-recent") {
+          openDetailsAndScroll("#recent-reports", "No recent reports yet");
+          return;
+        }
+
+        if (action === "scroll-alerts") {
+          openDetailsAndScroll("#watch-section", "Generate a report to view alerts");
+          return;
+        }
+
+        if (action === "open-sources") {
+          openDetailsAndScroll("#source-evidence", "Generate a report to inspect sources");
+          return;
+        }
+
+        if (action === "show-profile") {
+          showToast("Local workspace profile");
+        }
+      }
+
+      document.addEventListener("click", (event) => {
+        if (!event.target.closest(".more-menu")) {
+          document.querySelectorAll(".more-dropdown").forEach((item) => {
+            item.hidden = true;
+          });
+          document.querySelectorAll('[data-action="toggle-more-menu"]').forEach((button) => {
+            button.setAttribute("aria-expanded", "false");
+          });
+        }
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key !== "Escape") return;
+        document.querySelectorAll(".more-dropdown").forEach((item) => {
+          item.hidden = true;
+        });
+        document.querySelectorAll('[data-action="toggle-more-menu"]').forEach((button) => {
+          button.setAttribute("aria-expanded", "false");
+        });
+      });
+
       document.addEventListener("DOMContentLoaded", renderIcons);
+      document.body.addEventListener("click", handleActionClick);
       document.body.addEventListener("htmx:afterSwap", renderIcons);
     </script>
   </body>
