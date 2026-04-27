@@ -159,3 +159,31 @@ def test_report_controls_have_action_handlers(tmp_path) -> None:
     assert 'data-action="save-report"' in partial_response.text
     assert 'data-action="toggle-more-menu"' in partial_response.text
     assert 'data-action="toggle-section"' in partial_response.text
+
+
+def test_workspace_navigation_controls_are_wired(tmp_path) -> None:
+    export_path = tmp_path / "brief.html"
+    export_path.write_text("<html><body>Brief</body></html>")
+    client = TestClient(create_app(service=StubService(export_path), artifact_root=tmp_path))
+
+    response = client.get("/briefs/brief-123")
+
+    assert response.status_code == 200
+    for action in [
+        "focus-search",
+        "scroll-report",
+        "open-coverage",
+        "open-sources",
+        "open-recent",
+        "scroll-alerts",
+        "open-settings",
+        "open-help",
+        "show-profile",
+        "apply-settings",
+    ]:
+        assert f'data-action="{action}"' in response.text
+    assert 'id="settings-panel"' in response.text
+    assert 'id="help-panel"' in response.text
+    assert 'id="profile-panel"' in response.text
+    assert 'id="trusted-sources-panel"' in response.text
+    assert 'href="#result-panel"' not in response.text

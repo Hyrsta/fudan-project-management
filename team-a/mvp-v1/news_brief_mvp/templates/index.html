@@ -175,6 +175,11 @@
         color: #334155;
       }
 
+      button.rail-button {
+        background: transparent;
+        cursor: pointer;
+      }
+
       .rail-logo {
         border-color: var(--border);
         background: var(--surface);
@@ -1233,6 +1238,99 @@
         font-weight: 720;
       }
 
+      .utility-panel {
+        position: fixed;
+        top: 18px;
+        right: 18px;
+        z-index: 18;
+        display: grid;
+        gap: 14px;
+        width: min(380px, calc(100vw - 32px));
+        max-height: calc(100vh - 36px);
+        overflow: auto;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface);
+        box-shadow: 0 24px 70px rgba(15, 23, 42, 0.18);
+        padding: 16px;
+      }
+
+      .utility-head {
+        display: flex;
+        align-items: start;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .utility-title {
+        display: grid;
+        gap: 3px;
+      }
+
+      .utility-title p {
+        color: var(--muted);
+        font-size: 0.86rem;
+      }
+
+      .utility-list,
+      .settings-list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .utility-item,
+      .settings-item {
+        display: grid;
+        gap: 6px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface-soft);
+        padding: 11px;
+      }
+
+      .utility-item strong,
+      .settings-item strong {
+        font-size: 0.88rem;
+      }
+
+      .settings-item label {
+        display: grid;
+        gap: 6px;
+        color: #334155;
+        font-size: 0.84rem;
+        font-weight: 720;
+      }
+
+      .settings-item select {
+        min-height: 36px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface);
+      }
+
+      .toggle-line {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .toggle-line input {
+        width: auto;
+        min-height: auto;
+      }
+
+      body.compact-mode .report-card {
+        padding: 16px;
+      }
+
+      body.compact-mode .summary-row,
+      body.compact-mode .comparison-section,
+      body.compact-mode .facts-section,
+      body.compact-mode .insight-section {
+        padding: 12px 0;
+      }
+
       .preview-sections {
         display: grid;
         grid-template-columns: minmax(0, 1.25fr) minmax(300px, 0.75fr);
@@ -1493,16 +1591,16 @@
       <aside class="side-rail" aria-label="Primary navigation">
         <a class="rail-logo" href="/" aria-label="News Intelligence Studio"><i data-lucide="newspaper"></i></a>
         <nav class="rail-nav" aria-label="Workspace">
-          <a class="rail-button" href="/" aria-label="Search"><i data-lucide="search"></i></a>
-          <a class="rail-button is-active" href="#result-panel" aria-label="Reports"><i data-lucide="file-text"></i></a>
-          <a class="rail-button" href="#result-panel" aria-label="Coverage"><i data-lucide="bar-chart-3"></i></a>
-          <a class="rail-button" href="#result-panel" aria-label="Sources"><i data-lucide="globe-2"></i></a>
-          <a class="rail-button" href="#result-panel" aria-label="Saved"><i data-lucide="bookmark"></i></a>
-          <a class="rail-button" href="#result-panel" aria-label="Alerts"><i data-lucide="bell"></i></a>
-          <a class="rail-button" href="#result-panel" aria-label="Settings"><i data-lucide="settings"></i></a>
+          <button class="rail-button" type="button" data-action="focus-search" aria-label="Search"><i data-lucide="search"></i></button>
+          <button class="rail-button is-active" type="button" data-action="scroll-report" aria-label="Reports"><i data-lucide="file-text"></i></button>
+          <button class="rail-button" type="button" data-action="open-coverage" aria-label="Coverage"><i data-lucide="bar-chart-3"></i></button>
+          <button class="rail-button" type="button" data-action="open-sources" aria-label="Sources"><i data-lucide="globe-2"></i></button>
+          <button class="rail-button" type="button" data-action="open-recent" aria-label="Saved"><i data-lucide="bookmark"></i></button>
+          <button class="rail-button" type="button" data-action="scroll-alerts" aria-label="Alerts"><i data-lucide="bell"></i></button>
+          <button class="rail-button" type="button" data-action="open-settings" aria-label="Settings"><i data-lucide="settings"></i></button>
         </nav>
         <div class="rail-bottom">
-          <a class="rail-button" href="#main-content" aria-label="Help"><i data-lucide="circle-help"></i></a>
+          <button class="rail-button" type="button" data-action="open-help" aria-label="Help"><i data-lucide="circle-help"></i></button>
         </div>
       </aside>
 
@@ -1760,6 +1858,103 @@
 
     <div class="toast-region" id="toast-region" aria-live="polite" aria-atomic="true"></div>
 
+    <aside class="utility-panel" id="trusted-sources-panel" role="dialog" aria-modal="false" aria-labelledby="trusted-sources-title" hidden>
+      <div class="utility-head">
+        <div class="utility-title">
+          <h3 id="trusted-sources-title">Trusted sources</h3>
+          <p>Direct RSS coverage is preferred, with Google News used only as a fallback.</p>
+        </div>
+        <button class="text-link-button icon-only-button" type="button" data-action="close-panel" aria-label="Close sources"><i data-lucide="x" aria-hidden="true"></i></button>
+      </div>
+      <div class="utility-list">
+        <div class="utility-item">
+          <strong>BBC News</strong>
+          <p class="helper">World coverage · global · trust 0.93</p>
+        </div>
+        <div class="utility-item">
+          <strong>TechCrunch</strong>
+          <p class="helper">Technology coverage · US · trust 0.72</p>
+        </div>
+        <div class="utility-item">
+          <strong>The Verge</strong>
+          <p class="helper">Technology coverage · US · trust 0.75</p>
+        </div>
+        <div class="utility-item">
+          <strong>Le Monde</strong>
+          <p class="helper">International coverage · Europe · trust 0.86</p>
+        </div>
+      </div>
+    </aside>
+
+    <aside class="utility-panel" id="settings-panel" role="dialog" aria-modal="false" aria-labelledby="settings-title" hidden>
+      <div class="utility-head">
+        <div class="utility-title">
+          <h3 id="settings-title">Workspace settings</h3>
+          <p>These preferences apply locally in this browser.</p>
+        </div>
+        <button class="text-link-button icon-only-button" type="button" data-action="close-panel" aria-label="Close settings"><i data-lucide="x" aria-hidden="true"></i></button>
+      </div>
+      <div class="settings-list">
+        <div class="settings-item">
+          <label for="settings-persona">Default voice</label>
+          <select id="settings-persona">
+            <option value="research_analyst">Research analyst</option>
+            <option value="executive_brief">Executive brief</option>
+            <option value="market_watch">Market watch</option>
+            <option value="policy_intelligence">Policy intelligence</option>
+          </select>
+        </div>
+        <div class="settings-item">
+          <label for="settings-mode">Default coverage</label>
+          <select id="settings-mode">
+            <option value="auto">Balanced coverage</option>
+            <option value="live">Live sources</option>
+            <option value="fallback">Saved source set</option>
+          </select>
+        </div>
+        <div class="settings-item toggle-line">
+          <strong>Compact report density</strong>
+          <input type="checkbox" id="settings-compact" data-action="toggle-density" aria-label="Compact report density">
+        </div>
+        <div class="settings-item toggle-line">
+          <strong>Keep recent reports open</strong>
+          <input type="checkbox" id="settings-recent-open" data-action="toggle-recent" aria-label="Keep recent reports open">
+        </div>
+      </div>
+      <button class="primary-button" type="button" data-action="apply-settings"><i data-lucide="check" aria-hidden="true"></i>Apply settings</button>
+    </aside>
+
+    <aside class="utility-panel" id="help-panel" role="dialog" aria-modal="false" aria-labelledby="help-title" hidden>
+      <div class="utility-head">
+        <div class="utility-title">
+          <h3 id="help-title">Quick help</h3>
+          <p>Every icon in the rail now maps to a workspace action.</p>
+        </div>
+        <button class="text-link-button icon-only-button" type="button" data-action="close-panel" aria-label="Close help"><i data-lucide="x" aria-hidden="true"></i></button>
+      </div>
+      <div class="utility-list">
+        <div class="utility-item"><strong>Search</strong><p class="helper">Focus the research topic input.</p></div>
+        <div class="utility-item"><strong>Coverage</strong><p class="helper">Jump to the comparison matrix and reopen it if collapsed.</p></div>
+        <div class="utility-item"><strong>Sources</strong><p class="helper">Open source evidence, or show the trusted source registry before a report exists.</p></div>
+        <div class="utility-item"><strong>Settings</strong><p class="helper">Set local defaults for voice, coverage mode, and density.</p></div>
+      </div>
+    </aside>
+
+    <aside class="utility-panel" id="profile-panel" role="dialog" aria-modal="false" aria-labelledby="profile-title" hidden>
+      <div class="utility-head">
+        <div class="utility-title">
+          <h3 id="profile-title">Local workspace</h3>
+          <p>Reports, saved IDs, and preferences stay on this laptop.</p>
+        </div>
+        <button class="text-link-button icon-only-button" type="button" data-action="close-panel" aria-label="Close profile"><i data-lucide="x" aria-hidden="true"></i></button>
+      </div>
+      <div class="utility-list">
+        <div class="utility-item"><strong>Workspace</strong><p class="helper">News Intelligence Studio</p></div>
+        <div class="utility-item"><strong>Storage</strong><p class="helper">Artifacts are saved under the local app artifacts folder.</p></div>
+        <div class="utility-item"><strong>Exports</strong><p class="helper">HTML, Markdown, and JSON handoff are available per report.</p></div>
+      </div>
+    </aside>
+
     <script>
       function renderIcons() {
         if (window.lucide) {
@@ -1849,6 +2044,94 @@
         target.scrollIntoView({ behavior: "smooth", block: "start" });
       }
 
+      function scrollToTarget(target, fallbackMessage) {
+        if (!target) {
+          showToast(fallbackMessage);
+          return;
+        }
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+
+      function closePanels() {
+        document.querySelectorAll(".utility-panel").forEach((panel) => {
+          panel.hidden = true;
+        });
+      }
+
+      function openPanel(selector) {
+        const panel = document.querySelector(selector);
+        if (!panel) return;
+        closePanels();
+        panel.hidden = false;
+        const heading = panel.querySelector("h3");
+        if (heading) {
+          heading.setAttribute("tabindex", "-1");
+          heading.focus({ preventScroll: true });
+        }
+      }
+
+      function focusSearch() {
+        const input = document.getElementById("topic-input");
+        if (!input) return;
+        input.scrollIntoView({ behavior: "smooth", block: "center" });
+        input.focus();
+      }
+
+      function openCoverage() {
+        const comparison = document.querySelector('[id^="comparison-content-"]');
+        const comparisonSection = comparison ? comparison.closest(".comparison-section") : document.querySelector(".preview-section");
+        if (comparison && comparison.hidden) {
+          const control = document.querySelector(`[data-target="#${comparison.id}"]`);
+          if (control) toggleSectionFromButton(control);
+        }
+        scrollToTarget(comparisonSection, "Generate a report to compare coverage");
+      }
+
+      function openSources() {
+        const evidence = document.getElementById("source-evidence");
+        if (evidence) {
+          evidence.open = true;
+          evidence.scrollIntoView({ behavior: "smooth", block: "start" });
+          return;
+        }
+        openPanel("#trusted-sources-panel");
+      }
+
+      function applySettings() {
+        const personaSetting = document.getElementById("settings-persona");
+        const modeSetting = document.getElementById("settings-mode");
+        const persona = document.querySelector('select[name="persona"]');
+        const mode = document.querySelector('select[name="mode"]');
+        if (personaSetting && persona) persona.value = personaSetting.value;
+        if (modeSetting && mode) mode.value = modeSetting.value;
+        localStorage.setItem("news-intel-persona", personaSetting ? personaSetting.value : "");
+        localStorage.setItem("news-intel-mode", modeSetting ? modeSetting.value : "");
+        closePanels();
+        showToast("Workspace settings applied");
+      }
+
+      function applyStoredSettings() {
+        const storedPersona = localStorage.getItem("news-intel-persona");
+        const storedMode = localStorage.getItem("news-intel-mode");
+        const compact = localStorage.getItem("news-intel-compact") === "true";
+        const recentOpen = localStorage.getItem("news-intel-recent-open") === "true";
+        const persona = document.querySelector('select[name="persona"]');
+        const mode = document.querySelector('select[name="mode"]');
+        const personaSetting = document.getElementById("settings-persona");
+        const modeSetting = document.getElementById("settings-mode");
+        const compactSetting = document.getElementById("settings-compact");
+        const recentSetting = document.getElementById("settings-recent-open");
+        if (storedPersona && persona) persona.value = storedPersona;
+        if (storedMode && mode) mode.value = storedMode;
+        if (storedPersona && personaSetting) personaSetting.value = storedPersona;
+        if (storedMode && modeSetting) modeSetting.value = storedMode;
+        if (compactSetting) compactSetting.checked = compact;
+        if (recentSetting) recentSetting.checked = recentOpen;
+        document.body.classList.toggle("compact-mode", compact);
+        const recent = document.getElementById("recent-reports");
+        if (recent && recentOpen) recent.open = true;
+      }
+
       function setButtonSaved(button) {
         button.classList.add("success");
         button.innerHTML = '<i data-lucide="circle-check" aria-hidden="true"></i>Saved';
@@ -1860,6 +2143,13 @@
         if (!button) return;
 
         const action = button.dataset.action;
+        if (button.classList.contains("rail-button")) {
+          document.querySelectorAll(".rail-button").forEach((item) => {
+            item.classList.remove("is-active");
+          });
+          button.classList.add("is-active");
+        }
+
         if (action === "copy-link") {
           copyLinkFromButton(button, event);
           return;
@@ -1892,6 +2182,21 @@
           return;
         }
 
+        if (action === "focus-search") {
+          focusSearch();
+          return;
+        }
+
+        if (action === "scroll-report") {
+          scrollToTarget(document.getElementById("result-panel"), "No report loaded yet");
+          return;
+        }
+
+        if (action === "open-coverage") {
+          openCoverage();
+          return;
+        }
+
         if (action === "open-recent") {
           openDetailsAndScroll("#recent-reports", "No recent reports yet");
           return;
@@ -1903,12 +2208,49 @@
         }
 
         if (action === "open-sources") {
-          openDetailsAndScroll("#source-evidence", "Generate a report to inspect sources");
+          openSources();
+          return;
+        }
+
+        if (action === "open-settings") {
+          openPanel("#settings-panel");
+          return;
+        }
+
+        if (action === "open-help") {
+          openPanel("#help-panel");
+          return;
+        }
+
+        if (action === "close-panel") {
+          closePanels();
+          return;
+        }
+
+        if (action === "apply-settings") {
+          applySettings();
+          return;
+        }
+
+        if (action === "toggle-density") {
+          const checked = Boolean(button.checked);
+          document.body.classList.toggle("compact-mode", checked);
+          localStorage.setItem("news-intel-compact", String(checked));
+          showToast(checked ? "Compact density enabled" : "Comfort density enabled");
+          return;
+        }
+
+        if (action === "toggle-recent") {
+          const checked = Boolean(button.checked);
+          localStorage.setItem("news-intel-recent-open", String(checked));
+          const recent = document.getElementById("recent-reports");
+          if (recent) recent.open = checked;
+          showToast(checked ? "Recent reports stay open" : "Recent reports collapse normally");
           return;
         }
 
         if (action === "show-profile") {
-          showToast("Local workspace profile");
+          openPanel("#profile-panel");
         }
       }
 
@@ -1931,11 +2273,17 @@
         document.querySelectorAll('[data-action="toggle-more-menu"]').forEach((button) => {
           button.setAttribute("aria-expanded", "false");
         });
+        closePanels();
       });
 
-      document.addEventListener("DOMContentLoaded", renderIcons);
+      function initializeUi() {
+        renderIcons();
+        applyStoredSettings();
+      }
+
+      document.addEventListener("DOMContentLoaded", initializeUi);
       document.body.addEventListener("click", handleActionClick);
-      document.body.addEventListener("htmx:afterSwap", renderIcons);
+      document.body.addEventListener("htmx:afterSwap", initializeUi);
     </script>
   </body>
 </html>
