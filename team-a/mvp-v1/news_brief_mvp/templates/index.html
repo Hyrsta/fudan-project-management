@@ -373,6 +373,10 @@
         gap: 12px;
       }
 
+      .goal-row {
+        display: grid;
+      }
+
       .input-shell {
         display: flex;
         align-items: center;
@@ -437,9 +441,87 @@
         background: var(--primary-hover);
       }
 
+      .persona-panel {
+        display: grid;
+        gap: 10px;
+      }
+
+      .persona-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .persona-title span {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        color: var(--muted);
+        font-size: 0.83rem;
+        font-weight: 760;
+      }
+
+      .persona-grid {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .persona-card {
+        display: flex;
+        align-items: flex-start;
+        gap: 9px;
+        min-width: 0;
+        min-height: 78px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface-soft);
+        padding: 10px;
+        cursor: pointer;
+        transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+      }
+
+      .persona-card:hover,
+      .persona-card.is-selected,
+      .persona-card:focus-within {
+        border-color: #93c5fd;
+        background: var(--accent-soft);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
+      }
+
+      .persona-icon {
+        display: inline-grid;
+        place-items: center;
+        width: 30px;
+        height: 30px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface);
+        color: var(--accent);
+        flex: 0 0 auto;
+      }
+
+      .persona-copy {
+        display: grid;
+        gap: 3px;
+        min-width: 0;
+      }
+
+      .persona-copy strong {
+        font-size: 0.84rem;
+        line-height: 1.2;
+      }
+
+      .persona-copy small {
+        color: var(--muted);
+        font-size: 0.74rem;
+        line-height: 1.3;
+      }
+
       .control-row {
         display: grid;
-        grid-template-columns: minmax(220px, 260px) minmax(260px, 300px) minmax(0, 1fr);
+        grid-template-columns: minmax(240px, 300px) minmax(0, 1fr);
         gap: 12px;
         align-items: center;
       }
@@ -711,6 +793,21 @@
         font-size: 1rem;
       }
 
+      .goal-note {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        width: fit-content;
+        max-width: 100%;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface-soft);
+        padding: 8px 10px;
+        color: #334155;
+        font-size: 0.88rem;
+        font-weight: 650;
+      }
+
       .evidence-panel {
         display: grid;
         gap: 10px;
@@ -730,6 +827,30 @@
         line-height: 1;
         font-weight: 780;
         letter-spacing: 0;
+      }
+
+      .confidence-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+      }
+
+      .confidence-grid span {
+        display: grid;
+        gap: 1px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface-soft);
+        padding: 7px;
+      }
+
+      .confidence-grid strong {
+        font-size: 0.78rem;
+      }
+
+      .confidence-grid small {
+        color: var(--muted);
+        font-size: 0.68rem;
       }
 
       .evidence-actions {
@@ -1434,6 +1555,10 @@
           grid-template-columns: 1fr;
         }
 
+        .persona-grid {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
         .quick-topics {
           justify-content: flex-start;
         }
@@ -1480,6 +1605,8 @@
         .brief-form,
         .input-shell,
         .select-shell,
+        .persona-panel,
+        .persona-grid,
         .control-row,
         .topic-row,
         .main-area,
@@ -1491,9 +1618,14 @@
         .topbar,
         .command-head,
         .topic-row,
+        .persona-title,
         .report-head,
         .source-row {
           display: grid;
+          grid-template-columns: 1fr;
+        }
+
+        .persona-grid {
           grid-template-columns: 1fr;
         }
 
@@ -1655,17 +1787,47 @@
                   </button>
                 </div>
 
-                <div class="control-row">
-                  <label class="select-shell">
-                    <span><i data-lucide="user-round-check" aria-hidden="true"></i>Voice</span>
-                    <select name="persona">
-                      <option value="research_analyst" selected>Research analyst</option>
-                      <option value="executive_brief">Executive brief</option>
-                      <option value="market_watch">Market watch</option>
-                      <option value="policy_intelligence">Policy intelligence</option>
-                    </select>
-                  </label>
+                <div class="goal-row">
+                  <label class="sr-only" for="goal-input">Research goal</label>
+                  <div class="input-shell">
+                    <i data-lucide="target" aria-hidden="true"></i>
+                    <input
+                      id="goal-input"
+                      type="text"
+                      name="goal"
+                      placeholder="Optional: decision or question this report should answer"
+                      autocomplete="off"
+                    >
+                  </div>
+                </div>
 
+                <div class="persona-panel" aria-label="Report lens">
+                  <div class="persona-title">
+                    <span><i data-lucide="sliders-horizontal" aria-hidden="true"></i>Persona lens</span>
+                    <p class="helper">Choose how the report should think.</p>
+                  </div>
+                  <div class="persona-grid">
+                    {% for option in persona_options %}
+                      <label class="persona-card{% if option.value == 'research_analyst' %} is-selected{% endif %}" data-persona-card>
+                        <input
+                          class="sr-only"
+                          type="radio"
+                          name="persona"
+                          value="{{ option.value }}"
+                          data-action="select-persona"
+                          {% if option.value == 'research_analyst' %}checked{% endif %}
+                        >
+                        <span class="persona-icon"><i data-lucide="{{ option.icon }}" aria-hidden="true"></i></span>
+                        <span class="persona-copy">
+                          <strong>{{ option.label }}</strong>
+                          <small>{{ option.short }}</small>
+                        </span>
+                      </label>
+                    {% endfor %}
+                  </div>
+                </div>
+
+                <div class="control-row">
                   <label class="select-shell">
                     <span><i data-lucide="radio-tower" aria-hidden="true"></i>Coverage</span>
                     <select name="mode">
@@ -1896,12 +2058,11 @@
       </div>
       <div class="settings-list">
         <div class="settings-item">
-          <label for="settings-persona">Default voice</label>
+          <label for="settings-persona">Default lens</label>
           <select id="settings-persona">
-            <option value="research_analyst">Research analyst</option>
-            <option value="executive_brief">Executive brief</option>
-            <option value="market_watch">Market watch</option>
-            <option value="policy_intelligence">Policy intelligence</option>
+            {% for option in persona_options %}
+              <option value="{{ option.value }}">{{ option.label }}</option>
+            {% endfor %}
           </select>
         </div>
         <div class="settings-item">
@@ -1936,7 +2097,7 @@
         <div class="utility-item"><strong>Search</strong><p class="helper">Focus the research topic input.</p></div>
         <div class="utility-item"><strong>Coverage</strong><p class="helper">Jump to the comparison matrix and reopen it if collapsed.</p></div>
         <div class="utility-item"><strong>Sources</strong><p class="helper">Open source evidence, or show the trusted source registry before a report exists.</p></div>
-        <div class="utility-item"><strong>Settings</strong><p class="helper">Set local defaults for voice, coverage mode, and density.</p></div>
+        <div class="utility-item"><strong>Settings</strong><p class="helper">Set local defaults for lens, coverage mode, and density.</p></div>
       </div>
     </aside>
 
@@ -2100,9 +2261,8 @@
       function applySettings() {
         const personaSetting = document.getElementById("settings-persona");
         const modeSetting = document.getElementById("settings-mode");
-        const persona = document.querySelector('select[name="persona"]');
         const mode = document.querySelector('select[name="mode"]');
-        if (personaSetting && persona) persona.value = personaSetting.value;
+        if (personaSetting) setPersona(personaSetting.value);
         if (modeSetting && mode) mode.value = modeSetting.value;
         localStorage.setItem("news-intel-persona", personaSetting ? personaSetting.value : "");
         localStorage.setItem("news-intel-mode", modeSetting ? modeSetting.value : "");
@@ -2110,18 +2270,45 @@
         showToast("Workspace settings applied");
       }
 
+      function setPersona(value) {
+        let selectedLabel = "";
+        let found = false;
+        const inputs = Array.from(document.querySelectorAll('input[name="persona"]'));
+        inputs.forEach((input) => {
+          const isSelected = input.value === value;
+          if (isSelected) found = true;
+          input.checked = isSelected;
+          const card = input.closest("[data-persona-card]");
+          if (card) card.classList.toggle("is-selected", isSelected);
+          if (isSelected) {
+            const label = input.closest("[data-persona-card]")?.querySelector("strong");
+            selectedLabel = label ? label.textContent : "";
+          }
+        });
+        if (!found && inputs.length) {
+          return setPersona(inputs[0].value);
+        }
+        const personaSetting = document.getElementById("settings-persona");
+        if (personaSetting && personaSetting.value !== value) personaSetting.value = value;
+        return selectedLabel;
+      }
+
+      function syncPersonaCards() {
+        const checked = document.querySelector('input[name="persona"]:checked');
+        if (checked) setPersona(checked.value);
+      }
+
       function applyStoredSettings() {
         const storedPersona = localStorage.getItem("news-intel-persona");
         const storedMode = localStorage.getItem("news-intel-mode");
         const compact = localStorage.getItem("news-intel-compact") === "true";
         const recentOpen = localStorage.getItem("news-intel-recent-open") === "true";
-        const persona = document.querySelector('select[name="persona"]');
         const mode = document.querySelector('select[name="mode"]');
         const personaSetting = document.getElementById("settings-persona");
         const modeSetting = document.getElementById("settings-mode");
         const compactSetting = document.getElementById("settings-compact");
         const recentSetting = document.getElementById("settings-recent-open");
-        if (storedPersona && persona) persona.value = storedPersona;
+        if (storedPersona) setPersona(storedPersona);
         if (storedMode && mode) mode.value = storedMode;
         if (storedPersona && personaSetting) personaSetting.value = storedPersona;
         if (storedMode && modeSetting) modeSetting.value = storedMode;
@@ -2130,6 +2317,7 @@
         document.body.classList.toggle("compact-mode", compact);
         const recent = document.getElementById("recent-reports");
         if (recent && recentOpen) recent.open = true;
+        syncPersonaCards();
       }
 
       function setButtonSaved(button) {
@@ -2232,6 +2420,13 @@
           return;
         }
 
+        if (action === "select-persona") {
+          const label = setPersona(button.value);
+          localStorage.setItem("news-intel-persona", button.value);
+          showToast(`${label || "Persona"} lens selected`);
+          return;
+        }
+
         if (action === "toggle-density") {
           const checked = Boolean(button.checked);
           document.body.classList.toggle("compact-mode", checked);
@@ -2251,6 +2446,15 @@
 
         if (action === "show-profile") {
           openPanel("#profile-panel");
+        }
+      }
+
+      function handleActionChange(event) {
+        const target = event.target;
+        if (target.matches('input[name="persona"]')) {
+          const label = setPersona(target.value);
+          localStorage.setItem("news-intel-persona", target.value);
+          showToast(`${label || "Persona"} lens selected`);
         }
       }
 
@@ -2283,6 +2487,7 @@
 
       document.addEventListener("DOMContentLoaded", initializeUi);
       document.body.addEventListener("click", handleActionClick);
+      document.body.addEventListener("change", handleActionChange);
       document.body.addEventListener("htmx:afterSwap", initializeUi);
     </script>
   </body>

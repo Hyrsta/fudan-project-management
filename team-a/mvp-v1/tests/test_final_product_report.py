@@ -11,7 +11,7 @@ class EmptyLiveRetriever:
 
 
 class FailingLLM:
-    def generate_sections(self, topic: str, persona: str, articles):
+    def generate_sections(self, topic: str, persona: str, articles, goal: str = ""):
         raise RuntimeError("no model")
 
 
@@ -71,3 +71,37 @@ def test_final_product_fallback_report_contains_structured_sections(tmp_path) ->
     assert response.pipeline_metadata["report"] == "heuristic"
     assert store.markdown_path(response.brief_id).exists()
 
+
+def test_financial_persona_lens_shapes_report_contract(tmp_path) -> None:
+    store = ArtifactStore(tmp_path / "artifacts")
+    service = BriefService(
+        live_retriever=EmptyLiveRetriever(),
+        llm_client=FailingLLM(),
+        artifact_store=store,
+        fallback_dataset=make_dataset(),
+        minimum_live_articles=4,
+    )
+
+    response = service.generate_brief(
+        BriefRequest(
+            topic="AI chip export controls",
+            mode="auto",
+            persona="financial_analyst",
+            goal="Assess investor exposure for semiconductor companies",
+        )
+    )
+
+    assert response.persona == "financial_analyst"
+    assert response.persona_label == "Financial analyst"
+    assert response.goal == "Assess investor exposure for semiconductor companies"
+    assert response.pipeline_metadata["persona"]["label"] == "Financial analyst"
+    assert response.confidence.score > 0
+    assert response.confidence.level in {"High", "Medium", "Developing"}
+    assert response.section_titles["insights"] == "Market signals"
+    assert any("market" in item.lower() or "investor" in item.lower() for item in response.insights)
+
+    handoff = response.to_handoff_artifact()
+
+    assert handoff.persona == "financial_analyst"
+    assert handoff.goal == response.goal
+    assert handoff.confidence.score == response.confidence.score

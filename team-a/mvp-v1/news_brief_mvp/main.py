@@ -8,6 +8,7 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 
 from .models import BriefRequest
+from .personas import get_persona_options
 from .service import LiveRunFailed, build_default_service
 
 
@@ -27,6 +28,7 @@ def create_app(service=None, artifact_root: Optional[Path] = None) -> FastAPI:
                 "brief": None,
                 "error_message": None,
                 "recent_briefs": app.state.service.list_recent_briefs(),
+                "persona_options": get_persona_options(),
             },
         )
 
@@ -36,11 +38,12 @@ def create_app(service=None, artifact_root: Optional[Path] = None) -> FastAPI:
         topic: Optional[str] = Form(default=None),
         mode: str = Form(default="auto"),
         persona: str = Form(default="research_analyst"),
+        goal: str = Form(default=""),
     ):
         payload = (
             await request.json()
             if request.headers.get("content-type", "").startswith("application/json")
-            else {"topic": topic or "", "mode": mode, "persona": persona}
+            else {"topic": topic or "", "mode": mode, "persona": persona, "goal": goal}
         )
         request_model = BriefRequest.model_validate(payload)
 
@@ -83,6 +86,7 @@ def create_app(service=None, artifact_root: Optional[Path] = None) -> FastAPI:
                 "brief": brief,
                 "error_message": None,
                 "recent_briefs": app.state.service.list_recent_briefs(),
+                "persona_options": get_persona_options(),
             },
         )
 

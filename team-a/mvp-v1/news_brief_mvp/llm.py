@@ -9,6 +9,7 @@ from typing import Iterable
 import httpx
 
 from .models import ArticleRecord, BriefSections
+from .personas import get_persona_definition
 
 
 JSON_BLOCK_RE = re.compile(r"\{.*\}", re.DOTALL)
@@ -18,7 +19,13 @@ class OpenAICompatibleLLMClient:
     def __init__(self, prompt_path: Path):
         self.prompt_path = prompt_path
 
-    def generate_sections(self, topic: str, persona: str, articles: Iterable[ArticleRecord]) -> BriefSections:
+    def generate_sections(
+        self,
+        topic: str,
+        persona: str,
+        articles: Iterable[ArticleRecord],
+        goal: str = "",
+    ) -> BriefSections:
         api_key = os.getenv("OPENAI_API_KEY")
         if not api_key:
             raise RuntimeError("OPENAI_API_KEY is not set.")
@@ -27,6 +34,7 @@ class OpenAICompatibleLLMClient:
         model_name = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
 
         prompt_template = self.prompt_path.read_text().strip()
+        persona_definition = get_persona_definition(persona)
         article_lines = []
         for article in articles:
             article_lines.append(
@@ -45,6 +53,11 @@ class OpenAICompatibleLLMClient:
         prompt = prompt_template.format(
             topic=topic,
             persona=persona,
+            persona_label=persona_definition.label,
+            persona_guidance=persona_definition.prompt_guidance,
+            persona_focus="\n".join(f"- {item}" for item in persona_definition.focus),
+            comparison_axes=", ".join(persona_definition.comparison_axes),
+            goal=goal or "No specific research goal was provided.",
             articles="\n\n".join(article_lines),
         )
 
@@ -81,4 +94,3 @@ def _extract_json_object(content: str):
     if not match:
         raise RuntimeError("LLM response did not include a JSON object.")
     return json.loads(match.group(0))
-

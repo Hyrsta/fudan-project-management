@@ -19,6 +19,7 @@ from .models import (
     SectionGenerationMode,
     SourceEvidence,
 )
+from .personas import get_persona_definition
 from .ranking import deduplicate_articles, score_articles
 from .storage import ArtifactStore
 
@@ -49,6 +50,7 @@ class BriefService:
     def generate_brief(self, request_model: BriefRequest) -> BriefResponse:
         mode_used = "live"
         warnings: List[str] = []
+        persona_definition = get_persona_definition(request_model.persona)
 
         if request_model.mode == "fallback":
             mode_used = "fallback"
@@ -82,6 +84,7 @@ class BriefService:
         sections, section_generation_mode = self._generate_sections(
             topic=request_model.topic,
             persona=request_model.persona,
+            goal=request_model.goal,
             articles=selected_articles,
             mode_used=mode_used,
             warnings=warnings,
@@ -89,6 +92,7 @@ class BriefService:
 
         brief_id = f"brief-{uuid4().hex[:10]}"
         created_at = datetime.now(timezone.utc)
+        confidence = _build_confidence(selected_articles, warnings=warnings, mode_used=mode_used)
         citations = [
             ArticleCitation(
                 article_id=article.id,
@@ -105,6 +109,9 @@ class BriefService:
             created_at=created_at,
             mode_used=mode_used,
             section_generation_mode=section_generation_mode,
+            persona=request_model.persona,
+            persona_label=persona_definition.label,
+            goal=request_model.goal,
             articles=selected_articles,
             overview=sections.overview,
             executive_summary=sections.overview,
@@ -125,6 +132,8 @@ class BriefService:
                 "comparison": section_generation_mode,
                 "insight": section_generation_mode,
                 "report": section_generation_mode,
+                "persona": persona_definition.as_metadata(),
+                "goal": request_model.goal,
             },
             quality_notes=_build_quality_notes(
                 mode_used=mode_used,
@@ -133,6 +142,9 @@ class BriefService:
                 warnings=warnings,
             ),
             warnings=list(dict.fromkeys(warnings)),
+            lens_focus=persona_definition.focus,
+            section_titles=persona_definition.section_titles,
+            confidence=confidence,
         )
         handoff = response.to_handoff_artifact()
         self.artifact_store.save(response, handoff)
@@ -156,7 +168,8 @@ class BriefService:
     def _prepare_live_articles(self, articles: Sequence[ArticleRecord], topic: str) -> List[ArticleRecord]:
         scored = score_articles(articles, topic=topic)
         deduplicated = deduplicate_articles(scored)
-        return deduplicated[:5]
+        relevant = [article for article in deduplicated if article.match_score >= 0.45]
+        return relevant[:5]
 
     def _prepare_fallback_articles(self, topic: str) -> List[ArticleRecord]:
         scored = score_articles(self.fallback_dataset.articles, topic=topic)
@@ -166,17 +179,28 @@ class BriefService:
         self,
         topic: str,
         persona: str,
+        goal: str,
         articles: Sequence[ArticleRecord],
         mode_used: str,
         warnings: List[str],
     ) -> tuple[BriefSections, SectionGenerationMode]:
         try:
-            sections = self.llm_client.generate_sections(topic=topic, persona=persona, articles=articles)
+            sections = self.llm_client.generate_sections(
+                topic=topic,
+                persona=persona,
+                goal=goal,
+                articles=articles,
+            )
             return sections, "llm"
         except Exception:
             warnings.append("llm_generation_failed")
             try:
-                sections = build_heuristic_sections(topic=topic, persona=persona, articles=articles)
+                sections = build_heuristic_sections(
+                    topic=topic,
+                    persona=persona,
+                    goal=goal,
+                    articles=articles,
+                )
                 warnings.append("heuristic_sections_used")
                 return sections, "heuristic"
             except Exception as exc:
@@ -246,6 +270,76 @@ def _fallback_insights(articles: Sequence[ArticleRecord]) -> List[str]:
         f"The report is grounded in {len(articles)} selected sources rather than a single blended answer.",
         f"Visible source diversity includes {', '.join(sources[:4])}.",
     ]
+
+
+def _build_confidence(
+    articles: Sequence[ArticleRecord],
+    warnings: Sequence[str],
+    mode_used: str,
+):
+    from .models import ReportConfidence
+
+    if not articles:
+        return ReportConfidence(
+            score=0,
+            level="Developing",
+            source_diversity="No sources",
+            freshness="Unknown",
+            topic_fit="Unknown",
+            rationale=["No usable source records were available."],
+        )
+
+    unique_sources = {article.source.strip().lower() for article in articles if article.source.strip()}
+    diversity_ratio = min(1.0, len(unique_sources) / 4)
+    avg_freshness = sum(article.freshness_score for article in articles) / len(articles)
+    avg_fit = sum(article.match_score for article in articles) / len(articles)
+    avg_trust = sum(article.source_weight for article in articles) / len(articles)
+    raw_score = (avg_trust * 0.35) + (avg_fit * 0.30) + (avg_freshness * 0.20) + (diversity_ratio * 0.15)
+    if mode_used == "fallback":
+        raw_score -= 0.08
+    if "live_results_incomplete" in warnings:
+        raw_score -= 0.08
+    score = max(0, min(100, round(raw_score * 100)))
+    if score >= 75:
+        level = "High"
+    elif score >= 50:
+        level = "Medium"
+    else:
+        level = "Developing"
+
+    rationale = [
+        f"{len(unique_sources)} distinct sources are represented.",
+        f"Average topic fit is {_score_label(avg_fit).lower()}.",
+    ]
+    if mode_used == "fallback":
+        rationale.append("Saved source coverage was used for reliability.")
+    if "live_results_incomplete" in warnings:
+        rationale.append("Live coverage was incomplete in this run.")
+
+    return ReportConfidence(
+        score=score,
+        level=level,
+        source_diversity=_diversity_label(len(unique_sources)),
+        freshness=_score_label(avg_freshness),
+        topic_fit=_score_label(avg_fit),
+        rationale=rationale,
+    )
+
+
+def _diversity_label(source_count: int) -> str:
+    if source_count >= 4:
+        return "Broad"
+    if source_count >= 2:
+        return "Moderate"
+    return "Limited"
+
+
+def _score_label(score: float) -> str:
+    if score >= 0.75:
+        return "Strong"
+    if score >= 0.45:
+        return "Moderate"
+    return "Limited"
 
 
 def _build_quality_notes(

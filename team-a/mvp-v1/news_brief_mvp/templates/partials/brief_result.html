@@ -1,4 +1,7 @@
 <article class="report-card">
+  {% set titles = brief.section_titles or {} %}
+  {% set persona_meta = brief.pipeline_metadata.get("persona", {}) if brief.pipeline_metadata else {} %}
+  {% set axes = persona_meta.get("comparison_axes", []) %}
   <header class="report-head">
     <div class="report-title-block">
       <div class="report-kicker">
@@ -13,6 +16,7 @@
       </div>
       <h2 class="report-topic">{{ brief.topic }}</h2>
       <div class="report-meta" aria-label="Report metadata">
+        <span class="meta-pill"><i data-lucide="user-round-check" aria-hidden="true"></i>{{ brief.persona_label }}</span>
         <span class="meta-pill"><i data-lucide="link" aria-hidden="true"></i>{{ brief.articles|length }} sources</span>
         <span class="meta-pill"><i data-lucide="radio-tower" aria-hidden="true"></i>{% if brief.mode_used == "live" %}Live coverage{% else %}Saved coverage{% endif %}</span>
         <span class="meta-pill"><i data-lucide="clock-3" aria-hidden="true"></i>{{ brief.created_at.strftime('%H:%M UTC') }}</span>
@@ -44,8 +48,11 @@
 
   <section class="summary-row">
     <div class="summary-block">
-      <h3 class="section-title"><i data-lucide="file-text" aria-hidden="true"></i>Executive summary</h3>
+      <h3 class="section-title"><i data-lucide="file-text" aria-hidden="true"></i>{{ titles.get("summary", "Executive summary") }}</h3>
       <p>{{ brief.executive_summary or brief.overview }}</p>
+      {% if brief.goal %}
+        <p class="goal-note"><i data-lucide="target" aria-hidden="true"></i>{{ brief.goal }}</p>
+      {% endif %}
       <div class="summary-sources" aria-label="Leading sources">
         {% for article in brief.articles[:4] %}
           <span class="icon-label">
@@ -65,8 +72,13 @@
         </div>
       </div>
       <div>
-        <div class="evidence-number">{{ brief.articles|length * 6 }}</div>
-        <p class="helper">Total items</p>
+        <div class="evidence-number">{{ brief.confidence.score }}</div>
+        <p class="helper">{{ brief.confidence.level }} confidence</p>
+      </div>
+      <div class="confidence-grid" aria-label="Report confidence">
+        <span><strong>{{ brief.confidence.source_diversity }}</strong><small>Sources</small></span>
+        <span><strong>{{ brief.confidence.freshness }}</strong><small>Freshness</small></span>
+        <span><strong>{{ brief.confidence.topic_fit }}</strong><small>Topic fit</small></span>
       </div>
       <div class="evidence-list">
         {% for article in brief.articles[:3] %}
@@ -93,8 +105,8 @@
   <section class="comparison-section">
     <div class="section-head">
       <div>
-        <h3 class="section-title"><i data-lucide="git-compare-arrows" aria-hidden="true"></i>Coverage comparison</h3>
-        <p class="section-copy">How the selected sources frame this story.</p>
+        <h3 class="section-title"><i data-lucide="git-compare-arrows" aria-hidden="true"></i>{{ titles.get("comparison", "Coverage comparison") }}</h3>
+        <p class="section-copy">{{ brief.persona_label }} view across selected sources.</p>
       </div>
       <button class="text-link-button section-control" type="button" data-action="toggle-section" data-target="#comparison-content-{{ brief.brief_id }}" aria-expanded="true" onclick="toggleSectionFromButton(this, event)">Collapse section <i data-lucide="chevron-down" aria-hidden="true"></i></button>
     </div>
@@ -103,10 +115,10 @@
         <thead>
           <tr>
             <th>Source</th>
-            <th>Overall angle</th>
-            <th>Market impact</th>
-            <th>Diplomatic angle</th>
-            <th>Regional focus</th>
+            <th>{{ axes[0] if axes|length > 0 else "Overall angle" }}</th>
+            <th>{{ axes[1] if axes|length > 1 else "Market impact" }}</th>
+            <th>{{ axes[2] if axes|length > 2 else "Diplomatic angle" }}</th>
+            <th>{{ axes[3] if axes|length > 3 else "Regional focus" }}</th>
           </tr>
         </thead>
         <tbody>
@@ -172,7 +184,7 @@
     <section class="facts-section">
       <div class="section-head">
         <div>
-          <h3 class="section-title"><i data-lucide="badge-check" aria-hidden="true"></i>Key facts</h3>
+          <h3 class="section-title"><i data-lucide="badge-check" aria-hidden="true"></i>{{ titles.get("facts", "Key facts") }}</h3>
           <p class="section-copy">Verified claims and data points from the selected coverage.</p>
         </div>
         <button class="text-link-button section-control" type="button" data-action="toggle-section" data-target="#facts-content-{{ brief.brief_id }}" aria-expanded="true" onclick="toggleSectionFromButton(this, event)">Collapse section <i data-lucide="chevron-down" aria-hidden="true"></i></button>
@@ -199,7 +211,7 @@
   <section class="insight-section">
     <div class="insight-grid">
       <section class="report-section">
-        <h3 class="section-title"><i data-lucide="list-checks" aria-hidden="true"></i>Takeaways</h3>
+        <h3 class="section-title"><i data-lucide="list-checks" aria-hidden="true"></i>{{ titles.get("takeaways", "Takeaways") }}</h3>
         <ul>
           {% for item in brief.key_takeaways %}
             <li>{{ item }}</li>
@@ -209,7 +221,7 @@
 
       {% if brief.insights %}
         <section class="report-section">
-          <h3 class="section-title"><i data-lucide="lightbulb" aria-hidden="true"></i>Signals</h3>
+          <h3 class="section-title"><i data-lucide="lightbulb" aria-hidden="true"></i>{{ titles.get("insights", "Signals") }}</h3>
           <ul>
             {% for item in brief.insights %}
               <li>{{ item }}</li>
@@ -219,7 +231,7 @@
       {% endif %}
 
       <section class="report-section" id="watch-section">
-        <h3 class="section-title"><i data-lucide="radar" aria-hidden="true"></i>Watch</h3>
+        <h3 class="section-title"><i data-lucide="radar" aria-hidden="true"></i>{{ titles.get("watch", "Watch") }}</h3>
         <ul>
           {% for item in brief.risk_notes or brief.uncertainties %}
             <li>{{ item }}</li>
@@ -228,7 +240,7 @@
       </section>
 
       <section class="report-section">
-        <h3 class="section-title"><i data-lucide="message-square-text" aria-hidden="true"></i>Coverage note</h3>
+        <h3 class="section-title"><i data-lucide="message-square-text" aria-hidden="true"></i>{{ titles.get("note", "Coverage note") }}</h3>
         <p>{{ brief.framing_comparison }}</p>
       </section>
     </div>

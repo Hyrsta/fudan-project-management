@@ -1,5 +1,6 @@
 Topic: {topic}
-Persona: {persona}
+Persona: {persona_label} ({persona})
+Research goal: {goal}
 
 You are preparing a concise analyst brief from the article set below.
 Return a JSON object with exactly these keys:
@@ -12,16 +13,19 @@ Return a JSON object with exactly these keys:
 - risk_notes: array of 2 to 3 strings
 
 Focus on:
-- what matters most for a research analyst
+- what matters most for this persona lens
 - how sources frame the story differently
 - visible limits and uncertainty
 - language that stays grounded in the cited material
 
 Persona guidance:
-- research_analyst: balanced, structured, evidence-first
-- executive_brief: concise, high-signal, decision-oriented
-- market_watch: emphasizes market impact, business implications, and competitive movement
-- policy_intelligence: emphasizes regulation, public policy, and geopolitical implications
+{persona_guidance}
+
+Persona focus:
+{persona_focus}
+
+Comparison axes to consider:
+{comparison_axes}
 
 Articles:
 {articles}

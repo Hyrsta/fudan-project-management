@@ -110,7 +110,12 @@ class ArtifactStore:
             "created_at": response.created_at.isoformat(),
             "mode_used": response.mode_used,
             "section_generation_mode": response.section_generation_mode,
+            "persona": response.persona,
+            "persona_label": response.persona_label,
+            "goal": response.goal,
             "source_count": len(response.articles),
+            "confidence_score": response.confidence.score,
+            "confidence_level": response.confidence.level,
             "warnings": response.warnings,
             "export_html_path": str(self.export_path(response.brief_id)),
             "markdown_export_path": str(self.markdown_path(response.brief_id)),
@@ -157,6 +162,15 @@ def _render_export_html(response: BriefResponse) -> str:
     )
     coverage_label = "Live coverage" if response.mode_used == "live" else "Saved source coverage"
     section_label = "AI assisted" if response.section_generation_mode == "llm" else "Local analysis"
+    titles = response.section_titles
+    goal_html = (
+        f"<p><strong>Research goal:</strong> {html.escape(response.goal)}</p>"
+        if response.goal
+        else ""
+    )
+    confidence_items = "".join(
+        f"<li>{html.escape(item)}</li>" for item in response.confidence.rationale
+    )
     return f"""<!doctype html>
 <html lang="en">
   <head>
@@ -172,20 +186,24 @@ def _render_export_html(response: BriefResponse) -> str:
   </head>
   <body>
     <h1>{html.escape(response.topic)}</h1>
-    <p class="meta">Coverage: {html.escape(coverage_label)} | Analysis: {html.escape(section_label)} | Report ID: {html.escape(response.brief_id)}</p>
+    <p class="meta">Lens: {html.escape(response.persona_label)} | Coverage: {html.escape(coverage_label)} | Analysis: {html.escape(section_label)} | Report ID: {html.escape(response.brief_id)}</p>
     <div class="callout">
-      <strong>Overview</strong>
+      <strong>{html.escape(titles.get("summary", "Executive summary"))}</strong>
       <p>{html.escape(response.overview)}</p>
+      {goal_html}
     </div>
-    <h2>Key takeaways</h2>
+    <h2>Confidence</h2>
+    <p>{response.confidence.score}/100 - {html.escape(response.confidence.level)} confidence. Source diversity: {html.escape(response.confidence.source_diversity)}. Freshness: {html.escape(response.confidence.freshness)}. Topic fit: {html.escape(response.confidence.topic_fit)}.</p>
+    <ul>{confidence_items}</ul>
+    <h2>{html.escape(titles.get("takeaways", "Key takeaways"))}</h2>
     <ul>{takeaway_items}</ul>
-    <h2>Key facts</h2>
+    <h2>{html.escape(titles.get("facts", "Key facts"))}</h2>
     <ul>{fact_items}</ul>
-    <h2>Source framing comparison</h2>
+    <h2>{html.escape(titles.get("comparison", "Source framing comparison"))}</h2>
     <p>{html.escape(response.framing_comparison)}</p>
-    <h2>Insights and signals</h2>
+    <h2>{html.escape(titles.get("insights", "Insights and signals"))}</h2>
     <ul>{insight_items}</ul>
-    <h2>Uncertainties and limits</h2>
+    <h2>{html.escape(titles.get("watch", "Uncertainties and limits"))}</h2>
     <ul>{uncertainty_items}</ul>
     <h2>Source evidence</h2>
     <ol>{evidence_items}</ol>
@@ -199,29 +217,46 @@ def _render_export_html(response: BriefResponse) -> str:
 def _render_export_markdown(response: BriefResponse) -> str:
     coverage_label = "Live coverage" if response.mode_used == "live" else "Saved source coverage"
     section_label = "AI assisted" if response.section_generation_mode == "llm" else "Local analysis"
+    titles = response.section_titles
     lines = [
         f"# {response.topic}",
         "",
         f"- Report ID: `{response.brief_id}`",
         f"- Created: {response.created_at.isoformat()}",
+        f"- Lens: {response.persona_label}",
         f"- Coverage: {coverage_label}",
         f"- Analysis: {section_label}",
         f"- Sources: {len(response.articles)}",
+    ]
+    if response.goal:
+        lines.append(f"- Research goal: {response.goal}")
+    lines.extend([
         "",
-        "## Executive Summary",
+        f"## {titles.get('summary', 'Executive Summary')}",
         "",
         response.executive_summary or response.overview,
         "",
-        "## Key Takeaways",
+        "## Confidence",
         "",
-    ]
+        f"{response.confidence.score}/100 - {response.confidence.level} confidence.",
+        "",
+        f"- Source diversity: {response.confidence.source_diversity}",
+        f"- Freshness: {response.confidence.freshness}",
+        f"- Topic fit: {response.confidence.topic_fit}",
+    ])
+    lines.extend(f"- {item}" for item in response.confidence.rationale)
+    lines.extend([
+        "",
+        f"## {titles.get('takeaways', 'Key Takeaways')}",
+        "",
+    ])
     lines.extend(f"- {item}" for item in response.key_takeaways)
-    lines.extend(["", "## Key Facts", ""])
+    lines.extend(["", f"## {titles.get('facts', 'Key Facts')}", ""])
     lines.extend(f"- {item}" for item in response.key_facts)
-    lines.extend(["", "## Coverage Comparison", "", response.framing_comparison, ""])
-    lines.extend(["## Insights and Signals", ""])
+    lines.extend(["", f"## {titles.get('comparison', 'Coverage Comparison')}", "", response.framing_comparison, ""])
+    lines.extend([f"## {titles.get('insights', 'Insights and Signals')}", ""])
     lines.extend(f"- {item}" for item in response.insights)
-    lines.extend(["", "## Risk Notes and Limits", ""])
+    lines.extend(["", f"## {titles.get('watch', 'Risk Notes and Limits')}", ""])
     lines.extend(f"- {item}" for item in (response.risk_notes or response.uncertainties))
     lines.extend(["", "## Source Evidence", ""])
     for item in response.source_evidence:

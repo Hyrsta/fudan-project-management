@@ -50,8 +50,10 @@ class StubService:
             warnings=["fallback_used"],
         )
         self.handoff = self.response.to_handoff_artifact()
+        self.last_request = None
 
     def generate_brief(self, request_model):
+        self.last_request = request_model
         return self.response
 
     def load_brief_response(self, brief_id: str):
@@ -73,14 +75,16 @@ class StubService:
 def test_post_api_briefs_returns_json_contract(tmp_path) -> None:
     export_path = tmp_path / "brief.html"
     export_path.write_text("<html><body>Brief</body></html>")
-    client = TestClient(create_app(service=StubService(export_path), artifact_root=tmp_path))
+    service = StubService(export_path)
+    client = TestClient(create_app(service=service, artifact_root=tmp_path))
 
     response = client.post(
         "/api/briefs",
         json={
             "topic": "AI chip export controls",
             "mode": "fallback",
-            "persona": "research_analyst",
+            "persona": "financial_analyst",
+            "goal": "Assess investor exposure",
         },
     )
 
@@ -90,6 +94,8 @@ def test_post_api_briefs_returns_json_contract(tmp_path) -> None:
     assert payload["mode_used"] == "fallback"
     assert payload["section_generation_mode"] == "precomputed"
     assert payload["export_html_path"].endswith("brief.html")
+    assert service.last_request.persona == "financial_analyst"
+    assert service.last_request.goal == "Assess investor exposure"
 
 
 def test_export_and_handoff_routes_surface_saved_artifacts(tmp_path) -> None:
@@ -128,6 +134,10 @@ def test_recent_briefings_render_inspect_actions(tmp_path) -> None:
     assert ">Inspect<" in response.text
     assert '/briefs/brief-123/handoff' in response.text
     assert 'name="mode"' in response.text
+    assert 'name="persona"' in response.text
+    assert 'name="goal"' in response.text
+    assert 'data-action="select-persona"' in response.text
+    assert "Financial analyst" in response.text
     assert "Balanced coverage" in response.text
 
 

@@ -20,12 +20,12 @@ class FakeLiveRetriever:
 
 
 class FailingLLM:
-    def generate_sections(self, topic: str, persona: str, articles):
+    def generate_sections(self, topic: str, persona: str, articles, goal: str = ""):
         raise RuntimeError("LLM unavailable")
 
 
 class WorkingLLM:
-    def generate_sections(self, topic: str, persona: str, articles):
+    def generate_sections(self, topic: str, persona: str, articles, goal: str = ""):
         return BriefSections(
             overview=f"Overview for {topic}",
             key_takeaways=[
@@ -150,6 +150,32 @@ def test_generate_brief_auto_falls_back_and_uses_precomputed_sections_on_llm_fai
     assert handoff_payload["sections"]["overview"] == response.overview
 
 
+def test_generate_brief_auto_rejects_weak_live_topic_matches(tmp_path) -> None:
+    store = ArtifactStore(tmp_path / "artifacts")
+    service = BriefService(
+        live_retriever=FakeLiveRetriever(
+            [
+                build_article("one", "Enterprise AI platform funding", "TechCrunch", 2),
+                build_article("two", "AI startup expands in Europe", "BBC", 3),
+                build_article("three", "Cloud AI demand rises", "Reuters", 4),
+                build_article("four", "AI tools reshape office software", "AP", 5),
+            ]
+        ),
+        llm_client=FailingLLM(),
+        artifact_store=store,
+        fallback_dataset=make_fallback_dataset(),
+        minimum_live_articles=4,
+    )
+
+    response = service.generate_brief(
+        BriefRequest(topic="AI chip export controls", mode="auto", persona="financial_analyst")
+    )
+
+    assert response.mode_used == "fallback"
+    assert "live_results_incomplete" in response.warnings
+    assert response.articles[0].source == "Reuters"
+
+
 def test_generate_brief_live_mode_uses_heuristic_sections_when_llm_fails(tmp_path) -> None:
     store = ArtifactStore(tmp_path / "artifacts")
     service = BriefService(
@@ -158,7 +184,7 @@ def test_generate_brief_live_mode_uses_heuristic_sections_when_llm_fails(tmp_pat
                 build_article("one", "US weighs AI chip export controls", "Reuters", 2),
                 build_article("two", "Chipmakers assess export controls", "AP", 3),
                 build_article("three", "Allies react to AI chip rules", "BBC", 4),
-                build_article("four", "Investors parse new chip rules", "Financial Times", 5),
+                build_article("four", "Investors parse new AI chip export controls", "Financial Times", 5),
             ]
         ),
         llm_client=FailingLLM(),
@@ -186,7 +212,7 @@ def test_generate_brief_live_mode_returns_ranked_articles_and_sections(tmp_path)
                 build_article("one", "US weighs AI chip export controls", "Reuters", 2),
                 build_article("two", "Chipmakers assess export controls", "AP", 3),
                 build_article("three", "Allies react to AI chip rules", "BBC", 4),
-                build_article("four", "Investors parse new chip rules", "Financial Times", 5),
+                build_article("four", "Investors parse new AI chip export controls", "Financial Times", 5),
             ]
         ),
         llm_client=WorkingLLM(),
