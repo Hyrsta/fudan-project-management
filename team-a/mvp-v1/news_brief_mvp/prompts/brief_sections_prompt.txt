@@ -5,8 +5,11 @@ You are preparing a concise analyst brief from the article set below.
 Return a JSON object with exactly these keys:
 - overview: string
 - key_takeaways: array of 3 to 5 strings
+- key_facts: array of 3 to 5 source-grounded factual bullets
 - framing_comparison: string
+- insights: array of 2 to 4 analytical signals or trends
 - uncertainties: array of 2 to 3 strings
+- risk_notes: array of 2 to 3 strings
 
 Focus on:
 - what matters most for a research analyst

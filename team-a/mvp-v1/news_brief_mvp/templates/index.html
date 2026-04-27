@@ -3,41 +3,32 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#fdf9f4">
-    <title>Analyst Brief Generator</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <meta name="theme-color" content="#f8fafc">
+    <title>News Intelligence Studio</title>
     <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <script src="https://unpkg.com/lucide@latest" defer></script>
     <style>
       :root {
-        --space-xs: clamp(0.5rem, 0.4rem + 0.3vw, 0.7rem);
-        --space-sm: clamp(0.75rem, 0.65rem + 0.5vw, 1rem);
-        --space-md: clamp(1rem, 0.8rem + 0.9vw, 1.4rem);
-        --space-lg: clamp(1.35rem, 1rem + 1.2vw, 2rem);
-        --space-xl: clamp(1.8rem, 1.35rem + 2vw, 3rem);
-        --bg: #f6eee4;
-        --bg-strong: #fffaf4;
-        --surface: rgba(255, 255, 255, 0.9);
-        --surface-strong: #fffdfa;
-        --surface-soft: rgba(255, 249, 244, 0.88);
-        --ink: #1f1a17;
-        --muted: #645a52;
-        --line: rgba(120, 113, 108, 0.16);
-        --line-strong: rgba(120, 113, 108, 0.28);
-        --accent: #9a3412;
-        --accent-strong: #7c2d12;
-        --accent-soft: rgba(154, 52, 18, 0.12);
-        --accent-glow: rgba(217, 119, 6, 0.18);
-        --success: #166534;
-        --success-soft: rgba(22, 101, 52, 0.12);
-        --warning: #92400e;
-        --warning-soft: rgba(146, 64, 14, 0.14);
-        --shadow: 0 18px 40px rgba(28, 25, 23, 0.08);
-        --shadow-lg: 0 32px 90px rgba(28, 25, 23, 0.1);
-        --shadow-lift: 0 18px 36px rgba(28, 25, 23, 0.1);
-        --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+        --background: #f8fafc;
+        --surface: #ffffff;
+        --surface-soft: #f8fafc;
+        --foreground: #0f172a;
+        --muted: #64748b;
+        --muted-light: #94a3b8;
+        --border: #e2e8f0;
+        --border-strong: #cbd5e1;
+        --primary: #0f172a;
+        --primary-hover: #020617;
+        --accent: #2563eb;
+        --accent-soft: #eff6ff;
+        --green: #16803c;
+        --green-soft: #ecfdf5;
+        --amber: #b45309;
+        --amber-soft: #fffbeb;
+        --red: #be123c;
+        --red-soft: #fff1f2;
+        --radius: 8px;
+        --shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
       }
 
       * {
@@ -51,22 +42,52 @@
 
       body {
         margin: 0;
-        font-family: var(--font-sans);
-        font-size: 1rem;
-        font-weight: 500;
-        color: var(--ink);
-        background:
-          radial-gradient(circle at 12% 10%, rgba(251, 191, 36, 0.14), transparent 22%),
-          radial-gradient(circle at 88% 12%, rgba(217, 119, 6, 0.16), transparent 24%),
-          radial-gradient(circle at 50% 100%, rgba(249, 115, 22, 0.08), transparent 28%),
-          linear-gradient(180deg, #fffdf9 0%, #f8f1e9 56%, var(--bg) 100%);
         min-height: 100vh;
-        -webkit-tap-highlight-color: rgba(154, 52, 18, 0.12);
+        background: var(--background);
+        color: var(--foreground);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-size: 15px;
+        line-height: 1.5;
+        letter-spacing: 0;
+        -webkit-font-smoothing: antialiased;
+        overflow-x: hidden;
+      }
+
+      h1,
+      h2,
+      h3,
+      h4,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        font-size: 1.12rem;
+        line-height: 1.2;
+        font-weight: 760;
+      }
+
+      h2 {
+        font-size: 1.55rem;
+        line-height: 1.2;
+        font-weight: 780;
+      }
+
+      h3 {
+        font-size: 0.92rem;
+        line-height: 1.35;
+        font-weight: 740;
+      }
+
+      h4 {
+        font-size: 0.9rem;
+        line-height: 1.35;
+        font-weight: 740;
       }
 
       a {
-        color: var(--accent-strong);
-        text-underline-offset: 0.14em;
+        color: inherit;
+        text-decoration: none;
       }
 
       a:hover {
@@ -83,20 +104,40 @@
       button:focus-visible,
       input:focus-visible,
       select:focus-visible,
-      a:focus-visible {
-        outline: 3px solid rgba(154, 52, 18, 0.28);
+      a:focus-visible,
+      summary:focus-visible {
+        outline: 3px solid rgba(37, 99, 235, 0.22);
         outline-offset: 2px;
+      }
+
+      [data-lucide] {
+        width: 16px;
+        height: 16px;
+        stroke-width: 2;
+        flex: 0 0 auto;
+      }
+
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
       }
 
       .skip-link {
         position: absolute;
         left: 1rem;
         top: -3rem;
-        z-index: 10;
-        border-radius: 999px;
-        padding: 0.7rem 0.95rem;
-        background: var(--surface-strong);
-        border: 1px solid var(--line-strong);
+        z-index: 20;
+        padding: 0.625rem 0.875rem;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface);
         box-shadow: var(--shadow);
       }
 
@@ -104,366 +145,1134 @@
         top: 1rem;
       }
 
-      .page {
-        max-width: 1220px;
-        margin: 0 auto;
-        padding: var(--space-xl) var(--space-md) calc(var(--space-xl) + 0.8rem);
-      }
-
-      .hero {
+      .app-frame {
         display: grid;
-        gap: var(--space-md);
-        margin-bottom: var(--space-lg);
+        grid-template-columns: 72px minmax(0, 1fr);
+        min-height: 100vh;
       }
 
-      .eyebrow {
+      .side-rail {
+        position: sticky;
+        top: 0;
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        justify-items: center;
+        height: 100vh;
+        border-right: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.82);
+        backdrop-filter: blur(10px);
+        padding: 18px 0;
+      }
+
+      .rail-logo,
+      .rail-button {
+        display: grid;
+        place-items: center;
+        width: 36px;
+        height: 36px;
+        border: 1px solid transparent;
+        border-radius: var(--radius);
+        color: #334155;
+      }
+
+      .rail-logo {
+        border-color: var(--border);
+        background: var(--surface);
+        box-shadow: var(--shadow);
+      }
+
+      .rail-nav,
+      .rail-bottom {
+        display: grid;
+        gap: 10px;
+        justify-items: center;
+      }
+
+      .rail-nav {
+        align-content: start;
+        padding-top: 28px;
+      }
+
+      .rail-button:hover,
+      .rail-button.is-active {
+        border-color: var(--border);
+        background: var(--surface-soft);
+        color: var(--foreground);
+      }
+
+      .app-content {
+        min-width: 0;
+        padding: 18px 24px 48px;
+      }
+
+      .app-shell {
+        width: min(1320px, 100%);
+        margin: 0 auto;
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        min-height: 40px;
+        margin-bottom: 18px;
+      }
+
+      .brand {
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .section-copy,
+      .helper,
+      .source-count,
+      .mini-meta {
+        color: var(--muted);
+      }
+
+      .top-actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 8px;
+      }
+
+      .status-chip,
+      .badge,
+      .meta-pill,
+      .topic-chip,
+      .tool-button,
+      .text-link-button,
+      .icon-label,
+      .rail-label,
+      .avatar-chip {
         display: inline-flex;
         align-items: center;
-        gap: 0.45rem;
-        width: fit-content;
-        border-radius: 999px;
-        background: var(--accent-soft);
-        color: var(--accent-strong);
-        padding: 0.42rem 0.78rem;
-        font-size: 0.78rem;
-        font-weight: 800;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
+        gap: 7px;
       }
 
-      .hero-grid {
-        display: grid;
-        gap: var(--space-md);
-        container-type: inline-size;
-        container-name: hero;
-      }
-
-      .hero-copy {
-        position: relative;
-        display: grid;
-        gap: var(--space-md);
-        min-width: 0;
-        padding: clamp(1.4rem, 2vw, 2rem);
-        border: 1px solid rgba(154, 52, 18, 0.1);
-        border-radius: 32px;
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.72) 0%, rgba(255, 248, 242, 0.92) 100%);
-        box-shadow: var(--shadow-lg);
-        overflow: hidden;
-      }
-
-      .hero-copy::before {
-        content: "";
-        position: absolute;
-        inset: auto -8% 54% 48%;
-        height: 220px;
-        border-radius: 999px;
-        background: radial-gradient(circle, var(--accent-glow) 0%, transparent 72%);
-        pointer-events: none;
-      }
-
-      .hero-copy > * {
-        position: relative;
-        z-index: 1;
-      }
-
-      h1,
-      h2,
-      h3 {
-        font-family: var(--font-display);
-        font-optical-sizing: auto;
-        font-variation-settings: "SOFT" 20, "WONK" 0;
-        margin: 0;
-        line-height: 1.06;
-        letter-spacing: -0.025em;
-        color: #18120f;
-      }
-
-      h1 {
-        max-width: none;
-        font-size: clamp(2.3rem, 5.4vw, 4.7rem);
-        font-weight: 700;
+      .status-chip,
+      .badge,
+      .meta-pill,
+      .topic-chip,
+      .tool-button,
+      .text-link-button {
+        min-height: 34px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface);
+        color: #334155;
+        padding: 0 11px;
+        font-size: 0.84rem;
+        font-weight: 720;
         white-space: nowrap;
       }
 
-      h2 {
-        font-size: clamp(1.55rem, 2vw, 2.1rem);
-        font-weight: 600;
+      .status-chip.sync {
+        border-color: transparent;
+        background: transparent;
+        color: #475569;
+        padding: 0 4px;
       }
 
-      h3 {
-        font-size: clamp(1.05rem, 1.2vw, 1.25rem);
-        font-weight: 600;
-      }
-
-      h2,
-      h3 {
-        text-wrap: balance;
-      }
-
-      .lead {
-        max-width: none;
-        width: 100%;
-        margin: 0;
-        color: var(--muted);
-        font-size: 1.08rem;
-        line-height: 1.72;
-        font-weight: 500;
-      }
-
-      .hero-highlights {
-        display: grid;
-        gap: var(--space-sm);
-        grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr));
-      }
-
-      .highlight {
-        position: relative;
-        border: 1px solid rgba(154, 52, 18, 0.08);
-        border-radius: 22px;
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 249, 243, 0.8) 100%);
-        padding: var(--space-sm);
-        backdrop-filter: blur(8px);
-        box-shadow: 0 14px 30px rgba(28, 25, 23, 0.06);
-        transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
-        overflow: hidden;
-      }
-
-      .highlight:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 18px 36px rgba(28, 25, 23, 0.1);
-        border-color: rgba(154, 52, 18, 0.16);
-      }
-
-      .highlight::before {
+      .status-chip.sync::before {
         content: "";
-        position: absolute;
-        inset: 0 0 auto 0;
-        height: 3px;
-        background: linear-gradient(90deg, rgba(180, 83, 9, 0.95), rgba(245, 158, 11, 0.75));
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: var(--green);
       }
 
-      .highlight strong {
-        display: block;
-        margin-bottom: 0.28rem;
-        font-size: 0.98rem;
-        font-weight: 700;
+      .status-chip.success,
+      .badge.success {
+        border-color: #bbf7d0;
+        background: var(--green-soft);
+        color: var(--green);
       }
 
-      .highlight span {
-        color: var(--muted);
-        font-size: 0.95rem;
-        line-height: 1.6;
+      .badge.warning {
+        border-color: #fde68a;
+        background: var(--amber-soft);
+        color: var(--amber);
       }
 
-      .shell {
+      .badge.neutral {
+        background: var(--surface-soft);
+      }
+
+      .avatar-chip {
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: #f1f5f9;
+        color: #334155;
+        font-size: 0.78rem;
+        font-weight: 760;
+      }
+
+      .workspace {
         display: grid;
-        gap: var(--space-md);
+        gap: 18px;
       }
 
-      .card {
-        position: relative;
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(255, 250, 245, 0.88) 100%);
-        border: 1px solid var(--line);
-        border-radius: 28px;
-        padding: var(--space-md);
-        box-shadow: var(--shadow);
-        backdrop-filter: blur(12px);
+      .command-panel,
+      .report-card {
         min-width: 0;
-        overflow-wrap: anywhere;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface);
+        box-shadow: var(--shadow);
       }
 
-      .hero-grid > .card {
-        border-color: rgba(154, 52, 18, 0.14);
-        box-shadow: var(--shadow-lg);
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 250, 245, 0.94) 100%);
+      .command-panel {
+        padding: 18px 20px 0;
       }
 
-      .hero-grid > .card::before {
-        content: "";
-        position: absolute;
-        inset: 0 0 auto 0;
-        height: 4px;
-        border-radius: 28px 28px 0 0;
-        background: linear-gradient(90deg, rgba(154, 52, 18, 0.95), rgba(245, 158, 11, 0.85));
-      }
-
-      .card-header {
+      .command-head,
+      .report-head {
         display: flex;
         align-items: flex-start;
         justify-content: space-between;
-        gap: var(--space-sm);
-        margin-bottom: var(--space-sm);
+        gap: 14px;
       }
 
-      .card-header p,
-      .section-copy,
-      .helper {
-        margin: 0;
-        color: var(--muted);
-        font-size: 0.95rem;
-        line-height: 1.65;
-      }
-
-      .helper-inline {
-        display: inline-flex;
+      .command-title {
+        display: flex;
         align-items: center;
-        gap: 0.4rem;
-      }
-
-      form {
-        display: grid;
-        gap: var(--space-sm);
-      }
-
-      .label-copy {
-        display: grid;
-        gap: 0.34rem;
-      }
-
-      label {
-        display: grid;
-        gap: 0.45rem;
-        font-size: 0.96rem;
-        font-weight: 700;
-      }
-
-      .field-note {
+        gap: 8px;
         color: var(--muted);
-        font-weight: 500;
-        font-size: 0.89rem;
-        line-height: 1.55;
+        font-size: 0.86rem;
+        font-weight: 740;
+      }
+
+      .brief-form {
+        display: grid;
+        gap: 14px;
+        margin-top: 14px;
+      }
+
+      .topic-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 156px;
+        gap: 12px;
+      }
+
+      .input-shell {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+        min-height: 54px;
+        border: 1px solid var(--border-strong);
+        border-radius: var(--radius);
+        background: var(--surface);
+        padding: 0 14px;
+      }
+
+      .input-shell:focus-within {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+      }
+
+      .input-shell [data-lucide] {
+        color: var(--muted);
       }
 
       input,
       select {
-        width: 100%;
-        min-height: 48px;
-        border-radius: 16px;
-        border: 1px solid var(--line-strong);
-        padding: 0.95rem 1rem;
-        background: var(--bg-strong);
-        color: var(--ink);
-        font-size: 0.98rem;
-        font-weight: 500;
-        letter-spacing: -0.01em;
-        transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+        min-width: 0;
+        border: 0;
+        background: transparent;
+        color: var(--foreground);
       }
 
-      input:hover,
-      select:hover {
-        border-color: rgba(154, 52, 18, 0.3);
+      input {
+        width: 100%;
+        min-height: 52px;
+        padding: 0;
+        font-size: 1.02rem;
+      }
+
+      input::placeholder {
+        color: var(--muted-light);
       }
 
       input:focus,
       select:focus {
-        border-color: rgba(154, 52, 18, 0.45);
-        box-shadow: 0 0 0 4px rgba(154, 52, 18, 0.08);
-      }
-
-      .form-grid {
-        display: grid;
-        gap: var(--space-sm);
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      }
-
-      .example-topics {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.6rem;
-      }
-
-      .chip-button,
-      .chip,
-      .status-pill {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.35rem;
-        border-radius: 999px;
-        padding: 0.4rem 0.7rem;
-        font-size: 0.84rem;
-        line-height: 1;
-      }
-
-      .chip-button {
-        border: 1px solid rgba(154, 52, 18, 0.16);
-        background: rgba(255, 255, 255, 0.86);
-        color: var(--ink);
-        cursor: pointer;
-        font-weight: 600;
-        box-shadow: 0 8px 18px rgba(28, 25, 23, 0.04);
-        transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
-      }
-
-      .chip-button:hover {
-        transform: translateY(-1px);
-        border-color: rgba(154, 52, 18, 0.3);
-        background: #fff;
-        box-shadow: 0 12px 22px rgba(28, 25, 23, 0.08);
-      }
-
-      .actions {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: var(--space-sm);
+        outline: none;
       }
 
       .primary-button {
         display: inline-flex;
         align-items: center;
-        gap: 0.65rem;
-        min-height: 48px;
-        border: 0;
-        border-radius: 999px;
-        padding: 0.92rem 1.3rem;
-        background: linear-gradient(135deg, #9a3412 0%, #c2410c 55%, #f59e0b 100%);
-        color: white;
-        font-weight: 800;
-        letter-spacing: -0.015em;
+        justify-content: center;
+        gap: 8px;
+        min-height: 54px;
+        border: 1px solid var(--primary);
+        border-radius: var(--radius);
+        background: var(--primary);
+        color: #fff;
+        padding: 0 18px;
+        font-weight: 760;
         cursor: pointer;
-        transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
-        box-shadow: 0 16px 34px rgba(154, 52, 18, 0.24);
       }
 
       .primary-button:hover {
-        transform: translateY(-2px);
-        filter: brightness(1.02);
-        box-shadow: 0 20px 40px rgba(154, 52, 18, 0.28);
+        background: var(--primary-hover);
       }
 
-      .primary-button .loading-label {
+      .control-row {
+        display: grid;
+        grid-template-columns: minmax(220px, 260px) minmax(260px, 300px) minmax(0, 1fr);
+        gap: 12px;
+        align-items: center;
+      }
+
+      .select-shell {
+        display: flex;
+        align-items: center;
+        gap: 0;
+        min-height: 40px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface-soft);
+        overflow: hidden;
+      }
+
+      .select-shell span {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        align-self: stretch;
+        border-right: 1px solid var(--border);
+        color: var(--muted);
+        padding: 0 11px;
+        font-size: 0.82rem;
+        font-weight: 740;
+        white-space: nowrap;
+      }
+
+      select {
+        width: 100%;
+        min-height: 40px;
+        padding: 0 12px;
+        font-size: 0.9rem;
+      }
+
+      .quick-topics {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 8px;
+      }
+
+      .topic-chip,
+      .tool-button,
+      .text-link-button {
+        cursor: pointer;
+      }
+
+      .topic-chip:hover,
+      .tool-button:hover,
+      .text-link-button:hover {
+        border-color: var(--border-strong);
+        background: var(--surface-soft);
+        color: var(--foreground);
+      }
+
+      .history-panel {
+        margin-top: 14px;
+        border-top: 1px solid var(--border);
+      }
+
+      .history-panel summary {
+        list-style: none;
+        cursor: pointer;
+      }
+
+      .history-panel summary::-webkit-details-marker,
+      .source-drawer summary::-webkit-details-marker {
         display: none;
       }
 
-      form.htmx-request .primary-button .default-label {
+      .history-summary {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 48px;
+        color: var(--muted);
+        font-size: 0.88rem;
+        font-weight: 740;
+      }
+
+      .history-summary > span:first-child {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .history-count {
+        color: var(--foreground);
+      }
+
+      .recent-list {
+        display: grid;
+        gap: 0;
+        margin: 0;
+        padding: 0 0 12px;
+        list-style: none;
+        max-height: 280px;
+        overflow: auto;
+      }
+
+      .recent-list li {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 12px;
+        align-items: center;
+        border-top: 1px solid var(--border);
+        padding: 12px 0;
+      }
+
+      .recent-main {
+        min-width: 0;
+      }
+
+      .recent-link {
+        display: block;
+        overflow: hidden;
+        font-weight: 740;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .recent-actions,
+      .export-actions,
+      .report-meta,
+      .report-kicker,
+      .score-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .helper,
+      .mini-meta {
+        font-size: 0.82rem;
+      }
+
+      .report-card {
+        padding: 22px;
+      }
+
+      .report-head {
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 16px;
+      }
+
+      .report-title-block {
+        display: grid;
+        gap: 10px;
+        min-width: 0;
+      }
+
+      .report-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .action-divider {
+        width: 1px;
+        height: 34px;
+        background: var(--border);
+      }
+
+      .icon-only-button {
+        display: inline-grid;
+        place-items: center;
+        width: 36px;
+        min-width: 36px;
+        padding: 0;
+      }
+
+      .report-topic {
+        max-width: 760px;
+      }
+
+      .export-menu {
+        position: relative;
+      }
+
+      .export-menu summary {
+        list-style: none;
+      }
+
+      .export-menu summary::-webkit-details-marker {
         display: none;
       }
 
-      form.htmx-request .primary-button .loading-label {
-        display: inline;
+      .export-dropdown {
+        position: absolute;
+        right: 0;
+        top: calc(100% + 8px);
+        z-index: 3;
+        display: grid;
+        gap: 4px;
+        width: 170px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface);
+        box-shadow: 0 14px 30px rgba(15, 23, 42, 0.12);
+        padding: 6px;
       }
 
-      .primary-button:disabled {
-        opacity: 0.68;
-        cursor: progress;
+      .export-dropdown .text-link-button {
+        justify-content: flex-start;
+        border-color: transparent;
+        background: transparent;
       }
 
-      .htmx-indicator {
+      .coverage-note {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 14px;
+        border: 1px solid #fde68a;
+        border-radius: var(--radius);
+        background: var(--amber-soft);
+        color: #92400e;
+        padding: 10px 12px;
+        font-size: 0.88rem;
+        font-weight: 650;
+      }
+
+      .summary-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 260px;
+        gap: 22px;
+        border-bottom: 1px solid var(--border);
+        padding: 18px 0;
+      }
+
+      .summary-block {
+        display: grid;
+        align-content: start;
+        gap: 10px;
+      }
+
+      .section-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .summary-block p,
+      .report-section p,
+      .report-section li,
+      .source-snippet,
+      .evidence-rationale li {
+        color: #334155;
+      }
+
+      .summary-block p {
+        max-width: 900px;
+        font-size: 1rem;
+      }
+
+      .evidence-panel {
+        display: grid;
+        gap: 10px;
+        border-left: 1px solid var(--border);
+        padding-left: 22px;
+      }
+
+      .evidence-topline {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .evidence-number {
+        font-size: 2.5rem;
+        line-height: 1;
+        font-weight: 780;
+        letter-spacing: 0;
+      }
+
+      .evidence-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .mini-action {
+        display: inline-grid;
+        place-items: center;
+        width: 30px;
+        height: 30px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface);
+        color: #334155;
+      }
+
+      .mini-action:hover {
+        border-color: var(--border-strong);
+        background: var(--surface-soft);
+        color: var(--foreground);
+      }
+
+      .evidence-list {
+        display: grid;
+        gap: 5px;
+        margin-top: 2px;
+      }
+
+      .evidence-row {
+        display: grid;
+        grid-template-columns: minmax(58px, 0.7fr) minmax(72px, 1fr) auto;
+        gap: 8px;
+        align-items: center;
+        color: #334155;
+        font-size: 0.84rem;
+      }
+
+      .evidence-meter {
+        height: 6px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: #e2e8f0;
+      }
+
+      .evidence-meter span {
+        display: block;
+        height: 100%;
+        width: var(--meter, 72%);
+        border-radius: inherit;
+        background: var(--green);
+      }
+
+      .view-sources-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        width: fit-content;
+        margin-top: 2px;
+        color: #334155;
+        font-size: 0.84rem;
+        font-weight: 740;
+      }
+
+      .comparison-section,
+      .facts-section,
+      .insight-section {
+        display: grid;
+        gap: 12px;
+        border-bottom: 1px solid var(--border);
+        padding: 18px 0;
+      }
+
+      .section-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .comparison-table {
+        width: 100%;
+        border-collapse: collapse;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+        font-size: 0.88rem;
+      }
+
+      .comparison-table th,
+      .comparison-table td {
+        border-bottom: 1px solid var(--border);
+        padding: 10px 12px;
+        text-align: left;
+        vertical-align: middle;
+      }
+
+      .comparison-table th {
+        color: var(--muted);
+        background: var(--surface-soft);
+        font-size: 0.78rem;
+        font-weight: 740;
+      }
+
+      .comparison-table tr:last-child td {
+        border-bottom: 0;
+      }
+
+      .source-cell {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        font-weight: 740;
+      }
+
+      .source-avatar {
+        display: grid;
+        place-items: center;
+        width: 28px;
+        height: 28px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface-soft);
+        color: #334155;
+        font-size: 0.72rem;
+        font-weight: 800;
+      }
+
+      .source-avatar.variant-1 {
+        border-color: #fecaca;
+        background: #fff1f2;
+        color: #be123c;
+      }
+
+      .source-avatar.variant-2 {
+        border-color: #bfdbfe;
+        background: #eff6ff;
+        color: #1d4ed8;
+      }
+
+      .source-avatar.variant-3 {
+        border-color: #d8b4fe;
+        background: #faf5ff;
+        color: #7e22ce;
+      }
+
+      .source-avatar.variant-4 {
+        border-color: #bbf7d0;
+        background: #ecfdf5;
+        color: #15803d;
+      }
+
+      .source-avatar.variant-5 {
+        border-color: #fed7aa;
+        background: #fff7ed;
+        color: #c2410c;
+      }
+
+      .summary-sources {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 2px;
+      }
+
+      .signal-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 24px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        background: var(--surface-soft);
+        color: #475569;
+        padding: 0 8px;
+        font-size: 0.76rem;
+        font-weight: 740;
+      }
+
+      .signal-pill.is-leading {
+        border-color: #bbf7d0;
+        background: #dcfce7;
+        color: #15803d;
+      }
+
+      .dot-cell {
+        display: grid;
+        gap: 4px;
+        min-width: 116px;
+      }
+
+      .dot-matrix {
+        display: inline-flex;
+        gap: 5px;
+      }
+
+      .dot-matrix span {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: #cbd5e1;
+      }
+
+      .dot-matrix span.is-on {
+        background: var(--green);
+      }
+
+      .dot-matrix.is-amber span.is-on {
+        background: #d97706;
+      }
+
+      .dot-label {
+        color: var(--muted);
+        font-size: 0.74rem;
+        font-weight: 650;
+      }
+
+      .facts-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .fact-card {
+        display: grid;
+        gap: 10px;
+        min-width: 0;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface);
+        padding: 12px;
+      }
+
+      .fact-source {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--muted);
+        font-size: 0.78rem;
+        font-weight: 740;
+      }
+
+      .section-control {
+        min-height: 34px;
+      }
+
+      .fact-card p {
+        color: #334155;
+        font-size: 0.9rem;
+      }
+
+      .insight-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+      }
+
+      .report-section {
+        min-width: 0;
+        padding: 14px;
+        background: var(--surface);
+      }
+
+      .report-section + .report-section {
+        border-left: 1px solid var(--border);
+      }
+
+      .report-section ul,
+      .evidence-rationale ul {
+        display: grid;
+        gap: 8px;
+        margin: 10px 0 0;
+        padding-left: 1.05rem;
+      }
+
+      .source-drawer {
+        margin-top: 14px;
+      }
+
+      .source-drawer summary {
+        list-style: none;
+        cursor: pointer;
+      }
+
+      .source-summary {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        min-height: 44px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface-soft);
+        color: var(--foreground);
+        padding: 0 12px;
+        font-weight: 760;
+      }
+
+      .source-summary > span:first-child {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .source-list {
+        display: grid;
+        gap: 0;
+        margin-top: 10px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+      }
+
+      .source-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 12px;
+        align-items: start;
+        border-top: 1px solid var(--border);
+        background: var(--surface);
+        padding: 12px;
+      }
+
+      .source-row:first-child {
+        border-top: 0;
+      }
+
+      .source-main {
+        min-width: 0;
+      }
+
+      .source-title {
+        color: var(--foreground);
+      }
+
+      .source-meta {
+        margin-top: 3px;
+        color: var(--muted);
+        font-size: 0.82rem;
+      }
+
+      .source-snippet {
+        margin-top: 8px;
+        font-size: 0.88rem;
+      }
+
+      .score-pill {
+        display: inline-flex;
+        align-items: center;
+        min-height: 24px;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: var(--surface-soft);
+        color: #475569;
+        padding: 0 8px;
+        font-size: 0.75rem;
+        font-weight: 720;
+      }
+
+      .evidence-rationale {
+        margin-top: 10px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface-soft);
+        padding: 12px;
+      }
+
+      .empty-report {
+        display: grid;
+        gap: 18px;
+        min-height: 430px;
+      }
+
+      .empty-hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 260px;
+        gap: 24px;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 16px;
+      }
+
+      .empty-copy-block {
+        display: grid;
+        align-content: start;
+        gap: 12px;
+      }
+
+      .empty-icon,
+      .visual-icon {
+        display: grid;
+        place-items: center;
+        width: 46px;
+        height: 46px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface-soft);
+      }
+
+      .visual-icon {
+        width: 36px;
+        height: 36px;
+      }
+
+      .empty-copy {
+        color: var(--muted);
+        font-size: 1rem;
+      }
+
+      .capability-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .icon-label {
+        min-height: 34px;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: var(--surface);
+        color: #334155;
+        padding: 0 11px;
+        font-size: 0.84rem;
+        font-weight: 720;
+      }
+
+      .preview-panel {
+        display: grid;
+        gap: 10px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface-soft);
+        padding: 14px;
+      }
+
+      .preview-line {
+        height: 9px;
+        border-radius: 999px;
+        background: #e2e8f0;
+      }
+
+      .preview-line.short {
+        width: 58%;
+      }
+
+      .preview-line.medium {
+        width: 78%;
+      }
+
+      .preview-table {
+        display: grid;
+        gap: 6px;
+        margin-top: 8px;
+      }
+
+      .preview-row {
+        display: grid;
+        grid-template-columns: 54px 1fr;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .preview-dotline {
+        display: flex;
+        gap: 4px;
+      }
+
+      .preview-dotline span {
+        width: 7px;
+        height: 7px;
+        border-radius: 999px;
+        background: #cbd5e1;
+      }
+
+      .preview-dotline span.is-on {
+        background: var(--green);
+      }
+
+      .preview-sections {
+        display: grid;
+        grid-template-columns: minmax(0, 1.25fr) minmax(300px, 0.75fr);
+        gap: 16px;
+      }
+
+      .preview-section {
+        display: grid;
+        gap: 12px;
+        min-width: 0;
+      }
+
+      .visual-list,
+      .visual-grid {
+        display: grid;
+        gap: 10px;
+      }
+
+      .visual-card {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: 10px;
+        align-items: start;
+        min-width: 0;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface);
+        padding: 12px;
+      }
+
+      .visual-card p {
+        color: #334155;
+        font-size: 0.9rem;
+      }
+
+      .visual-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .mini-comparison {
+        width: 100%;
+        border-collapse: collapse;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+        font-size: 0.84rem;
+      }
+
+      .mini-comparison th,
+      .mini-comparison td {
+        border-bottom: 1px solid var(--border);
+        padding: 9px 10px;
+        text-align: left;
+      }
+
+      .mini-comparison th {
+        color: var(--muted);
+        background: var(--surface-soft);
+        font-size: 0.75rem;
+        font-weight: 740;
+      }
+
+      .mini-comparison tr:last-child td {
+        border-bottom: 0;
+      }
+
+      .htmx-indicator,
+      .loading-label {
         display: none;
       }
 
       .htmx-request .htmx-indicator,
-      .htmx-request.htmx-indicator {
+      .htmx-request .loading-label {
         display: inline-flex;
       }
 
+      .htmx-request .default-label {
+        display: none;
+      }
+
       .spinner {
-        width: 1rem;
-        height: 1rem;
-        border: 2px solid rgba(255, 255, 255, 0.4);
-        border-top-color: white;
+        width: 14px;
+        height: 14px;
         border-radius: 999px;
-        animation: spin 0.8s linear infinite;
+        border: 2px solid rgba(255, 255, 255, 0.42);
+        border-top-color: #fff;
+        animation: spin 700ms linear infinite;
       }
 
       @keyframes spin {
@@ -472,311 +1281,149 @@
         }
       }
 
-      .status-row {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.65rem;
-      }
+      @media (max-width: 1080px) {
+        .control-row,
+        .summary-row,
+        .empty-hero,
+        .preview-sections {
+          grid-template-columns: 1fr;
+        }
 
-      .status-pill {
-        background: rgba(255, 255, 255, 0.86);
-        border: 1px solid rgba(120, 113, 108, 0.14);
-        color: var(--muted);
-        font-size: 0.83rem;
-        font-weight: 600;
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
-      }
+        .quick-topics {
+          justify-content: flex-start;
+        }
 
-      .status-pill strong {
-        color: var(--ink);
-      }
+        .evidence-panel {
+          border-left: 0;
+          border-top: 1px solid var(--border);
+          padding-left: 0;
+          padding-top: 16px;
+        }
 
-      .panel-grid,
-      .grid-2 {
-        display: grid;
-        gap: var(--space-md);
-      }
-
-      .empty-state {
-        display: grid;
-        gap: 0.75rem;
-      }
-
-      .metrics-grid {
-        display: grid;
-        gap: 0.85rem;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        margin-top: var(--space-sm);
-      }
-
-      .metric-card {
-        border-radius: 22px;
-        border: 1px solid rgba(120, 113, 108, 0.14);
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 249, 244, 0.82) 100%);
-        padding: 1rem 1.05rem;
-        box-shadow: 0 12px 28px rgba(28, 25, 23, 0.06);
-      }
-
-      .metric-card strong {
-        display: block;
-        font-family: var(--font-display);
-        font-size: 1.18rem;
-        font-weight: 600;
-        letter-spacing: -0.02em;
-      }
-
-      .metric-card span {
-        color: var(--muted);
-        font-size: 0.9rem;
-        line-height: 1.55;
-      }
-
-      .recent-list,
-      .link-list,
-      .list-clean {
-        display: grid;
-        gap: 0.9rem;
-        padding-left: 0;
-        list-style: none;
-        margin: 0;
-      }
-
-      .recent-list li,
-      .source-card {
-        border: 1px solid rgba(120, 113, 108, 0.14);
-        border-radius: 22px;
-        padding: var(--space-sm);
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 250, 245, 0.82) 100%);
-        box-shadow: 0 10px 24px rgba(28, 25, 23, 0.05);
-        content-visibility: auto;
-        transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
-      }
-
-      .recent-list li:hover,
-      .source-card:hover {
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-lift);
-        border-color: rgba(154, 52, 18, 0.16);
-      }
-
-      .recent-list li.is-active {
-        border-color: rgba(154, 52, 18, 0.3);
-        box-shadow: 0 16px 30px rgba(154, 52, 18, 0.12);
-      }
-
-      .recent-head {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 0.8rem;
-      }
-
-      .recent-link {
-        color: var(--ink);
-        font-weight: 700;
-        font-size: 1rem;
-        text-decoration: none;
-      }
-
-      .recent-link:hover {
-        text-decoration: underline;
-      }
-
-      .recent-link:focus-visible,
-      .text-link-button:focus-visible {
-        outline: 3px solid rgba(154, 52, 18, 0.2);
-        outline-offset: 3px;
-      }
-
-      .recent-preview {
-        margin: 0.55rem 0 0;
-      }
-
-      .recent-actions {
-        margin-top: 0.8rem;
-      }
-
-      .chip {
-        background: rgba(255, 247, 237, 0.98);
-        color: var(--accent-strong);
-        border: 1px solid rgba(154, 52, 18, 0.12);
-      }
-
-      .chip.success {
-        background: var(--success-soft);
-        color: var(--success);
-      }
-
-      .chip.warning {
-        background: var(--warning-soft);
-        color: var(--warning);
-      }
-
-      .section-block {
-        display: grid;
-        gap: 0.7rem;
-        margin-top: var(--space-sm);
-      }
-
-      .section-block:first-of-type {
-        margin-top: 0;
-      }
-
-      .section-block h3 {
-        font-size: 1rem;
-      }
-
-      .section-panel {
-        border-radius: 22px;
-        border: 1px solid rgba(120, 113, 108, 0.14);
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 250, 245, 0.78) 100%);
-        padding: var(--space-sm);
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
-      }
-
-      .section-panel p,
-      .section-panel li {
-        line-height: 1.72;
-      }
-
-      .section-panel ul,
-      .section-panel ol {
-        margin: 0;
-        padding-left: 1.15rem;
-      }
-
-      .actions-list {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.7rem;
-      }
-
-      .text-link-button {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.4rem;
-        border-radius: 999px;
-        border: 1px solid rgba(120, 113, 108, 0.14);
-        padding: 0.55rem 0.85rem;
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(255, 248, 242, 0.88) 100%);
-        text-decoration: none;
-        font-weight: 700;
-        box-shadow: 0 8px 18px rgba(28, 25, 23, 0.05);
-        transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
-      }
-
-      .text-link-button:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 12px 24px rgba(28, 25, 23, 0.08);
-        border-color: rgba(154, 52, 18, 0.18);
-      }
-
-      .score-grid {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.55rem;
-        margin: 0.5rem 0 0.75rem;
-      }
-
-      .score-pill {
-        border-radius: 999px;
-        background: rgba(28, 25, 23, 0.05);
-        color: var(--muted);
-        padding: 0.35rem 0.65rem;
-        font-size: 0.8rem;
-        font-variant-numeric: tabular-nums;
-      }
-
-      .source-card h4 {
-        margin: 0 0 0.45rem;
-        font-size: 1.04rem;
-        line-height: 1.4;
-        letter-spacing: -0.015em;
-      }
-
-      .source-meta {
-        color: var(--muted);
-        font-size: 0.91rem;
-        font-weight: 600;
-      }
-
-      .error-card {
-        border-color: rgba(185, 28, 28, 0.18);
-        background: rgba(254, 242, 242, 0.96);
-      }
-
-      .divider {
-        width: 100%;
-        height: 1px;
-        margin: 0.35rem 0 0.2rem;
-        background: var(--line);
-      }
-
-      .result-frame {
-        container-type: inline-size;
-        container-name: result-panel;
-      }
-
-      @container result-panel (min-width: 48rem) {
-        .result-frame .grid-2 {
-          grid-template-columns: 1.18fr 0.82fr;
+        .facts-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
         }
       }
 
-      @container hero (min-width: 56rem) {
-        .hero-grid {
-          grid-template-columns: minmax(0, 1.12fr) minmax(320px, 0.88fr);
-          align-items: end;
-        }
-      }
-
-      @media (min-width: 880px) {
-        .grid-2 {
-          grid-template-columns: 1.18fr 0.82fr;
+      @media (max-width: 760px) {
+        html,
+        body {
+          width: 100%;
+          max-width: 100%;
+          overflow-x: hidden;
         }
 
-        .grid-2 > aside.card {
-          position: sticky;
-          top: 1.25rem;
-          align-self: start;
-        }
-      }
-
-      @media (max-width: 640px) {
-        .page {
-          padding: 1.15rem 0.95rem 2rem;
+        .app-frame {
+          display: block;
         }
 
-        .card {
-          border-radius: 20px;
-          padding: 1rem;
+        .side-rail {
+          display: none;
         }
 
-        h1 {
-          max-width: none;
-          white-space: normal;
+        .app-content {
+          width: 100%;
+          max-width: 100vw;
+          overflow-x: hidden;
+          padding: 14px 12px 36px;
         }
 
-        .actions {
-          align-items: stretch;
+        .app-shell,
+        .workspace,
+        .command-panel,
+        .report-card,
+        .brief-form,
+        .input-shell,
+        .select-shell,
+        .control-row,
+        .topic-row,
+        .main-area,
+        .result-frame {
+          max-width: 100%;
+          min-width: 0;
+        }
+
+        .topbar,
+        .command-head,
+        .topic-row,
+        .report-head,
+        .source-row {
+          display: grid;
+          grid-template-columns: 1fr;
+        }
+
+        .top-actions,
+        .report-actions {
+          justify-content: flex-start;
+        }
+
+        .report-actions {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          width: 100%;
+        }
+
+        .action-divider {
+          display: none;
+        }
+
+        .report-actions .text-link-button {
+          width: 100%;
+        }
+
+        .report-meta {
+          display: grid;
+          grid-template-columns: 1fr;
+          width: 100%;
+        }
+
+        .meta-pill,
+        .text-link-button,
+        .topic-chip,
+        .status-chip {
+          min-width: 0;
+          overflow: hidden;
+        }
+
+        .command-panel,
+        .report-card {
+          padding: 14px;
+        }
+
+        .command-panel {
+          padding-bottom: 0;
         }
 
         .primary-button {
           width: 100%;
-          justify-content: center;
+        }
+
+        .facts-grid,
+        .insight-grid,
+        .visual-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .report-section + .report-section {
+          border-left: 0;
+          border-top: 1px solid var(--border);
+        }
+
+        .comparison-table {
+          display: block;
+          width: 100%;
+          overflow-x: auto;
+          white-space: nowrap;
         }
       }
 
       @media (prefers-reduced-motion: reduce) {
-        html {
-          scroll-behavior: auto;
-        }
-
         *,
         *::before,
         *::after {
           animation-duration: 0.01ms !important;
           animation-iteration-count: 1 !important;
+          scroll-behavior: auto !important;
           transition-duration: 0.01ms !important;
         }
       }
@@ -784,202 +1431,284 @@
   </head>
   <body>
     <a class="skip-link" href="#main-content">Skip to Main Content</a>
-    <main class="page" id="main-content">
-      <section class="hero">
-        <span class="eyebrow">News Intelligence</span>
-        <div class="hero-grid">
-          <div class="hero-copy">
-            <h1>Analyst Brief Generator</h1>
-            <p class="lead">
-              Turn a topic into a clear, structured briefing with ranked coverage,
-              source comparison, and shareable exports.
-            </p>
-            <div class="hero-highlights" aria-label="Product highlights">
-              <div class="highlight">
-                <strong>Live coverage</strong>
-                <span>Pull fresh reporting when it is available, with a reliable fallback when it is not.</span>
-              </div>
-              <div class="highlight">
-                <strong>Clear sourcing</strong>
-                <span>Review the articles behind each briefing and compare how different outlets frame the story.</span>
-              </div>
-              <div class="highlight">
-                <strong>Ready to share</strong>
-                <span>Open recent briefings instantly and export the result in HTML or JSON.</span>
-              </div>
+    <div class="app-frame">
+      <aside class="side-rail" aria-label="Primary navigation">
+        <a class="rail-logo" href="/" aria-label="News Intelligence Studio"><i data-lucide="newspaper"></i></a>
+        <nav class="rail-nav" aria-label="Workspace">
+          <a class="rail-button" href="/" aria-label="Search"><i data-lucide="search"></i></a>
+          <a class="rail-button is-active" href="#result-panel" aria-label="Reports"><i data-lucide="file-text"></i></a>
+          <a class="rail-button" href="#result-panel" aria-label="Coverage"><i data-lucide="bar-chart-3"></i></a>
+          <a class="rail-button" href="#result-panel" aria-label="Sources"><i data-lucide="globe-2"></i></a>
+          <a class="rail-button" href="#result-panel" aria-label="Saved"><i data-lucide="bookmark"></i></a>
+          <a class="rail-button" href="#result-panel" aria-label="Alerts"><i data-lucide="bell"></i></a>
+          <a class="rail-button" href="#result-panel" aria-label="Settings"><i data-lucide="settings"></i></a>
+        </nav>
+        <div class="rail-bottom">
+          <a class="rail-button" href="#main-content" aria-label="Help"><i data-lucide="circle-help"></i></a>
+        </div>
+      </aside>
+
+      <main class="app-content" id="main-content">
+        <div class="app-shell">
+          <header class="topbar" aria-label="Application header">
+            <div class="brand">
+              <h1>News Intelligence Studio</h1>
             </div>
-          </div>
-
-          <div class="card">
-            <div class="card-header">
-              <div>
-                <h2>Create a Brief</h2>
-                <p class="section-copy">
-                  Start with a topic and generate a polished briefing in seconds.
-                </p>
-              </div>
-              <span class="chip success">Ready</span>
+            <div class="top-actions" aria-label="Workspace status">
+              <span class="status-chip sync">Local data synced</span>
+              <span class="status-chip"><i data-lucide="bookmark"></i>Saved</span>
+              <span class="status-chip"><i data-lucide="bell"></i>Alerts</span>
+              <span class="avatar-chip" aria-label="Current workspace">AV</span>
             </div>
+          </header>
 
-            <form
-              hx-post="/api/briefs"
-              hx-target="#result-panel"
-              hx-swap="innerHTML"
-              aria-label="Generate analyst brief"
-            >
-              <label>
-                <span class="label-copy">
-                  <span>Topic</span>
-                  <span class="field-note">Try a company, policy, market, or geopolitical storyline.</span>
-                </span>
-                <input
-                  id="topic-input"
-                  type="text"
-                  name="topic"
-                  placeholder="Example: AI chip export controls…"
-                  inputmode="search"
-                  autocomplete="off"
-                  required
-                >
-              </label>
-
-              <input type="hidden" name="mode" value="auto">
-
-              <div class="example-topics" aria-label="Example topics">
-                <button type="button" class="chip-button" onclick="document.getElementById('topic-input').value='AI chip export controls'; document.getElementById('topic-input').focus();">AI chip export controls</button>
-                <button type="button" class="chip-button" onclick="document.getElementById('topic-input').value='US inflation outlook'; document.getElementById('topic-input').focus();">US inflation outlook</button>
-                <button type="button" class="chip-button" onclick="document.getElementById('topic-input').value='Open-source AI model competition'; document.getElementById('topic-input').focus();">Open-source AI model competition</button>
+          <div class="workspace">
+            <section class="command-panel" aria-label="Report controls">
+              <div class="command-head">
+                <span class="command-title"><i data-lucide="file-search"></i>Research command</span>
+                <span class="status-chip"><i data-lucide="database"></i>Trusted sources</span>
               </div>
 
-              <div class="form-grid">
-                <label>
-                  <span class="label-copy">
-                    <span>Voice</span>
-                    <span class="field-note">Choose how the briefing should sound and what it should emphasize.</span>
+              <form
+                class="brief-form"
+                hx-post="/api/briefs"
+                hx-target="#result-panel"
+                hx-swap="innerHTML"
+                aria-label="Generate research report"
+              >
+                <div class="topic-row">
+                  <label class="sr-only" for="topic-input">Topic</label>
+                  <div class="input-shell">
+                    <i data-lucide="search" aria-hidden="true"></i>
+                    <input
+                      id="topic-input"
+                      type="text"
+                      name="topic"
+                      placeholder="Research a topic or story"
+                      inputmode="search"
+                      autocomplete="off"
+                      required
+                    >
+                  </div>
+
+                  <button type="submit" class="primary-button">
+                    <span class="htmx-indicator"><span class="spinner" aria-hidden="true"></span></span>
+                    <i data-lucide="sparkles" aria-hidden="true"></i>
+                    <span class="default-label">Generate</span>
+                    <span class="loading-label">Generating</span>
+                  </button>
+                </div>
+
+                <div class="control-row">
+                  <label class="select-shell">
+                    <span><i data-lucide="user-round-check" aria-hidden="true"></i>Voice</span>
+                    <select name="persona">
+                      <option value="research_analyst" selected>Research analyst</option>
+                      <option value="executive_brief">Executive brief</option>
+                      <option value="market_watch">Market watch</option>
+                      <option value="policy_intelligence">Policy intelligence</option>
+                    </select>
+                  </label>
+
+                  <label class="select-shell">
+                    <span><i data-lucide="radio-tower" aria-hidden="true"></i>Coverage</span>
+                    <select name="mode">
+                      <option value="auto" selected>Balanced coverage</option>
+                      <option value="live">Live sources</option>
+                      <option value="fallback">Saved source set</option>
+                    </select>
+                  </label>
+
+                  <div class="quick-topics" aria-label="Example topics">
+                    <button type="button" class="topic-chip" onclick="document.getElementById('topic-input').value='AI chip export controls'; document.getElementById('topic-input').focus();"><i data-lucide="cpu" aria-hidden="true"></i>AI chips</button>
+                    <button type="button" class="topic-chip" onclick="document.getElementById('topic-input').value='US inflation outlook'; document.getElementById('topic-input').focus();"><i data-lucide="chart-line" aria-hidden="true"></i>Inflation</button>
+                    <button type="button" class="topic-chip" onclick="document.getElementById('topic-input').value='Open-source AI model competition'; document.getElementById('topic-input').focus();"><i data-lucide="blocks" aria-hidden="true"></i>Open AI</button>
+                  </div>
+                </div>
+              </form>
+
+              <details class="history-panel">
+                <summary>
+                  <span class="history-summary">
+                    <span><i data-lucide="history" aria-hidden="true"></i>Recent reports</span>
+                    <span class="history-count">{{ recent_briefs|length }} <i data-lucide="chevron-right" aria-hidden="true"></i></span>
                   </span>
-                  <select name="persona">
-                    <option value="research_analyst" selected>Research analyst</option>
-                    <option value="executive_brief">Executive brief</option>
-                    <option value="market_watch">Market watch</option>
-                    <option value="policy_intelligence">Policy intelligence</option>
-                  </select>
-                </label>
-              </div>
+                </summary>
 
-              <div class="actions">
-                <button type="submit" class="primary-button">
-                  <span class="htmx-indicator"><span class="spinner" aria-hidden="true"></span></span>
-                  <span class="default-label">Generate Brief</span>
-                  <span class="loading-label">Generating…</span>
-                </button>
-                <span class="helper helper-inline">Fresh coverage is used automatically, with a reliable fallback when needed.</span>
+                {% if recent_briefs %}
+                  <ul class="recent-list">
+                    {% for item in recent_briefs %}
+                      <li{% if brief and brief.brief_id == item.brief_id %} class="is-active"{% endif %}>
+                        <div class="recent-main">
+                          <a
+                            class="recent-link"
+                            href="/briefs/{{ item.brief_id }}#result-panel"
+                            hx-get="/briefs/{{ item.brief_id }}"
+                            hx-target="#result-panel"
+                            hx-swap="innerHTML"
+                            hx-push-url="true"
+                            hx-on::after-request="document.getElementById('result-panel').scrollIntoView({behavior: 'smooth', block: 'start'})"
+                            aria-controls="result-panel"
+                          >{{ item.topic }}</a>
+                          <p class="helper">{{ item.created_at.strftime('%Y-%m-%d %H:%M UTC') }} · {{ item.articles|length }} sources</p>
+                        </div>
+                        <div class="recent-actions">
+                          <a
+                            class="text-link-button"
+                            href="/briefs/{{ item.brief_id }}#result-panel"
+                            hx-get="/briefs/{{ item.brief_id }}"
+                            hx-target="#result-panel"
+                            hx-swap="innerHTML"
+                            hx-push-url="true"
+                            hx-on::after-request="document.getElementById('result-panel').scrollIntoView({behavior: 'smooth', block: 'start'})"
+                            aria-controls="result-panel"
+                          >Inspect</a>
+                          <a class="text-link-button" href="/briefs/{{ item.brief_id }}/export" aria-label="Export HTML for {{ item.topic }}"><i data-lucide="file-code" aria-hidden="true"></i>HTML</a>
+                          <a class="text-link-button" href="/briefs/{{ item.brief_id }}/export.md" aria-label="Export Markdown for {{ item.topic }}"><i data-lucide="file-text" aria-hidden="true"></i>MD</a>
+                          <a class="text-link-button" href="/briefs/{{ item.brief_id }}/handoff" aria-label="Open structured JSON for {{ item.topic }}"><i data-lucide="braces" aria-hidden="true"></i>JSON</a>
+                        </div>
+                      </li>
+                    {% endfor %}
+                  </ul>
+                {% else %}
+                  <p class="helper" style="padding-bottom: 12px;">No saved reports yet.</p>
+                {% endif %}
+              </details>
+            </section>
+
+            <section class="main-area" aria-label="Report workspace">
+              <div id="result-panel" class="result-frame" aria-live="polite">
+                {% if error_message %}
+                  {% include "partials/error.html" %}
+                {% elif brief %}
+                  {% include "partials/brief_result.html" %}
+                {% else %}
+                  <article class="report-card empty-report">
+                    <div class="empty-hero">
+                      <div class="empty-copy-block">
+                        <div class="report-kicker">
+                          <span class="badge success"><i data-lucide="circle-check" aria-hidden="true"></i>Ready</span>
+                          <span class="badge neutral"><i data-lucide="database" aria-hidden="true"></i>Trusted source set</span>
+                        </div>
+                        <div>
+                          <h2>Research a story in minutes</h2>
+                          <p class="empty-copy">Compare coverage, verify claims, and export a source-linked report from one focused workspace.</p>
+                        </div>
+                        <div class="capability-row" aria-label="Report capabilities">
+                          <span class="icon-label"><i data-lucide="link" aria-hidden="true"></i>Evidence</span>
+                          <span class="icon-label"><i data-lucide="git-compare-arrows" aria-hidden="true"></i>Comparison</span>
+                          <span class="icon-label"><i data-lucide="badge-check" aria-hidden="true"></i>Key facts</span>
+                          <span class="icon-label"><i data-lucide="download" aria-hidden="true"></i>Exports</span>
+                        </div>
+                      </div>
+                      <aside class="preview-panel" aria-hidden="true">
+                        <div class="section-title"><i data-lucide="database"></i>Evidence</div>
+                        <div>
+                          <div class="evidence-number">24</div>
+                          <p class="helper">Items mapped to sources</p>
+                        </div>
+                        <div class="preview-table">
+                          <div class="preview-row">
+                            <span class="mini-meta">Reuters</span>
+                            <span class="preview-dotline"><span class="is-on"></span><span class="is-on"></span><span class="is-on"></span><span class="is-on"></span><span></span></span>
+                          </div>
+                          <div class="preview-row">
+                            <span class="mini-meta">AP</span>
+                            <span class="preview-dotline"><span class="is-on"></span><span class="is-on"></span><span class="is-on"></span><span></span><span></span></span>
+                          </div>
+                          <div class="preview-row">
+                            <span class="mini-meta">BBC</span>
+                            <span class="preview-dotline"><span class="is-on"></span><span class="is-on"></span><span></span><span></span><span></span></span>
+                          </div>
+                        </div>
+                      </aside>
+                    </div>
+
+                    <div class="preview-sections">
+                      <section class="preview-section" aria-label="Preview comparison">
+                        <div class="section-head">
+                          <div>
+                            <h3 class="section-title"><i data-lucide="git-compare-arrows" aria-hidden="true"></i>Coverage comparison</h3>
+                            <p class="section-copy">See how leading sources frame the same story.</p>
+                          </div>
+                        </div>
+                        <table class="mini-comparison">
+                          <thead>
+                            <tr>
+                              <th>Source</th>
+                              <th>Signal</th>
+                              <th>Market</th>
+                              <th>Policy</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td><span class="source-cell"><span class="source-avatar variant-1">RE</span>Reuters</span></td>
+                              <td><span class="dot-matrix"><span class="is-on"></span><span class="is-on"></span><span class="is-on"></span><span class="is-on"></span><span class="is-on"></span><span></span></span></td>
+                              <td><span class="dot-matrix"><span class="is-on"></span><span class="is-on"></span><span class="is-on"></span><span class="is-on"></span><span></span><span></span></span></td>
+                              <td><span class="dot-matrix is-amber"><span class="is-on"></span><span class="is-on"></span><span class="is-on"></span><span></span><span></span><span></span></span></td>
+                            </tr>
+                            <tr>
+                              <td><span class="source-cell"><span class="source-avatar variant-2">AP</span>AP</span></td>
+                              <td><span class="dot-matrix"><span class="is-on"></span><span class="is-on"></span><span class="is-on"></span><span></span><span></span><span></span></span></td>
+                              <td><span class="dot-matrix"><span class="is-on"></span><span class="is-on"></span><span class="is-on"></span><span class="is-on"></span><span></span><span></span></span></td>
+                              <td><span class="dot-matrix is-amber"><span class="is-on"></span><span></span><span></span><span></span><span></span><span></span></span></td>
+                            </tr>
+                            <tr>
+                              <td><span class="source-cell"><span class="source-avatar variant-3">BB</span>BBC</span></td>
+                              <td><span class="dot-matrix"><span class="is-on"></span><span class="is-on"></span><span class="is-on"></span><span></span><span></span><span></span></span></td>
+                              <td><span class="dot-matrix"><span class="is-on"></span><span></span><span></span><span></span><span></span><span></span></span></td>
+                              <td><span class="dot-matrix is-amber"><span class="is-on"></span><span class="is-on"></span><span class="is-on"></span><span class="is-on"></span><span></span><span></span></span></td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </section>
+
+                      <section class="preview-section" aria-label="Preview insight cards">
+                        <div class="section-head">
+                          <div>
+                            <h3 class="section-title"><i data-lucide="badge-check" aria-hidden="true"></i>Key facts</h3>
+                            <p class="section-copy">Claims stay tied to visible sources.</p>
+                          </div>
+                        </div>
+                        <div class="visual-grid">
+                          <div class="visual-card">
+                            <span class="visual-icon"><i data-lucide="newspaper" aria-hidden="true"></i></span>
+                            <p>Summaries stay short and source-aware.</p>
+                          </div>
+                          <div class="visual-card">
+                            <span class="visual-icon"><i data-lucide="radar" aria-hidden="true"></i></span>
+                            <p>Risk notes highlight uncertainty early.</p>
+                          </div>
+                          <div class="visual-card">
+                            <span class="visual-icon"><i data-lucide="file-down" aria-hidden="true"></i></span>
+                            <p>HTML, Markdown, and JSON are ready.</p>
+                          </div>
+                          <div class="visual-card">
+                            <span class="visual-icon"><i data-lucide="history" aria-hidden="true"></i></span>
+                            <p>Reports reopen from recent history.</p>
+                          </div>
+                        </div>
+                      </section>
+                    </div>
+                  </article>
+                {% endif %}
               </div>
-            </form>
+            </section>
           </div>
         </div>
-      </section>
+      </main>
+    </div>
 
-      <section class="shell">
-        <div id="result-panel" class="result-frame" aria-live="polite">
-          {% if error_message %}
-            {% include "partials/error.html" %}
-          {% elif brief %}
-            {% include "partials/brief_result.html" %}
-          {% else %}
-            <div class="card empty-state">
-              <div class="card-header">
-                <div>
-                  <h2>Your Briefing Appears Here</h2>
-                  <p class="section-copy">
-                    Generate a topic to see the summary, takeaways, coverage comparison,
-                    and exports.
-                  </p>
-                </div>
-                <span class="chip">Live View</span>
-              </div>
+    <script>
+      function renderIcons() {
+        if (window.lucide) {
+          window.lucide.createIcons();
+        }
+      }
 
-              <div class="metrics-grid">
-                <div class="metric-card">
-                  <strong>Live Sources</strong>
-                  <span>Ranked coverage from the strongest available articles.</span>
-                </div>
-                <div class="metric-card">
-                  <strong>Key Signals</strong>
-                  <span>Overview, takeaways, and framing comparison in one view.</span>
-                </div>
-                <div class="metric-card">
-                  <strong>Exports</strong>
-                  <span>Open the briefing, HTML export, or JSON output anytime.</span>
-                </div>
-              </div>
-            </div>
-          {% endif %}
-        </div>
-
-        <div class="card">
-          <div class="card-header">
-            <div>
-              <h2>Recent Briefings</h2>
-              <p class="section-copy">
-                Reopen saved briefings instantly.
-              </p>
-            </div>
-            <span class="chip">Library</span>
-          </div>
-
-          {% if recent_briefs %}
-            <ul class="recent-list">
-              {% for item in recent_briefs %}
-                <li{% if brief and brief.brief_id == item.brief_id %} class="is-active"{% endif %}>
-                  <div class="recent-head">
-                    <a
-                      class="recent-link"
-                      href="/briefs/{{ item.brief_id }}#result-panel"
-                      hx-get="/briefs/{{ item.brief_id }}"
-                      hx-target="#result-panel"
-                      hx-swap="innerHTML"
-                      hx-push-url="true"
-                      hx-on::after-request="document.getElementById('result-panel').scrollIntoView({behavior: 'smooth', block: 'start'})"
-                      aria-controls="result-panel"
-                    >{{ item.topic }}</a>
-                    {% if brief and brief.brief_id == item.brief_id %}
-                      <span class="chip success">Viewing</span>
-                    {% else %}
-                      <span class="chip">Saved</span>
-                    {% endif %}
-                  </div>
-                  <p class="helper recent-preview">{{ item.overview[:150] }}{% if item.overview|length > 150 %}…{% endif %}</p>
-                  <p class="helper">{{ item.created_at.strftime('%Y-%m-%d %H:%M UTC') }}</p>
-                  <div class="status-row">
-                    <span class="status-pill"><strong>Sources</strong> {{ item.articles|length }}</span>
-                    {% if item.warnings and 'fallback_used' in item.warnings %}
-                      <span class="status-pill"><strong>Coverage</strong> Backup Used</span>
-                    {% elif item.warnings and 'live_results_incomplete' in item.warnings %}
-                      <span class="status-pill"><strong>Coverage</strong> Limited</span>
-                    {% endif %}
-                  </div>
-                  <div class="actions-list recent-actions">
-                    <a
-                      class="text-link-button"
-                      href="/briefs/{{ item.brief_id }}#result-panel"
-                      hx-get="/briefs/{{ item.brief_id }}"
-                      hx-target="#result-panel"
-                      hx-swap="innerHTML"
-                      hx-push-url="true"
-                      hx-on::after-request="document.getElementById('result-panel').scrollIntoView({behavior: 'smooth', block: 'start'})"
-                      aria-controls="result-panel"
-                    >Inspect</a>
-                    <a class="text-link-button" href="/briefs/{{ item.brief_id }}/export">HTML</a>
-                    <a class="text-link-button" href="/briefs/{{ item.brief_id }}/handoff">JSON</a>
-                  </div>
-                </li>
-              {% endfor %}
-            </ul>
-          {% else %}
-            <p class="helper">No briefings yet. Create one to start the library.</p>
-          {% endif %}
-        </div>
-      </section>
-    </main>
+      document.addEventListener("DOMContentLoaded", renderIcons);
+      document.body.addEventListener("htmx:afterSwap", renderIcons);
+    </script>
   </body>
 </html>

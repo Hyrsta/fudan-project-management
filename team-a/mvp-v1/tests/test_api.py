@@ -8,8 +8,9 @@ from news_brief_mvp.models import ArticleCitation, ArticleRecord, BriefResponse,
 
 
 class StubService:
-    def __init__(self, export_path: Path):
+    def __init__(self, export_path: Path, markdown_path: Path = None):
         self.export_path_value = export_path
+        self.markdown_path_value = markdown_path or export_path.with_suffix(".md")
         self.response = BriefResponse(
             brief_id="brief-123",
             topic="AI chip export controls",
@@ -45,23 +46,10 @@ class StubService:
                 )
             ],
             export_html_path=str(export_path),
+            markdown_export_path=str(self.markdown_path_value),
             warnings=["fallback_used"],
         )
-        self.handoff = HandoffArtifact(
-            brief_id="brief-123",
-            topic="AI chip export controls",
-            created_at=datetime(2026, 4, 17, 12, 0, tzinfo=timezone.utc),
-            mode_used="fallback",
-            section_generation_mode="precomputed",
-            selected_source_ids=["fallback-1"],
-            sections={
-                "overview": "Fallback overview",
-                "key_takeaways": ["Takeaway one", "Takeaway two", "Takeaway three"],
-                "framing_comparison": "Fallback comparison",
-                "uncertainties": ["Uncertainty one"],
-            },
-            warnings=["fallback_used"],
-        )
+        self.handoff = self.response.to_handoff_artifact()
 
     def generate_brief(self, request_model):
         return self.response
@@ -71,6 +59,9 @@ class StubService:
 
     def get_export_path(self, brief_id: str):
         return self.export_path_value
+
+    def get_markdown_path(self, brief_id: str):
+        return self.markdown_path_value
 
     def load_handoff(self, brief_id: str):
         return self.handoff
@@ -103,16 +94,21 @@ def test_post_api_briefs_returns_json_contract(tmp_path) -> None:
 
 def test_export_and_handoff_routes_surface_saved_artifacts(tmp_path) -> None:
     export_path = tmp_path / "brief.html"
+    markdown_path = tmp_path / "brief.md"
     export_path.write_text("<html><body>Brief</body></html>")
-    client = TestClient(create_app(service=StubService(export_path), artifact_root=tmp_path))
+    markdown_path.write_text("# Brief\n\nMarkdown export")
+    client = TestClient(create_app(service=StubService(export_path, markdown_path), artifact_root=tmp_path))
 
     export_response = client.get("/briefs/brief-123/export")
+    markdown_response = client.get("/briefs/brief-123/export.md")
     handoff_response = client.get("/briefs/brief-123/handoff")
 
     health_response = client.get("/health")
 
     assert export_response.status_code == 200
     assert "Brief" in export_response.text
+    assert markdown_response.status_code == 200
+    assert "Markdown export" in markdown_response.text
     assert handoff_response.status_code == 200
     assert handoff_response.json()["warnings"] == ["fallback_used"]
     assert handoff_response.json()["section_generation_mode"] == "precomputed"
@@ -131,6 +127,8 @@ def test_recent_briefings_render_inspect_actions(tmp_path) -> None:
     assert 'hx-get="/briefs/brief-123"' in response.text
     assert ">Inspect<" in response.text
     assert '/briefs/brief-123/handoff' in response.text
+    assert 'name="mode"' in response.text
+    assert "Balanced coverage" in response.text
 
 
 def test_show_brief_returns_partial_for_htmx_inspection(tmp_path) -> None:

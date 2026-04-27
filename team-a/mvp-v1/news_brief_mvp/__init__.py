@@ -1,2 +1,1 @@
-"""Team A MVP package for the news brief demo app."""
-
+"""News Intelligence Studio application package."""

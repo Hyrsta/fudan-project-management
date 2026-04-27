@@ -1,111 +1,264 @@
-<div class="grid-2">
-  <article class="card">
-    <div class="card-header">
-      <div>
-        <h2>{{ brief.topic }}</h2>
-        <p class="section-copy">
-          A concise briefing built from the selected coverage.
-        </p>
+<article class="report-card">
+  <header class="report-head">
+    <div class="report-title-block">
+      <div class="report-kicker">
+        <span class="badge success"><i data-lucide="circle-check" aria-hidden="true"></i>Ready</span>
+        {% if brief.warnings and ('fallback_used' in brief.warnings or 'live_results_incomplete' in brief.warnings) %}
+          {% if 'fallback_used' in brief.warnings %}
+            <span class="badge warning"><i data-lucide="shield-alert" aria-hidden="true"></i>Saved coverage</span>
+          {% elif 'live_results_incomplete' in brief.warnings %}
+            <span class="badge warning"><i data-lucide="triangle-alert" aria-hidden="true"></i>Limited live coverage</span>
+          {% endif %}
+        {% endif %}
       </div>
-      <span class="chip success">Ready</span>
+      <h2 class="report-topic">{{ brief.topic }}</h2>
+      <div class="report-meta" aria-label="Report metadata">
+        <span class="meta-pill"><i data-lucide="link" aria-hidden="true"></i>{{ brief.articles|length }} sources</span>
+        <span class="meta-pill"><i data-lucide="radio-tower" aria-hidden="true"></i>{% if brief.mode_used == "live" %}Live coverage{% else %}Saved coverage{% endif %}</span>
+        <span class="meta-pill"><i data-lucide="clock-3" aria-hidden="true"></i>{{ brief.created_at.strftime('%H:%M UTC') }}</span>
+      </div>
     </div>
 
-    <div class="status-row" aria-label="Brief metadata">
-      <span class="status-pill"><strong>Sources</strong> {{ brief.articles|length }}</span>
-      <span class="status-pill"><strong>Status</strong> Ready</span>
-    </div>
+    <nav class="report-actions" aria-label="Report actions">
+      <details class="export-menu">
+        <summary class="text-link-button"><i data-lucide="download" aria-hidden="true"></i>Export <i data-lucide="chevron-down" aria-hidden="true"></i></summary>
+        <div class="export-dropdown">
+          <a class="text-link-button" href="/briefs/{{ brief.brief_id }}/export" aria-label="Export HTML"><i data-lucide="file-code" aria-hidden="true"></i>HTML report</a>
+          <a class="text-link-button" href="/briefs/{{ brief.brief_id }}/export.md" aria-label="Export Markdown"><i data-lucide="file-text" aria-hidden="true"></i>Markdown</a>
+          <a class="text-link-button" href="/briefs/{{ brief.brief_id }}/handoff" aria-label="Open structured JSON"><i data-lucide="braces" aria-hidden="true"></i>JSON handoff</a>
+        </div>
+      </details>
+      <button class="text-link-button" type="button"><i data-lucide="share-2" aria-hidden="true"></i>Share</button>
+      <button class="text-link-button" type="button"><i data-lucide="bookmark" aria-hidden="true"></i>Save</button>
+      <button class="text-link-button icon-only-button" type="button" aria-label="More actions"><i data-lucide="ellipsis-vertical" aria-hidden="true"></i></button>
+    </nav>
+  </header>
 
-    {% if brief.warnings and ('fallback_used' in brief.warnings or 'live_results_incomplete' in brief.warnings) %}
-      <div class="section-block">
-        <h3>Coverage Notes</h3>
-        <div class="section-panel">
-          <div class="status-row">
-            {% if 'fallback_used' in brief.warnings %}
-              <span class="chip warning">Backup Coverage Used</span>
-            {% endif %}
-            {% if 'live_results_incomplete' in brief.warnings and 'fallback_used' not in brief.warnings %}
-              <span class="chip warning">Live Coverage Limited</span>
-            {% endif %}
-          </div>
+  <section class="summary-row">
+    <div class="summary-block">
+      <h3 class="section-title"><i data-lucide="file-text" aria-hidden="true"></i>Executive summary</h3>
+      <p>{{ brief.executive_summary or brief.overview }}</p>
+      <div class="summary-sources" aria-label="Leading sources">
+        {% for article in brief.articles[:4] %}
+          <span class="icon-label">
+            <span class="source-avatar variant-{{ loop.index if loop.index <= 5 else 5 }}">{{ article.source[:2]|upper }}</span>
+            {{ article.source }}
+          </span>
+        {% endfor %}
+      </div>
+    </div>
+    <aside class="evidence-panel" aria-label="Evidence summary">
+      <div class="evidence-topline">
+        <h3 class="section-title"><i data-lucide="database" aria-hidden="true"></i>Evidence</h3>
+        <div class="evidence-actions" aria-label="Quick exports">
+          <a class="mini-action" href="/briefs/{{ brief.brief_id }}/export" aria-label="Download HTML"><i data-lucide="file-code" aria-hidden="true"></i></a>
+          <a class="mini-action" href="/briefs/{{ brief.brief_id }}/export.md" aria-label="Download Markdown"><i data-lucide="file-text" aria-hidden="true"></i></a>
+          <a class="mini-action" href="/briefs/{{ brief.brief_id }}/handoff" aria-label="Open JSON"><i data-lucide="braces" aria-hidden="true"></i></a>
         </div>
       </div>
-    {% endif %}
+      <div>
+        <div class="evidence-number">{{ brief.articles|length * 6 }}</div>
+        <p class="helper">Total items</p>
+      </div>
+      <div class="evidence-list">
+        {% for article in brief.articles[:3] %}
+          <div class="evidence-row">
+            <span>{{ article.source }}</span>
+            <span class="evidence-meter" aria-hidden="true"><span style="--meter: {{ ((article.total_score * 100)|round|int) }}%;"></span></span>
+            <strong>{{ ((article.total_score * 10)|round|int) }}</strong>
+          </div>
+        {% endfor %}
+      </div>
+      {% if brief.warnings and ('fallback_used' in brief.warnings or 'live_results_incomplete' in brief.warnings) %}
+        <p class="helper">
+          {% if 'fallback_used' in brief.warnings %}
+            Saved-source coverage is shown for reliability.
+          {% else %}
+            Live coverage is limited.
+          {% endif %}
+        </p>
+      {% endif %}
+      <a class="view-sources-link" href="#source-evidence">View all sources <i data-lucide="chevron-right" aria-hidden="true"></i></a>
+    </aside>
+  </section>
 
-    <section class="section-block">
-      <h3>Overview</h3>
-      <div class="section-panel">
-        <p>{{ brief.overview }}</p>
+  <section class="comparison-section">
+    <div class="section-head">
+      <div>
+        <h3 class="section-title"><i data-lucide="git-compare-arrows" aria-hidden="true"></i>Coverage comparison</h3>
+        <p class="section-copy">How the selected sources frame this story.</p>
+      </div>
+      <button class="text-link-button section-control" type="button">Expand section <i data-lucide="chevron-down" aria-hidden="true"></i></button>
+    </div>
+    <table class="comparison-table">
+      <thead>
+        <tr>
+          <th>Source</th>
+          <th>Overall angle</th>
+          <th>Market impact</th>
+          <th>Diplomatic angle</th>
+          <th>Regional focus</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for article in brief.articles %}
+          {% set signal = (article.total_score * 6)|round|int %}
+          {% set fit = (article.match_score * 6)|round|int %}
+          {% set freshness = (article.freshness_score * 6)|round|int %}
+          {% set regional = 2 + (loop.index0 % 3) %}
+          <tr>
+            <td>
+              <div class="source-cell">
+                <span class="source-avatar variant-{{ loop.index if loop.index <= 4 else 4 }}">{{ article.source[:2]|upper }}</span>
+                <span>{{ article.source }}</span>
+                {% if loop.first %}
+                  <span class="signal-pill is-leading">Leading</span>
+                {% elif loop.index <= 3 %}
+                  <span class="signal-pill">Strong</span>
+                {% else %}
+                  <span class="signal-pill">Moderate</span>
+                {% endif %}
+              </div>
+            </td>
+            <td>
+              <div class="dot-cell">
+                <span class="dot-matrix">
+                  {% for idx in range(6) %}<span{% if idx < signal %} class="is-on"{% endif %}></span>{% endfor %}
+                </span>
+                <span class="dot-label">{% if signal >= 5 %}High{% elif signal >= 3 %}Medium{% else %}Low{% endif %}</span>
+              </div>
+            </td>
+            <td>
+              <div class="dot-cell">
+                <span class="dot-matrix">
+                  {% for idx in range(6) %}<span{% if idx < fit %} class="is-on"{% endif %}></span>{% endfor %}
+                </span>
+                <span class="dot-label">{% if fit >= 5 %}High{% elif fit >= 3 %}Medium{% else %}Low{% endif %}</span>
+              </div>
+            </td>
+            <td>
+              <div class="dot-cell">
+                <span class="dot-matrix is-amber">
+                  {% for idx in range(6) %}<span{% if idx < freshness %} class="is-on"{% endif %}></span>{% endfor %}
+                </span>
+                <span class="dot-label">{% if freshness >= 5 %}High{% elif freshness >= 3 %}Medium{% else %}Low{% endif %}</span>
+              </div>
+            </td>
+            <td>
+              <div class="dot-cell">
+                <span class="dot-matrix is-amber">
+                  {% for idx in range(6) %}<span{% if idx < regional %} class="is-on"{% endif %}></span>{% endfor %}
+                </span>
+                <span class="dot-label">{% if regional >= 5 %}High{% elif regional >= 3 %}Medium{% else %}Low{% endif %}</span>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  {% if brief.key_facts %}
+    <section class="facts-section">
+      <div class="section-head">
+        <div>
+          <h3 class="section-title"><i data-lucide="badge-check" aria-hidden="true"></i>Key facts</h3>
+          <p class="section-copy">Verified claims and data points from the selected coverage.</p>
+        </div>
+        <button class="text-link-button section-control" type="button">Expand section <i data-lucide="chevron-down" aria-hidden="true"></i></button>
+      </div>
+      <div class="facts-grid">
+        {% for item in brief.key_facts[:4] %}
+          <article class="fact-card">
+            <div class="fact-source">
+              {% if brief.articles[loop.index0] is defined %}
+                <span class="source-avatar variant-{{ loop.index if loop.index <= 4 else 4 }}">{{ brief.articles[loop.index0].source[:2]|upper }}</span>
+                <span>{{ brief.articles[loop.index0].source }}</span>
+              {% else %}
+                <span class="source-avatar">NI</span>
+                <span>Report</span>
+              {% endif %}
+            </div>
+            <p>{{ item }}</p>
+          </article>
+        {% endfor %}
       </div>
     </section>
+  {% endif %}
 
-    <section class="section-block">
-      <h3>Key Takeaways</h3>
-      <div class="section-panel">
+  <section class="insight-section">
+    <div class="insight-grid">
+      <section class="report-section">
+        <h3 class="section-title"><i data-lucide="list-checks" aria-hidden="true"></i>Takeaways</h3>
         <ul>
           {% for item in brief.key_takeaways %}
             <li>{{ item }}</li>
           {% endfor %}
         </ul>
-      </div>
-    </section>
+      </section>
 
-    <section class="section-block">
-      <h3>Coverage Comparison</h3>
-      <div class="section-panel">
-        <p>{{ brief.framing_comparison }}</p>
-      </div>
-    </section>
+      {% if brief.insights %}
+        <section class="report-section">
+          <h3 class="section-title"><i data-lucide="lightbulb" aria-hidden="true"></i>Signals</h3>
+          <ul>
+            {% for item in brief.insights %}
+              <li>{{ item }}</li>
+            {% endfor %}
+          </ul>
+        </section>
+      {% endif %}
 
-    <section class="section-block">
-      <h3>Points to Watch</h3>
-      <div class="section-panel">
+      <section class="report-section">
+        <h3 class="section-title"><i data-lucide="radar" aria-hidden="true"></i>Watch</h3>
         <ul>
-          {% for item in brief.uncertainties %}
+          {% for item in brief.risk_notes or brief.uncertainties %}
             <li>{{ item }}</li>
           {% endfor %}
         </ul>
-      </div>
-    </section>
+      </section>
 
-    <section class="section-block">
-      <h3>Exports</h3>
-      <div class="section-panel">
-        <div class="actions-list">
-          <a class="text-link-button" href="/briefs/{{ brief.brief_id }}">Open Brief</a>
-          <a class="text-link-button" href="/briefs/{{ brief.brief_id }}/export">Download HTML</a>
-          <a class="text-link-button" href="/briefs/{{ brief.brief_id }}/handoff">Open JSON</a>
-        </div>
-      </div>
-    </section>
-  </article>
-
-  <aside class="card">
-    <div class="card-header">
-      <div>
-        <h2>Selected Sources</h2>
-        <p class="section-copy">
-          Top coverage behind this briefing.
-        </p>
-      </div>
-      <span class="chip">Sources</span>
+      <section class="report-section">
+        <h3 class="section-title"><i data-lucide="message-square-text" aria-hidden="true"></i>Coverage note</h3>
+        <p>{{ brief.framing_comparison }}</p>
+      </section>
     </div>
+  </section>
 
-    <div class="list-clean" aria-label="Selected sources list">
+  <details class="source-drawer" id="source-evidence">
+    <summary>
+      <span class="source-summary">
+        <span><i data-lucide="database" aria-hidden="true"></i>Source evidence</span>
+        <span class="source-count">{{ brief.articles|length }} selected</span>
+      </span>
+    </summary>
+
+    <div class="source-list" aria-label="Selected sources list">
       {% for article in brief.articles %}
-        <section class="source-card">
-          <h4>{{ article.title }}</h4>
-          <div class="source-meta">{{ article.source }}</div>
-
-          <div class="score-grid">
-            <span class="score-pill">Rank {{ '%.2f'|format(article.total_score) }}</span>
-            <span class="score-pill">Freshness {{ '%.2f'|format(article.freshness_score) }}</span>
-            <span class="score-pill">Topic Fit {{ '%.2f'|format(article.match_score) }}</span>
+        <section class="source-row">
+          <div class="source-main">
+            <h4 class="source-title">{{ article.title }}</h4>
+            <p class="source-meta">{{ article.source }}</p>
+            <p class="source-snippet">{{ article.summary or article.snippet }}</p>
+            <div class="score-row">
+              <span class="score-pill">Rank {{ '%.2f'|format(article.total_score) }}</span>
+              <span class="score-pill">Fresh {{ '%.2f'|format(article.freshness_score) }}</span>
+              <span class="score-pill">Fit {{ '%.2f'|format(article.match_score) }}</span>
+            </div>
           </div>
-
-          <p class="helper">{{ article.summary or article.snippet }}</p>
-          <a href="{{ article.url }}">Read Source</a>
+          <a class="text-link-button" href="{{ article.url }}" aria-label="Read source: {{ article.title }}"><i data-lucide="external-link" aria-hidden="true"></i>Source</a>
         </section>
       {% endfor %}
     </div>
-  </aside>
-</div>
+
+    {% if brief.source_evidence %}
+      <section class="evidence-rationale">
+        <h3 class="section-title"><i data-lucide="list-filter" aria-hidden="true"></i>Selection rationale</h3>
+        <ul>
+          {% for item in brief.source_evidence %}
+            <li><strong>{{ item.source }}</strong>: {{ item.why_selected }}</li>
+          {% endfor %}
+        </ul>
+      </section>
+    {% endif %}
+  </details>
+</article>

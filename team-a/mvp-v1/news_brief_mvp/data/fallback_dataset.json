@@ -5,7 +5,7 @@
       "id": "fallback-1",
       "title": "US expands export controls on advanced AI chips",
       "source": "Reuters",
-      "url": "https://www.reuters.com/world/us/fallback-1",
+      "url": "https://www.reuters.com/site-search/?query=AI%20chip%20export%20controls",
       "published_at": "2026-04-16T18:00:00+00:00",
       "snippet": "US officials outlined tighter controls on advanced semiconductors.",
       "summary": "Reuters frames the story as a policy update with immediate supply-chain implications.",
@@ -15,7 +15,7 @@
       "id": "fallback-2",
       "title": "Chipmakers assess impact of new AI export rules",
       "source": "AP",
-      "url": "https://apnews.com/article/fallback-2",
+      "url": "https://apnews.com/search?q=AI%20chip%20export%20controls",
       "published_at": "2026-04-16T15:00:00+00:00",
       "snippet": "Major chipmakers are reviewing how the new controls affect overseas sales.",
       "summary": "AP highlights market reaction and the uncertainty facing manufacturers.",
@@ -25,7 +25,7 @@
       "id": "fallback-3",
       "title": "How allies are responding to AI chip export restrictions",
       "source": "BBC",
-      "url": "https://www.bbc.com/news/fallback-3",
+      "url": "https://www.bbc.co.uk/search?q=AI%20chip%20export%20controls",
       "published_at": "2026-04-16T11:00:00+00:00",
       "snippet": "Allied governments are balancing security concerns with trade interests.",
       "summary": "BBC stresses the diplomatic angle and differing regional priorities.",
@@ -35,7 +35,7 @@
       "id": "fallback-4",
       "title": "Investors watch semiconductor stocks after AI policy shift",
       "source": "Financial Times",
-      "url": "https://www.ft.com/content/fallback-4",
+      "url": "https://www.ft.com/search?q=AI%20chip%20export%20controls",
       "published_at": "2026-04-15T20:00:00+00:00",
       "snippet": "Investors are pricing in new demand and compliance costs for chipmakers.",
       "summary": "The FT focuses on investor sentiment and near-term market implications.",
@@ -43,7 +43,7 @@
     }
   ],
   "precomputed_sections": {
-    "overview": "The curated demo dataset shows that export controls are tightening around advanced AI chips, with policy, market, and diplomatic implications moving in parallel.",
+    "overview": "The saved source set shows that export controls are tightening around advanced AI chips, with policy, market, and diplomatic implications moving in parallel.",
     "key_takeaways": [
       "Policy tightening is the dominant theme across all selected sources.",
       "Wire services focus on rules and immediate market reaction.",
@@ -56,4 +56,3 @@
     ]
   }
 }
-

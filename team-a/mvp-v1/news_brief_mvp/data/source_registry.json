@@ -15,6 +15,35 @@
     "the verge": 0.75,
     "techcrunch": 0.72,
     "google news": 0.4
-  }
+  },
+  "sources": [
+    {
+      "name": "BBC News",
+      "feed_url": "https://feeds.bbci.co.uk/news/world/rss.xml",
+      "category": "world",
+      "region": "global",
+      "weight": 0.93
+    },
+    {
+      "name": "TechCrunch",
+      "feed_url": "https://techcrunch.com/feed/",
+      "category": "technology",
+      "region": "us",
+      "weight": 0.72
+    },
+    {
+      "name": "The Verge",
+      "feed_url": "https://www.theverge.com/rss/index.xml",
+      "category": "technology",
+      "region": "us",
+      "weight": 0.75
+    },
+    {
+      "name": "Le Monde",
+      "feed_url": "https://www.lemonde.fr/en/international/rss_full.xml",
+      "category": "world",
+      "region": "europe",
+      "weight": 0.86
+    }
+  ]
 }
-
