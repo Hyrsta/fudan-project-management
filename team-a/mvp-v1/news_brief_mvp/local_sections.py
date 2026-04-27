@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import html
 from typing import Sequence
 
 from .models import ArticleRecord, BriefSections
@@ -22,9 +23,11 @@ def build_heuristic_sections(topic: str, persona: str, articles: Sequence[Articl
     )
 
     key_takeaways = []
+    key_facts = []
     for article in articles[:3]:
         signal = _clean_sentence(article.summary or article.snippet or article.title)
         key_takeaways.append(f"{article.source} emphasizes that {signal}")
+        key_facts.append(f"{article.source}: {signal}")
 
     if len(key_takeaways) < 3:
         key_takeaways.append(_persona_takeaway(persona, len(articles)))
@@ -43,8 +46,19 @@ def build_heuristic_sections(topic: str, persona: str, articles: Sequence[Articl
         )
     framing_comparison = "; ".join(framing_parts) + "."
 
+    insights = [
+        f"The highest-confidence source signal is from {lead.source}, supported by {len(articles) - 1} additional selected articles.",
+        f"The strongest value is the traceable comparison across {len(source_names)} visible sources, not a single blended summary.",
+    ]
+    if persona == "market_watch":
+        insights.append("Market-facing readers should watch whether policy signals translate into pricing, supply-chain, or competitive movement.")
+    elif persona == "policy_intelligence":
+        insights.append("Policy readers should watch implementation timing, enforcement scope, and cross-border responses.")
+    else:
+        insights.append("Use this report as a focused starting point and inspect the cited sources before decisions.")
+
     uncertainties = [
-        f"The brief is based on {len(articles)} selected articles, so coverage breadth is still limited.",
+        f"The report is based on {len(articles)} selected articles, so coverage breadth is still limited.",
         _persona_uncertainty(persona),
     ]
     if len(source_names) < 3:
@@ -59,17 +73,22 @@ def build_heuristic_sections(topic: str, persona: str, articles: Sequence[Articl
     return BriefSections(
         overview=overview,
         key_takeaways=key_takeaways[:4],
+        key_facts=key_facts[:4],
         framing_comparison=framing_comparison,
+        insights=insights[:3],
         uncertainties=uncertainties[:3],
+        risk_notes=uncertainties[:3],
     )
 
 
 def _clean_sentence(text: str) -> str:
-    cleaned = " ".join(text.strip().split())
+    cleaned = " ".join(html.unescape(text).strip().split())
     if not cleaned:
         return "coverage is still developing."
     if cleaned[-1] not in ".!?":
         cleaned += "."
+    if len(cleaned) > 1 and cleaned[:2].isupper():
+        return cleaned
     return cleaned[0].lower() + cleaned[1:] if cleaned and cleaned[0].isupper() else cleaned
 
 

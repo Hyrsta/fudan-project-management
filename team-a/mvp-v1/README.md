@@ -1,24 +1,24 @@
-# Team A MVP v1
+# Team A Final Product v1
 
-Local-first FastAPI app for the 项目管理 Team A MVP.
+Local-first FastAPI app for the 项目管理 Team A final product.
 
 ## Overview
 
-This MVP generates a short analyst-style news brief from a single topic query.
-It is designed to be demo-friendly first: the app tries live retrieval, but it
-also has fallback paths so the flow can still complete when external services
-are weak or unavailable.
+This app generates a source-aware news intelligence report from a single topic
+query. It is designed for a strong local course demo: the app tries trusted RSS
+retrieval first, uses Google News RSS as fallback, and still produces a polished
+deterministic report when model access is unavailable.
 
 ## What the app does
 
 - Accepts a topic from a research-analyst persona
-- Attempts live Google News RSS retrieval
+- Attempts direct trusted RSS retrieval plus Google News RSS fallback
 - Falls back to a curated demo dataset if live retrieval is weak or times out
 - Scores and deduplicates the candidate sources
 - Generates brief sections with an OpenAI-compatible model when available
 - Falls back to a local heuristic section builder if the LLM is unavailable
-- Falls back again to the precomputed demo brief when needed in fallback mode
-- Saves local artifacts for the generated brief and Team B handoff
+- Produces executive summary, key facts, source comparison, insights, and risk notes
+- Saves local artifacts for the generated report and Team B handoff
 - Shows recent saved briefs on the homepage for easier demos
 
 ## Tech stack
@@ -98,6 +98,8 @@ export OPENAI_MODEL="gpt-4o-mini"
 ./run_local.sh
 ```
 
+Copy `.env.example` if you want to keep local model settings in one place.
+
 ## Test run
 
 ```bash
@@ -110,6 +112,7 @@ pytest -q
 - `POST /api/briefs` - create a brief
 - `GET /briefs/{brief_id}` - reopen a saved brief
 - `GET /briefs/{brief_id}/export` - download the HTML export
+- `GET /briefs/{brief_id}/export.md` - download the Markdown report
 - `GET /briefs/{brief_id}/handoff` - open the Team B handoff JSON
 - `GET /health` - simple health check
 
@@ -126,13 +129,18 @@ Each brief directory contains:
 - `brief.json`
 - `handoff.json`
 - `brief.html`
+- `brief.md`
+
+The artifact root also contains:
+
+- `manifest.json` - recent-report index used by the homepage
 
 ## Fallback behavior
 
 The app is intentionally resilient in this order:
 
-1. **Live retrieval + LLM sections**
-2. **Live or fallback article set + heuristic sections**
+1. **Trusted RSS / Google News retrieval + LLM sections**
+2. **Live or fallback article set + deterministic local sections**
 3. **Fallback dataset + precomputed sections**
 
 The selected path is surfaced through:

@@ -16,8 +16,8 @@ from .models import (
     BriefResponse,
     BriefSections,
     FallbackDataset,
-    HandoffArtifact,
     SectionGenerationMode,
+    SourceEvidence,
 )
 from .ranking import deduplicate_articles, score_articles
 from .storage import ArtifactStore
@@ -107,28 +107,34 @@ class BriefService:
             section_generation_mode=section_generation_mode,
             articles=selected_articles,
             overview=sections.overview,
+            executive_summary=sections.overview,
             key_takeaways=sections.key_takeaways,
+            key_facts=sections.key_facts or _fallback_key_facts(selected_articles),
             framing_comparison=sections.framing_comparison,
+            insights=sections.insights or _fallback_insights(selected_articles),
             uncertainties=sections.uncertainties,
+            risk_notes=sections.risk_notes or sections.uncertainties,
             citations=citations,
+            source_evidence=_build_source_evidence(selected_articles),
             export_html_path=str(self.artifact_store.export_path(brief_id)),
+            markdown_export_path=str(self.artifact_store.markdown_path(brief_id)),
+            pipeline_metadata={
+                "collector": "fallback_dataset" if mode_used == "fallback" else "multi_source_rss",
+                "ranker": "credibility_freshness_topic",
+                "summarizer": section_generation_mode,
+                "comparison": section_generation_mode,
+                "insight": section_generation_mode,
+                "report": section_generation_mode,
+            },
+            quality_notes=_build_quality_notes(
+                mode_used=mode_used,
+                section_generation_mode=section_generation_mode,
+                article_count=len(selected_articles),
+                warnings=warnings,
+            ),
             warnings=list(dict.fromkeys(warnings)),
         )
-        handoff = HandoffArtifact(
-            brief_id=brief_id,
-            topic=request_model.topic,
-            created_at=created_at,
-            mode_used=mode_used,
-            section_generation_mode=section_generation_mode,
-            selected_source_ids=[article.id for article in selected_articles],
-            sections={
-                "overview": sections.overview,
-                "key_takeaways": sections.key_takeaways,
-                "framing_comparison": sections.framing_comparison,
-                "uncertainties": sections.uncertainties,
-            },
-            warnings=response.warnings,
-        )
+        handoff = response.to_handoff_artifact()
         self.artifact_store.save(response, handoff)
         return response
 
@@ -140,6 +146,9 @@ class BriefService:
 
     def get_export_path(self, brief_id: str) -> Path:
         return self.artifact_store.export_path(brief_id)
+
+    def get_markdown_path(self, brief_id: str) -> Path:
+        return self.artifact_store.markdown_path(brief_id)
 
     def list_recent_briefs(self, limit: int = 6) -> List[BriefResponse]:
         return self.artifact_store.list_briefs(limit=limit)
@@ -191,3 +200,68 @@ def build_default_service(app_root: Path) -> BriefService:
         fallback_dataset=fallback_dataset,
     )
 
+
+def _build_source_evidence(articles: Sequence[ArticleRecord]) -> List[SourceEvidence]:
+    evidence = []
+    for article in articles:
+        reasons = []
+        if article.source_weight >= 0.8:
+            reasons.append("high source trust")
+        if article.freshness_score >= 0.8:
+            reasons.append("recent coverage")
+        if article.match_score >= 0.5:
+            reasons.append("strong topic fit")
+        if not reasons:
+            reasons.append("adds context to the selected coverage")
+        evidence.append(
+            SourceEvidence(
+                article_id=article.id,
+                title=article.title,
+                source=article.source,
+                url=article.url,
+                published_at=article.published_at,
+                credibility_score=article.source_weight,
+                freshness_score=article.freshness_score,
+                topic_fit=article.match_score,
+                why_selected=", ".join(reasons).capitalize() + ".",
+            )
+        )
+    return evidence
+
+
+def _fallback_key_facts(articles: Sequence[ArticleRecord]) -> List[str]:
+    facts = []
+    for article in articles[:4]:
+        signal = article.summary or article.snippet or article.title
+        facts.append(f"{article.source}: {' '.join(signal.split())}")
+    return facts
+
+
+def _fallback_insights(articles: Sequence[ArticleRecord]) -> List[str]:
+    sources = []
+    for article in articles:
+        if article.source not in sources:
+            sources.append(article.source)
+    return [
+        f"The report is grounded in {len(articles)} selected sources rather than a single blended answer.",
+        f"Visible source diversity includes {', '.join(sources[:4])}.",
+    ]
+
+
+def _build_quality_notes(
+    mode_used: str,
+    section_generation_mode: SectionGenerationMode,
+    article_count: int,
+    warnings: Sequence[str],
+) -> List[str]:
+    notes = [
+        f"Report generated from {article_count} ranked source records.",
+        "Every delivered report includes source links and selected-source evidence.",
+    ]
+    if mode_used == "fallback":
+        notes.append("Saved source coverage was used because live source coverage was unavailable or limited.")
+    if section_generation_mode != "llm":
+        notes.append("Sections were generated with the deterministic local report builder.")
+    if "live_results_incomplete" in warnings:
+        notes.append("Live retrieval was incomplete for this run.")
+    return notes

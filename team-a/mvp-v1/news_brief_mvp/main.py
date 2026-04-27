@@ -14,16 +14,16 @@ from .service import LiveRunFailed, build_default_service
 def create_app(service=None, artifact_root: Optional[Path] = None) -> FastAPI:
     app_root = Path(__file__).resolve().parent.parent
     templates = Jinja2Templates(directory=str(app_root / "news_brief_mvp" / "templates"))
-    app = FastAPI(title="Team A MVP - Analyst Brief App")
+    app = FastAPI(title="News Intelligence Studio")
     app.state.service = service or build_default_service(app_root)
     app.state.artifact_root = artifact_root or (app_root / "artifacts")
 
     @app.get("/", response_class=HTMLResponse)
     def index(request: Request):
         return templates.TemplateResponse(
+            request,
             "index.html",
             {
-                "request": request,
                 "brief": None,
                 "error_message": None,
                 "recent_briefs": app.state.service.list_recent_briefs(),
@@ -49,16 +49,18 @@ def create_app(service=None, artifact_root: Optional[Path] = None) -> FastAPI:
         except LiveRunFailed as exc:
             if request.headers.get("HX-Request") == "true":
                 return templates.TemplateResponse(
+                    request,
                     "partials/error.html",
-                    {"request": request, "error_message": str(exc)},
+                    {"error_message": str(exc)},
                     status_code=502,
                 )
             raise HTTPException(status_code=502, detail=str(exc)) from exc
 
         if request.headers.get("HX-Request") == "true":
             return templates.TemplateResponse(
+                request,
                 "partials/brief_result.html",
-                {"request": request, "brief": brief},
+                {"brief": brief},
             )
         return JSONResponse(content=brief.model_dump(mode="json"))
 
@@ -70,13 +72,14 @@ def create_app(service=None, artifact_root: Optional[Path] = None) -> FastAPI:
             raise HTTPException(status_code=404, detail="Brief not found.") from exc
         if request.headers.get("HX-Request") == "true":
             return templates.TemplateResponse(
+                request,
                 "partials/brief_result.html",
-                {"request": request, "brief": brief},
+                {"brief": brief},
             )
         return templates.TemplateResponse(
+            request,
             "index.html",
             {
-                "request": request,
                 "brief": brief,
                 "error_message": None,
                 "recent_briefs": app.state.service.list_recent_briefs(),
@@ -90,12 +93,19 @@ def create_app(service=None, artifact_root: Optional[Path] = None) -> FastAPI:
             raise HTTPException(status_code=404, detail="Export not found.")
         return FileResponse(export_path)
 
+    @app.get("/briefs/{brief_id}/export.md")
+    def export_brief_markdown(brief_id: str):
+        markdown_path = app.state.service.get_markdown_path(brief_id)
+        if not markdown_path.exists():
+            raise HTTPException(status_code=404, detail="Markdown export not found.")
+        return FileResponse(markdown_path, media_type="text/markdown")
+
     @app.get("/briefs/{brief_id}/handoff")
     def handoff_brief(brief_id: str):
         try:
             handoff = app.state.service.load_handoff(brief_id)
         except FileNotFoundError as exc:
-            raise HTTPException(status_code=404, detail="Handoff artifact not found.") from exc
+            raise HTTPException(status_code=404, detail="Structured export not found.") from exc
         return JSONResponse(content=handoff.model_dump(mode="json"))
 
     @app.get("/health")
