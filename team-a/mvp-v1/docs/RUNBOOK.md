@@ -144,12 +144,29 @@ export NEWS_BRIEF_RBAC_ENABLED=false
 - route registration
 - HTML and JSON response handling
 - route-level RBAC dependency wiring
+- `/static` frontend asset mounting
 
 ### `news_brief_mvp/auth.py`
 
 - RBAC role and permission map
 - API key header/cookie authentication
 - environment-driven token configuration
+
+### `news_brief_mvp/templates/`
+
+- Jinja2 page and partial markup
+- server-rendered report and form state
+- small runtime configuration injection for the browser
+
+### `news_brief_mvp/static/`
+
+- `css/app.css` for page layout and component styling
+- `js/app.js` for browser actions, HTMX request headers, access role UI, and local preferences
+
+### `frontend/`
+
+- TypeScript source for the browser layer
+- `npm run build` compiles `src/app.ts` into `news_brief_mvp/static/js/app.js`
 
 ### `news_brief_mvp/service.py`
 
@@ -313,6 +330,14 @@ pytest -q
 
 ```bash
 pytest -q
+```
+
+### Build frontend assets
+
+```bash
+cd frontend
+npm install
+npm run build
 ```
 
 ### Check health

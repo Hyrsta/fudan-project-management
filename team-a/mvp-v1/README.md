@@ -28,6 +28,8 @@ deterministic report when model access is unavailable.
 - Uvicorn
 - Jinja2 templates
 - HTMX
+- TypeScript frontend build
+- HTML/CSS/JavaScript static assets
 - httpx
 - feedparser
 - Pydantic v2
@@ -41,6 +43,10 @@ team-a/mvp-v1/
 ├── requirements.txt
 ├── requirements-dev.txt
 ├── pytest.ini
+├── frontend/
+│   ├── package.json
+│   ├── tsconfig.json
+│   └── src/app.ts
 ├── news_brief_mvp/
 │   ├── main.py
 │   ├── service.py
@@ -51,6 +57,9 @@ team-a/mvp-v1/
 │   ├── storage.py
 │   ├── data/
 │   ├── prompts/
+│   ├── static/
+│   │   ├── css/app.css
+│   │   └── js/app.js
 │   └── templates/
 └── tests/
 ```
@@ -124,6 +133,17 @@ Copy `.env.example` if you want to keep local model settings in one place.
 
 ```bash
 pytest -q
+```
+
+## Frontend build
+
+The browser behavior is written in TypeScript under `frontend/src/app.ts` and
+compiled to `news_brief_mvp/static/js/app.js`.
+
+```bash
+cd frontend
+npm install
+npm run build
 ```
 
 ## Main app routes

@@ -218,6 +218,9 @@ def test_recent_briefings_render_inspect_actions(tmp_path) -> None:
     assert 'data-action="select-persona"' in response.text
     assert 'id="access-role"' in response.text
     assert 'data-action="apply-access"' in response.text
+    assert "/static/css/app.css" in response.text
+    assert "/static/js/app.js" in response.text
+    assert "NEWS_BRIEF_RBAC_CONFIG" in response.text
     assert "Financial analyst" in response.text
     assert "Balanced coverage" in response.text
 
@@ -245,11 +248,26 @@ def test_report_controls_have_action_handlers(tmp_path) -> None:
     assert full_response.status_code == 200
     assert partial_response.status_code == 200
     assert 'id="toast-region"' in full_response.text
-    assert "function handleActionClick" in full_response.text
+    assert "/static/js/app.js" in full_response.text
     assert 'data-action="copy-link"' in partial_response.text
     assert 'data-action="save-report"' in partial_response.text
     assert 'data-action="toggle-more-menu"' in partial_response.text
     assert 'data-action="toggle-section"' in partial_response.text
+
+
+def test_static_frontend_assets_are_served(tmp_path) -> None:
+    export_path = tmp_path / "brief.html"
+    export_path.write_text("<html><body>Brief</body></html>")
+    client = TestClient(create_app(service=StubService(export_path), artifact_root=tmp_path))
+
+    script_response = client.get("/static/js/app.js")
+    style_response = client.get("/static/css/app.css")
+
+    assert script_response.status_code == 200
+    assert "function handleActionClick" in script_response.text
+    assert "NEWS_BRIEF_RBAC_CONFIG" in script_response.text
+    assert style_response.status_code == 200
+    assert ".app-frame" in style_response.text
 
 
 def test_workspace_navigation_controls_are_wired(tmp_path) -> None:

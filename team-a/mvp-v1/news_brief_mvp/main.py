@@ -5,6 +5,7 @@ from typing import Optional
 
 from fastapi import Depends, FastAPI, Form, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from .auth import (
@@ -30,6 +31,11 @@ def create_app(
     app_root = Path(__file__).resolve().parent.parent
     templates = Jinja2Templates(directory=str(app_root / "news_brief_mvp" / "templates"))
     app = FastAPI(title="News Intelligence Studio")
+    app.mount(
+        "/static",
+        StaticFiles(directory=str(app_root / "news_brief_mvp" / "static")),
+        name="static",
+    )
     app.state.service = service or build_default_service(app_root)
     app.state.artifact_root = artifact_root or (app_root / "artifacts")
     app.state.rbac_settings = rbac_settings or load_rbac_settings_from_env()

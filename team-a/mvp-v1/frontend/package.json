@@ -1,0 +1,13 @@
+{
+  "name": "news-brief-mvp-frontend",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Typed browser assets for the News Intelligence Studio FastAPI app.",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "watch": "tsc -p tsconfig.json --watch"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
