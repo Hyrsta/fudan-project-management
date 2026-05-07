@@ -201,7 +201,7 @@ def test_export_and_handoff_routes_surface_saved_artifacts(tmp_path) -> None:
     assert health_response.json()["status"] == "ok"
 
 
-def test_recent_briefings_render_inspect_actions(tmp_path) -> None:
+def test_react_app_shell_is_served_from_root(tmp_path) -> None:
     export_path = tmp_path / "brief.html"
     export_path.write_text("<html><body>Brief</body></html>")
     client = TestClient(create_app(service=StubService(export_path), artifact_root=tmp_path))
@@ -209,20 +209,41 @@ def test_recent_briefings_render_inspect_actions(tmp_path) -> None:
     response = client.get("/")
 
     assert response.status_code == 200
-    assert 'hx-get="/briefs/brief-123"' in response.text
-    assert ">Inspect<" in response.text
-    assert '/briefs/brief-123/handoff' in response.text
-    assert 'name="mode"' in response.text
-    assert 'name="persona"' in response.text
-    assert 'name="goal"' in response.text
-    assert 'data-action="select-persona"' in response.text
-    assert 'id="access-role"' in response.text
-    assert 'data-action="apply-access"' in response.text
-    assert "/static/css/app.css" in response.text
-    assert "/static/js/app.js" in response.text
-    assert "NEWS_BRIEF_RBAC_CONFIG" in response.text
-    assert "Financial analyst" in response.text
-    assert "Balanced coverage" in response.text
+    assert '<div id="root"></div>' in response.text
+    assert "/static/react/assets/" in response.text
+
+
+def test_config_api_returns_frontend_bootstrap_data(tmp_path) -> None:
+    export_path = tmp_path / "brief.html"
+    export_path.write_text("<html><body>Brief</body></html>")
+    client = TestClient(create_app(service=StubService(export_path), artifact_root=tmp_path))
+
+    response = client.get("/api/config")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["rbac"]["enabled"] is True
+    assert payload["rbac"]["demo_tokens"]["analyst"] == "analyst-local-token"
+    assert payload["persona_options"][0]["value"] == "research_analyst"
+    assert any(option["label"] == "Financial analyst" for option in payload["persona_options"])
+
+
+def test_recent_and_saved_brief_json_endpoints(tmp_path) -> None:
+    export_path = tmp_path / "brief.html"
+    export_path.write_text("<html><body>Brief</body></html>")
+    client = TestClient(create_app(service=StubService(export_path), artifact_root=tmp_path))
+
+    recent_response = client.get("/api/briefs/recent", headers=VIEWER_HEADERS)
+    unauthorized_recent_response = client.get("/api/briefs/recent")
+    saved_response = client.get("/api/briefs/brief-123", headers=VIEWER_HEADERS)
+    unauthorized_saved_response = client.get("/api/briefs/brief-123")
+
+    assert recent_response.status_code == 200
+    assert recent_response.json()[0]["brief_id"] == "brief-123"
+    assert unauthorized_recent_response.status_code == 401
+    assert saved_response.status_code == 200
+    assert saved_response.json()["overview"] == "Fallback overview"
+    assert unauthorized_saved_response.status_code == 401
 
 
 def test_show_brief_returns_partial_for_htmx_inspection(tmp_path) -> None:

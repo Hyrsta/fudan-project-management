@@ -9,6 +9,7 @@ dist/
 build/
 *.zip
 *.tmp
+*.log
 
 task_plan.md
 findings.md

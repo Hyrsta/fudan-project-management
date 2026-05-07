@@ -1,13 +1,21 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "module": "none",
+    "useDefineForClassFields": true,
+    "module": "ESNext",
     "lib": ["DOM", "DOM.Iterable", "ES2020"],
-    "rootDir": "src",
-    "outDir": "../news_brief_mvp/static/js",
+    "allowJs": false,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "strict": true,
     "noEmitOnError": true,
-    "removeComments": true
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "Node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx"
   },
-  "include": ["src/**/*.ts"]
+  "include": ["src/**/*.ts", "src/**/*.tsx"]
 }

@@ -39,6 +39,7 @@ def create_app(
     app.state.service = service or build_default_service(app_root)
     app.state.artifact_root = artifact_root or (app_root / "artifacts")
     app.state.rbac_settings = rbac_settings or load_rbac_settings_from_env()
+    react_index_path = app_root / "news_brief_mvp" / "static" / "react" / "index.html"
 
     def page_context(request: Request, brief=None):
         return {
@@ -51,7 +52,27 @@ def create_app(
 
     @app.get("/", response_class=HTMLResponse)
     def index(request: Request):
+        if react_index_path.exists():
+            return FileResponse(react_index_path)
         return templates.TemplateResponse(request, "index.html", page_context(request))
+
+    @app.get("/api/config")
+    def app_config():
+        return {
+            "rbac": rbac_template_context(app.state.rbac_settings),
+            "persona_options": get_persona_options(),
+        }
+
+    @app.get("/api/briefs/recent")
+    def recent_briefs(
+        _principal=Depends(require_permissions(PERMISSION_BRIEFS_READ)),
+    ):
+        return JSONResponse(
+            content=[
+                brief.model_dump(mode="json")
+                for brief in app.state.service.list_recent_briefs()
+            ]
+        )
 
     @app.post("/api/briefs")
     async def create_brief(
@@ -87,6 +108,17 @@ def create_app(
                 "partials/brief_result.html",
                 {"brief": brief},
             )
+        return JSONResponse(content=brief.model_dump(mode="json"))
+
+    @app.get("/api/briefs/{brief_id}")
+    def show_brief_json(
+        brief_id: str,
+        _principal=Depends(require_permissions(PERMISSION_BRIEFS_READ)),
+    ):
+        try:
+            brief = app.state.service.load_brief_response(brief_id)
+        except FileNotFoundError as exc:
+            raise HTTPException(status_code=404, detail="Brief not found.") from exc
         return JSONResponse(content=brief.model_dump(mode="json"))
 
     @app.get("/briefs/{brief_id}", response_class=HTMLResponse)

@@ -20,6 +20,7 @@ This runbook is for developers and operators who need to:
 ### Runtime
 
 - Python 3
+- Node.js and npm for rebuilding the React frontend
 - Network access for live Google News RSS retrieval
 - Optional OpenAI-compatible API access for model-written sections
 - Trusted RSS feeds plus Google News RSS fallback for live retrieval
@@ -74,9 +75,9 @@ Open:
 
 Expected result:
 
-- homepage loads
-- topic form is visible
-- recent briefs section is visible
+- login page loads
+- demo account and API key sign-in options are visible
+- after sign-in, the topic form and recent briefs section are visible
 
 ### HTTP health check
 
@@ -92,9 +93,9 @@ Expected response:
 
 ## Access control
 
-RBAC is enabled by default for saved reports, exports, handoff JSON, and brief
-generation. The homepage and health check stay public so the local demo can
-load and report service status before an access key is selected.
+RBAC is enabled by default for recent briefs, saved reports, exports, handoff
+JSON, and brief generation. The React shell and health check stay public so the
+local demo can load before an access key is selected.
 
 Default local demo keys:
 
@@ -107,6 +108,9 @@ For command-line checks, pass the key with `X-API-Key`:
 ```bash
 curl -H "X-API-Key: admin-local-token" http://127.0.0.1:8000/briefs/<brief_id>/handoff
 ```
+
+The browser login page validates the selected demo account or custom key against
+`GET /api/briefs/recent`, then stores the accepted key in the local auth cookie.
 
 For custom tokens, set:
 
@@ -142,7 +146,7 @@ export NEWS_BRIEF_RBAC_ENABLED=false
 
 - FastAPI app factory
 - route registration
-- HTML and JSON response handling
+- React app shell, HTML report, and JSON response handling
 - route-level RBAC dependency wiring
 - `/static` frontend asset mounting
 
@@ -155,18 +159,18 @@ export NEWS_BRIEF_RBAC_ENABLED=false
 ### `news_brief_mvp/templates/`
 
 - Jinja2 page and partial markup
-- server-rendered report and form state
-- small runtime configuration injection for the browser
+- server-rendered saved report views and partials
 
 ### `news_brief_mvp/static/`
 
 - `css/app.css` for page layout and component styling
 - `js/app.js` for browser actions, HTMX request headers, access role UI, and local preferences
+- `react/` for the Vite-built React app served from `/`
 
 ### `frontend/`
 
-- TypeScript source for the browser layer
-- `npm run build` compiles `src/app.ts` into `news_brief_mvp/static/js/app.js`
+- React + TypeScript source for the primary browser app
+- `npm run build` compiles `src/main.tsx` into `news_brief_mvp/static/react/`
 
 ### `news_brief_mvp/service.py`
 
@@ -202,7 +206,7 @@ export NEWS_BRIEF_RBAC_ENABLED=false
 
 - writes brief artifacts to disk
 - reloads prior briefs
-- lists recent briefs for homepage display
+- lists recent briefs for the authenticated React workspace
 
 ## Runtime modes
 
@@ -242,16 +246,17 @@ Files:
 
 The artifact root also stores:
 
-- `manifest.json` - recent-report index for the homepage
+- `manifest.json` - recent-report index for the authenticated workspace
 
 ## Common demo workflow
 
 1. start the app with `./run_local.sh`
 2. open `http://127.0.0.1:8000`
-3. submit a topic in `auto` mode
-4. if live retrieval is weak, allow fallback mode to complete the demo
-5. use recent briefs to reopen prior successful runs
-6. show the HTML export, Markdown export, or Team B handoff JSON if needed
+3. sign in with a demo role or custom API key
+4. submit a topic in `auto` mode
+5. if live retrieval is weak, allow fallback mode to complete the demo
+6. use recent briefs to reopen prior successful runs
+7. show the HTML export, Markdown export, or Team B handoff JSON if needed
 
 ## Troubleshooting
 
@@ -354,7 +359,7 @@ open http://127.0.0.1:8000
 
 ## Current limitations
 
-- only one persona is supported: `research_analyst`
+- persona lenses are local configuration, not database-backed user profiles
 - live retrieval currently depends on Google News RSS only
 - storage is local filesystem based, not database backed
 - fallback dataset is narrow and demo-oriented
