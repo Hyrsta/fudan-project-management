@@ -1744,9 +1744,12 @@
             </div>
             <div class="top-actions" aria-label="Workspace status">
               <span class="status-chip sync">Local data synced</span>
+              {% if rbac.enabled %}
+                <button class="status-chip" type="button" data-action="show-profile"><i data-lucide="shield-check"></i><span id="access-role-label">Admin</span></button>
+              {% endif %}
               <button class="status-chip" type="button" data-action="open-recent"><i data-lucide="bookmark"></i>Saved</button>
               <button class="status-chip" type="button" data-action="scroll-alerts"><i data-lucide="bell"></i>Alerts</button>
-              <button class="avatar-chip" type="button" data-action="show-profile" aria-label="Current workspace">AV</button>
+              <button class="avatar-chip" type="button" data-action="show-profile" aria-label="Current workspace" id="access-role-avatar">AD</button>
             </div>
           </header>
 
@@ -2104,12 +2107,29 @@
     <aside class="utility-panel" id="profile-panel" role="dialog" aria-modal="false" aria-labelledby="profile-title" hidden>
       <div class="utility-head">
         <div class="utility-title">
-          <h3 id="profile-title">Local workspace</h3>
-          <p>Reports, saved IDs, and preferences stay on this laptop.</p>
+          <h3 id="profile-title">Workspace access</h3>
+          <p>Reports, saved IDs, preferences, and access keys stay on this laptop.</p>
         </div>
         <button class="text-link-button icon-only-button" type="button" data-action="close-panel" aria-label="Close profile"><i data-lucide="x" aria-hidden="true"></i></button>
       </div>
       <div class="utility-list">
+        {% if rbac.enabled %}
+          <div class="utility-item">
+            <strong>Role</strong>
+            <select id="access-role" aria-label="Access role">
+              {% for role in rbac.roles %}
+                <option value="{{ role.value }}" {% if role.value == rbac.default_role %}selected{% endif %}>{{ role.label }}</option>
+              {% endfor %}
+            </select>
+            <p class="helper" id="access-role-description">Manage full handoff access.</p>
+          </div>
+          <div class="utility-item">
+            <strong>API key</strong>
+            <input id="access-key-input" type="password" autocomplete="off" placeholder="Optional custom API key">
+            <p class="helper">Default local demo keys are used unless custom keys are configured.</p>
+          </div>
+          <button class="primary-button" type="button" data-action="apply-access"><i data-lucide="shield-check" aria-hidden="true"></i>Apply access</button>
+        {% endif %}
         <div class="utility-item"><strong>Workspace</strong><p class="helper">News Intelligence Studio</p></div>
         <div class="utility-item"><strong>Storage</strong><p class="helper">Artifacts are saved under the local app artifacts folder.</p></div>
         <div class="utility-item"><strong>Exports</strong><p class="helper">HTML, Markdown, and JSON handoff are available per report.</p></div>
@@ -2117,6 +2137,8 @@
     </aside>
 
     <script>
+      const RBAC_CONFIG = {{ rbac|tojson }};
+
       function renderIcons() {
         if (window.lucide) {
           window.lucide.createIcons();
@@ -2298,6 +2320,64 @@
         if (checked) setPersona(checked.value);
       }
 
+      function accessRoleMeta(roleValue) {
+        return (RBAC_CONFIG.roles || []).find((role) => role.value === roleValue) || {};
+      }
+
+      function activeAccessRole() {
+        return localStorage.getItem("news-intel-role") || RBAC_CONFIG.default_role || "admin";
+      }
+
+      function activeAccessToken() {
+        if (!RBAC_CONFIG.enabled) return "";
+        const role = activeAccessRole();
+        const demoToken = RBAC_CONFIG.demo_tokens ? RBAC_CONFIG.demo_tokens[role] : "";
+        return localStorage.getItem("news-intel-api-key") || demoToken || "";
+      }
+
+      function syncAccessCookie() {
+        if (!RBAC_CONFIG.enabled) return;
+        const token = activeAccessToken();
+        const cookieName = RBAC_CONFIG.cookie_name || "news_brief_api_key";
+        if (!token) {
+          document.cookie = `${cookieName}=; Path=/; Max-Age=0; SameSite=Lax`;
+          return;
+        }
+        document.cookie = `${cookieName}=${encodeURIComponent(token)}; Path=/; SameSite=Lax`;
+      }
+
+      function syncAccessUi() {
+        if (!RBAC_CONFIG.enabled) return;
+        const role = activeAccessRole();
+        const roleMeta = accessRoleMeta(role);
+        const roleSelect = document.getElementById("access-role");
+        const roleLabel = document.getElementById("access-role-label");
+        const roleAvatar = document.getElementById("access-role-avatar");
+        const roleDescription = document.getElementById("access-role-description");
+        const keyInput = document.getElementById("access-key-input");
+
+        if (roleSelect) roleSelect.value = role;
+        if (roleLabel) roleLabel.textContent = roleMeta.label || role;
+        if (roleAvatar) roleAvatar.textContent = (roleMeta.label || role).slice(0, 2).toUpperCase();
+        if (roleDescription) roleDescription.textContent = roleMeta.description || "";
+        if (keyInput) keyInput.value = localStorage.getItem("news-intel-api-key") || "";
+        syncAccessCookie();
+      }
+
+      function applyAccessSettings() {
+        const roleSelect = document.getElementById("access-role");
+        const keyInput = document.getElementById("access-key-input");
+        if (roleSelect) localStorage.setItem("news-intel-role", roleSelect.value);
+        if (keyInput && keyInput.value.trim()) {
+          localStorage.setItem("news-intel-api-key", keyInput.value.trim());
+        } else {
+          localStorage.removeItem("news-intel-api-key");
+        }
+        syncAccessUi();
+        closePanels();
+        showToast("Workspace access applied");
+      }
+
       function applyStoredSettings() {
         const storedPersona = localStorage.getItem("news-intel-persona");
         const storedMode = localStorage.getItem("news-intel-mode");
@@ -2318,6 +2398,7 @@
         const recent = document.getElementById("recent-reports");
         if (recent && recentOpen) recent.open = true;
         syncPersonaCards();
+        syncAccessUi();
       }
 
       function setButtonSaved(button) {
@@ -2420,6 +2501,11 @@
           return;
         }
 
+        if (action === "apply-access") {
+          applyAccessSettings();
+          return;
+        }
+
         if (action === "select-persona") {
           const label = setPersona(button.value);
           localStorage.setItem("news-intel-persona", button.value);
@@ -2456,6 +2542,11 @@
           localStorage.setItem("news-intel-persona", target.value);
           showToast(`${label || "Persona"} lens selected`);
         }
+        if (target.matches("#access-role")) {
+          localStorage.setItem("news-intel-role", target.value);
+          syncAccessUi();
+          showToast(`${accessRoleMeta(target.value).label || "Role"} access selected`);
+        }
       }
 
       document.addEventListener("click", (event) => {
@@ -2488,6 +2579,17 @@
       document.addEventListener("DOMContentLoaded", initializeUi);
       document.body.addEventListener("click", handleActionClick);
       document.body.addEventListener("change", handleActionChange);
+      document.body.addEventListener("htmx:configRequest", (event) => {
+        const token = activeAccessToken();
+        if (token) {
+          event.detail.headers[RBAC_CONFIG.header_name || "X-API-Key"] = token;
+        }
+      });
+      document.body.addEventListener("htmx:responseError", (event) => {
+        if ([401, 403].includes(event.detail.xhr.status)) {
+          showToast("Access denied for the current role");
+        }
+      });
       document.body.addEventListener("htmx:afterSwap", initializeUi);
     </script>
   </body>

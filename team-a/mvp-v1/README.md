@@ -89,6 +89,10 @@ uvicorn news_brief_mvp.main:app --host 127.0.0.1 --port 8000 --reload
 - `OPENAI_API_KEY`: optional, but recommended for model-written briefs
 - `OPENAI_BASE_URL`: optional override for OpenAI-compatible APIs
 - `OPENAI_MODEL`: optional model name override
+- `NEWS_BRIEF_RBAC_ENABLED`: enables route-level RBAC when true; defaults to true
+- `NEWS_BRIEF_RBAC_TOKENS`: optional `role:token` or `role=token` overrides for RBAC
+- `NEWS_BRIEF_RBAC_HEADER`: optional API key header name, defaults to `X-API-Key`
+- `NEWS_BRIEF_RBAC_COOKIE`: optional browser cookie name, defaults to `news_brief_api_key`
 
 Example:
 
@@ -97,6 +101,22 @@ export OPENAI_API_KEY="your-key"
 export OPENAI_MODEL="gpt-4o-mini"
 ./run_local.sh
 ```
+
+Default local demo RBAC tokens:
+
+- `viewer-local-token`: read saved briefs and exports
+- `analyst-local-token`: generate briefs and read exports
+- `admin-local-token`: generate briefs, read exports, and open Team B handoff JSON
+
+For a custom local setup:
+
+```bash
+export NEWS_BRIEF_RBAC_TOKENS="viewer:read-token;analyst:write-token;admin:admin-token"
+```
+
+Protected API clients can send the token with `X-API-Key`. The browser UI stores
+the active access key in a local cookie so report links and downloads continue to
+work from the local interface.
 
 Copy `.env.example` if you want to keep local model settings in one place.
 
@@ -108,12 +128,12 @@ pytest -q
 
 ## Main app routes
 
-- `GET /` - homepage and recent briefs
-- `POST /api/briefs` - create a brief
-- `GET /briefs/{brief_id}` - reopen a saved brief
-- `GET /briefs/{brief_id}/export` - download the HTML export
-- `GET /briefs/{brief_id}/export.md` - download the Markdown report
-- `GET /briefs/{brief_id}/handoff` - open the Team B handoff JSON
+- `GET /` - homepage and recent briefs access panel
+- `POST /api/briefs` - create a brief; requires `analyst` or `admin`
+- `GET /briefs/{brief_id}` - reopen a saved brief; requires any role
+- `GET /briefs/{brief_id}/export` - download the HTML export; requires any role
+- `GET /briefs/{brief_id}/export.md` - download the Markdown report; requires any role
+- `GET /briefs/{brief_id}/handoff` - open the Team B handoff JSON; requires `admin`
 - `GET /health` - simple health check
 
 ## Output artifacts
