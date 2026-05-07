@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import html
+import hashlib
 import re
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
-from typing import List, Optional
+from typing import List, Optional, Sequence
 from urllib.parse import quote_plus
 
 import feedparser
@@ -104,17 +105,18 @@ def _entry_to_article(entry, index: int, topic: str, registry: SourceRegistry, f
     source_name = feed_source.name if feed_source is not None else _extract_source(entry, raw_title)
     title = _clean_title(raw_title, source_name)
     snippet = _clean_snippet(entry.get("summary", ""), source_name)
-    if not title or not entry.get("link"):
+    url = entry.get("link")
+    if not title or not url:
         return None
     if not _is_topic_relevant(topic, f"{title} {snippet}"):
         return None
 
     article = ArticleRecord(
-        id=f"live-{index}",
+        id=_build_article_id(source_name=source_name, title=title, url=url),
         title=title,
         source=source_name,
-        url=entry.get("link"),
-        published_at=_parse_published_at(entry.get("published")),
+        url=url,
+        published_at=_entry_published_at(entry),
         snippet=snippet,
         source_weight=source_weight_for(source_name, registry),
     )
@@ -176,6 +178,45 @@ def _dedupe_records(records: List[ArticleRecord]) -> List[ArticleRecord]:
         seen.add(key)
         deduped.append(record)
     return deduped
+
+
+def _build_article_id(source_name: str, title: str, url: str) -> str:
+    source_slug = "-".join(WORD_RE.findall(source_name.lower())) or "source"
+    fingerprint = hashlib.sha1(f"{url}|{title}".encode("utf-8")).hexdigest()[:12]
+    return f"live-{source_slug}-{fingerprint}"
+
+
+def _entry_published_at(entry):
+    for parsed_field, string_field in (
+        ("published_parsed", "published"),
+        ("updated_parsed", "updated"),
+        ("created_parsed", "created"),
+    ):
+        parsed = _parse_datetime_tuple(entry.get(parsed_field))
+        if parsed is not None:
+            return parsed
+        parsed = _parse_published_at(entry.get(string_field))
+        if parsed is not None:
+            return parsed
+
+    return None
+
+
+def _parse_datetime_tuple(value: Optional[Sequence[int]]):
+    if not value or len(value) < 6:
+        return None
+    try:
+        return datetime(
+            int(value[0]),
+            int(value[1]),
+            int(value[2]),
+            int(value[3]),
+            int(value[4]),
+            int(value[5]),
+            tzinfo=timezone.utc,
+        )
+    except (TypeError, ValueError):
+        return None
 
 
 def _parse_published_at(value: str):
