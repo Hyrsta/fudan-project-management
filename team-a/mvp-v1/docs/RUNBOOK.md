@@ -90,6 +90,36 @@ Expected response:
 {"status":"ok"}
 ```
 
+## Access control
+
+RBAC is enabled by default for saved reports, exports, handoff JSON, and brief
+generation. The homepage and health check stay public so the local demo can
+load and report service status before an access key is selected.
+
+Default local demo keys:
+
+- `viewer-local-token`: read saved briefs and HTML/Markdown exports
+- `analyst-local-token`: create briefs and read HTML/Markdown exports
+- `admin-local-token`: create briefs, read exports, and open Team B handoff JSON
+
+For command-line checks, pass the key with `X-API-Key`:
+
+```bash
+curl -H "X-API-Key: admin-local-token" http://127.0.0.1:8000/briefs/<brief_id>/handoff
+```
+
+For custom tokens, set:
+
+```bash
+export NEWS_BRIEF_RBAC_TOKENS="viewer:read-token;analyst:write-token;admin:admin-token"
+```
+
+Disable RBAC only for isolated local troubleshooting:
+
+```bash
+export NEWS_BRIEF_RBAC_ENABLED=false
+```
+
 ## Request flow
 
 ### High-level flow
@@ -113,6 +143,13 @@ Expected response:
 - FastAPI app factory
 - route registration
 - HTML and JSON response handling
+- route-level RBAC dependency wiring
+
+### `news_brief_mvp/auth.py`
+
+- RBAC role and permission map
+- API key header/cookie authentication
+- environment-driven token configuration
 
 ### `news_brief_mvp/service.py`
 

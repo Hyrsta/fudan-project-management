@@ -3,8 +3,14 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
+from news_brief_mvp.auth import RBACSettings
 from news_brief_mvp.main import create_app
 from news_brief_mvp.models import ArticleCitation, ArticleRecord, BriefResponse, HandoffArtifact
+
+
+VIEWER_HEADERS = {"X-API-Key": "viewer-local-token"}
+ANALYST_HEADERS = {"X-API-Key": "analyst-local-token"}
+ADMIN_HEADERS = {"X-API-Key": "admin-local-token"}
 
 
 class StubService:
@@ -80,6 +86,7 @@ def test_post_api_briefs_returns_json_contract(tmp_path) -> None:
 
     response = client.post(
         "/api/briefs",
+        headers=ANALYST_HEADERS,
         json={
             "topic": "AI chip export controls",
             "mode": "fallback",
@@ -98,6 +105,78 @@ def test_post_api_briefs_returns_json_contract(tmp_path) -> None:
     assert service.last_request.goal == "Assess investor exposure"
 
 
+def test_rbac_rejects_missing_api_key_for_protected_routes(tmp_path) -> None:
+    export_path = tmp_path / "brief.html"
+    export_path.write_text("<html><body>Brief</body></html>")
+    service = StubService(export_path)
+    client = TestClient(create_app(service=service, artifact_root=tmp_path))
+
+    create_response = client.post(
+        "/api/briefs",
+        json={"topic": "AI chip export controls", "mode": "fallback"},
+    )
+    export_response = client.get("/briefs/brief-123/export")
+
+    assert create_response.status_code == 401
+    assert export_response.status_code == 401
+    assert service.last_request is None
+
+
+def test_rbac_rejects_viewer_create_and_allows_analyst_create(tmp_path) -> None:
+    export_path = tmp_path / "brief.html"
+    export_path.write_text("<html><body>Brief</body></html>")
+    service = StubService(export_path)
+    client = TestClient(create_app(service=service, artifact_root=tmp_path))
+
+    viewer_response = client.post(
+        "/api/briefs",
+        headers=VIEWER_HEADERS,
+        json={"topic": "AI chip export controls", "mode": "fallback"},
+    )
+    analyst_response = client.post(
+        "/api/briefs",
+        headers=ANALYST_HEADERS,
+        json={"topic": "AI chip export controls", "mode": "fallback"},
+    )
+
+    assert viewer_response.status_code == 403
+    assert analyst_response.status_code == 200
+    assert service.last_request.topic == "AI chip export controls"
+
+
+def test_rbac_accepts_cookie_for_browser_downloads(tmp_path) -> None:
+    export_path = tmp_path / "brief.html"
+    export_path.write_text("<html><body>Brief</body></html>")
+    client = TestClient(create_app(service=StubService(export_path), artifact_root=tmp_path))
+
+    client.cookies.set("news_brief_api_key", "viewer-local-token")
+    viewer_export = client.get("/briefs/brief-123/export")
+    viewer_handoff = client.get("/briefs/brief-123/handoff")
+    client.cookies.set("news_brief_api_key", "admin-local-token")
+    admin_handoff = client.get("/briefs/brief-123/handoff")
+
+    assert viewer_export.status_code == 200
+    assert viewer_handoff.status_code == 403
+    assert admin_handoff.status_code == 200
+
+
+def test_rbac_can_be_configured_with_custom_role_tokens(tmp_path) -> None:
+    export_path = tmp_path / "brief.html"
+    export_path.write_text("<html><body>Brief</body></html>")
+    settings = RBACSettings(enabled=True, token_roles={"reader-key": "viewer", "writer-key": "analyst"})
+    client = TestClient(create_app(service=StubService(export_path), artifact_root=tmp_path, rbac_settings=settings))
+
+    viewer_response = client.get("/briefs/brief-123/export", headers={"X-API-Key": "reader-key"})
+    analyst_response = client.post(
+        "/api/briefs",
+        headers={"X-API-Key": "writer-key"},
+        json={"topic": "AI chip export controls", "mode": "fallback"},
+    )
+
+    assert viewer_response.status_code == 200
+    assert analyst_response.status_code == 200
+
+
 def test_export_and_handoff_routes_surface_saved_artifacts(tmp_path) -> None:
     export_path = tmp_path / "brief.html"
     markdown_path = tmp_path / "brief.md"
@@ -105,9 +184,9 @@ def test_export_and_handoff_routes_surface_saved_artifacts(tmp_path) -> None:
     markdown_path.write_text("# Brief\n\nMarkdown export")
     client = TestClient(create_app(service=StubService(export_path, markdown_path), artifact_root=tmp_path))
 
-    export_response = client.get("/briefs/brief-123/export")
-    markdown_response = client.get("/briefs/brief-123/export.md")
-    handoff_response = client.get("/briefs/brief-123/handoff")
+    export_response = client.get("/briefs/brief-123/export", headers=VIEWER_HEADERS)
+    markdown_response = client.get("/briefs/brief-123/export.md", headers=VIEWER_HEADERS)
+    handoff_response = client.get("/briefs/brief-123/handoff", headers=ADMIN_HEADERS)
 
     health_response = client.get("/health")
 
@@ -137,6 +216,8 @@ def test_recent_briefings_render_inspect_actions(tmp_path) -> None:
     assert 'name="persona"' in response.text
     assert 'name="goal"' in response.text
     assert 'data-action="select-persona"' in response.text
+    assert 'id="access-role"' in response.text
+    assert 'data-action="apply-access"' in response.text
     assert "Financial analyst" in response.text
     assert "Balanced coverage" in response.text
 
@@ -146,7 +227,7 @@ def test_show_brief_returns_partial_for_htmx_inspection(tmp_path) -> None:
     export_path.write_text("<html><body>Brief</body></html>")
     client = TestClient(create_app(service=StubService(export_path), artifact_root=tmp_path))
 
-    response = client.get("/briefs/brief-123", headers={"HX-Request": "true"})
+    response = client.get("/briefs/brief-123", headers={**VIEWER_HEADERS, "HX-Request": "true"})
 
     assert response.status_code == 200
     assert "Fallback overview" in response.text
@@ -158,8 +239,8 @@ def test_report_controls_have_action_handlers(tmp_path) -> None:
     export_path.write_text("<html><body>Brief</body></html>")
     client = TestClient(create_app(service=StubService(export_path), artifact_root=tmp_path))
 
-    full_response = client.get("/briefs/brief-123")
-    partial_response = client.get("/briefs/brief-123", headers={"HX-Request": "true"})
+    full_response = client.get("/briefs/brief-123", headers=VIEWER_HEADERS)
+    partial_response = client.get("/briefs/brief-123", headers={**VIEWER_HEADERS, "HX-Request": "true"})
 
     assert full_response.status_code == 200
     assert partial_response.status_code == 200
@@ -176,7 +257,7 @@ def test_workspace_navigation_controls_are_wired(tmp_path) -> None:
     export_path.write_text("<html><body>Brief</body></html>")
     client = TestClient(create_app(service=StubService(export_path), artifact_root=tmp_path))
 
-    response = client.get("/briefs/brief-123")
+    response = client.get("/briefs/brief-123", headers=VIEWER_HEADERS)
 
     assert response.status_code == 200
     for action in [
