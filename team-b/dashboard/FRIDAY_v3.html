@@ -1,0 +1,1576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>F.R.I.D.A.Y — Project Intelligence System</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #050810;
+  --navy-deep: #070d1a;
+  --navy: #0b1628;
+  --navy-mid: #0f1e38;
+  --navy-light: #162444;
+  --navy-rim: #1d2f52;
+  --gold: #c9a84c;
+  --gold-light: #e8c97a;
+  --gold-dim: #7a6130;
+  --gold-glow: rgba(201,168,76,0.12);
+  --gold-glow2: rgba(201,168,76,0.06);
+  --platinum: #e8edf5;
+  --silver: #94a3b8;
+  --steel: #4a5f7a;
+  --border: rgba(201,168,76,0.14);
+  --border-dim: rgba(201,168,76,0.07);
+  --red: #e05c5c;
+  --amber: #d4954a;
+  --green: #4aab85;
+  --blue-accent: #4a90d4;
+  --red-glow: rgba(224,92,92,0.12);
+  --amber-glow: rgba(212,149,74,0.12);
+  --green-glow: rgba(74,171,133,0.12);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background: var(--ink);
+  color: var(--platinum);
+  min-height: 100vh;
+  overflow-x: hidden;
+  font-weight: 300;
+}
+
+/* Atmospheric background */
+.bg-atmosphere {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.bg-atmosphere::before {
+  content: '';
+  position: absolute;
+  top: -30%;
+  left: -10%;
+  width: 60%;
+  height: 80%;
+  background: radial-gradient(ellipse, rgba(10,22,52,0.9) 0%, transparent 70%);
+}
+
+.bg-atmosphere::after {
+  content: '';
+  position: absolute;
+  bottom: -20%;
+  right: -10%;
+  width: 50%;
+  height: 60%;
+  background: radial-gradient(ellipse, rgba(201,168,76,0.04) 0%, transparent 65%);
+}
+
+.bg-grid {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(201,168,76,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(201,168,76,0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+.bg-vignette {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(5,8,16,0.7) 100%);
+}
+
+/* Layout */
+.app {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ── HEADER ── */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 40px;
+  height: 64px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(5,8,16,0.85);
+  backdrop-filter: blur(24px);
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  flex-shrink: 0;
+}
+
+.wordmark {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+}
+
+.wordmark-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  color: var(--gold-light);
+  font-style: italic;
+}
+
+.wordmark-divider {
+  width: 1px;
+  height: 16px;
+  background: var(--border);
+  align-self: center;
+}
+
+.wordmark-sub {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  font-weight: 300;
+  color: var(--steel);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.header-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 14px;
+  border-radius: 2px;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border: 1px solid;
+  transition: all 0.4s ease;
+}
+
+.badge-idle { border-color: var(--border); color: var(--steel); }
+.badge-red { border-color: rgba(224,92,92,0.4); color: var(--red); background: var(--red-glow); }
+.badge-amber { border-color: rgba(212,149,74,0.4); color: var(--amber); background: var(--amber-glow); }
+.badge-green { border-color: rgba(74,171,133,0.4); color: var(--green); background: var(--green-glow); }
+
+.badge-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.badge-dot.pulsing { animation: gentlePulse 2.5s ease-in-out infinite; }
+
+@keyframes gentlePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.header-time {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--steel);
+  letter-spacing: 0.06em;
+}
+
+/* ── BODY LAYOUT ── */
+.body-wrap {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: 200px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--border-dim);
+  background: rgba(7,13,26,0.6);
+  padding: 32px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sidebar-section {
+  padding: 0 20px;
+  margin-bottom: 6px;
+}
+
+.sidebar-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--gold-dim);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: 16px 20px 6px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 20px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--steel);
+  border-left: 2px solid transparent;
+  transition: all 0.25s ease;
+  letter-spacing: 0.01em;
+  position: relative;
+}
+
+.nav-item:hover {
+  color: var(--platinum);
+  background: rgba(201,168,76,0.04);
+}
+
+.nav-item.active {
+  color: var(--gold-light);
+  border-left-color: var(--gold);
+  background: linear-gradient(90deg, rgba(201,168,76,0.08), transparent);
+}
+
+.nav-icon {
+  font-size: 13px;
+  width: 18px;
+  text-align: center;
+  opacity: 0.7;
+}
+
+.nav-item.active .nav-icon { opacity: 1; }
+
+.nav-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--green);
+  margin-left: auto;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.nav-dot.visible { opacity: 1; }
+
+.sidebar-divider {
+  height: 1px;
+  background: var(--border-dim);
+  margin: 10px 20px;
+}
+
+/* ── CONTENT ── */
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 40px 48px;
+}
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--navy-rim); border-radius: 2px; }
+
+/* ── TAB PANELS ── */
+.tab-panel { display: none; }
+.tab-panel.active {
+  display: block;
+  animation: panelReveal 0.35s cubic-bezier(0.16,1,0.3,1);
+}
+
+@keyframes panelReveal {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── PAGE HEADER ── */
+.page-header { margin-bottom: 36px; }
+
+.page-eyebrow {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--gold-dim);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.page-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 36px;
+  font-weight: 400;
+  color: var(--platinum);
+  letter-spacing: 0.02em;
+  line-height: 1.1;
+}
+
+.page-title em {
+  font-style: italic;
+  color: var(--gold-light);
+}
+
+.page-subtitle {
+  font-size: 13px;
+  color: var(--steel);
+  margin-top: 8px;
+  font-weight: 300;
+  letter-spacing: 0.01em;
+}
+
+/* ── CARDS ── */
+.card {
+  background: var(--navy);
+  border: 1px solid var(--border-dim);
+  border-radius: 4px;
+  padding: 28px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.3s;
+}
+
+.card:hover { border-color: var(--border); }
+
+.card-shimmer {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
+  opacity: 0.6;
+}
+
+.card-title {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--gold-dim);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+/* ── GRIDS ── */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-bottom: 16px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 16px; }
+
+/* ── METRIC CARDS ── */
+.metric {
+  background: var(--navy);
+  border: 1px solid var(--border-dim);
+  border-radius: 4px;
+  padding: 22px 24px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.metric::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.metric:hover { border-color: var(--border); }
+.metric:hover::after { opacity: 1; }
+
+.metric-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--steel);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  margin-bottom: 12px;
+}
+
+.metric-value {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 42px;
+  font-weight: 300;
+  color: var(--gold-light);
+  line-height: 1;
+  margin-bottom: 6px;
+  transition: all 0.5s ease;
+}
+
+.metric-value.populated { color: var(--platinum); }
+
+.metric-sub {
+  font-size: 11px;
+  color: var(--steel);
+  font-weight: 300;
+  letter-spacing: 0.02em;
+}
+
+/* ── PIPELINE ── */
+.pipeline {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 36px;
+  padding: 24px 28px;
+  background: var(--navy);
+  border: 1px solid var(--border-dim);
+  border-radius: 4px;
+  overflow-x: auto;
+}
+
+.pipe-node {
+  flex: 1;
+  min-width: 110px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 12px;
+  border-radius: 3px;
+  border: 1px solid transparent;
+  transition: all 0.4s ease;
+  position: relative;
+}
+
+.pipe-node.idle { border-color: var(--border-dim); }
+.pipe-node.running {
+  border-color: rgba(201,168,76,0.4);
+  background: var(--gold-glow2);
+  box-shadow: 0 0 24px rgba(201,168,76,0.08);
+}
+.pipe-node.done {
+  border-color: rgba(74,171,133,0.3);
+  background: rgba(74,171,133,0.04);
+}
+
+.pipe-icon { font-size: 22px; }
+.pipe-name {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--steel);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-align: center;
+}
+.pipe-node.running .pipe-name { color: var(--gold-light); }
+.pipe-node.done .pipe-name { color: var(--green); }
+
+.pipe-status {
+  font-size: 10px;
+  color: var(--steel);
+  font-family: 'DM Mono', monospace;
+}
+.pipe-node.running .pipe-status { color: var(--gold); animation: gentlePulse 1.5s ease-in-out infinite; }
+.pipe-node.done .pipe-status { color: var(--green); }
+
+.pipe-connector {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  color: var(--steel);
+  font-size: 14px;
+  letter-spacing: -2px;
+}
+
+/* ── RUN PANEL ── */
+.run-panel {
+  background: var(--navy);
+  border: 1px solid var(--border-dim);
+  border-radius: 4px;
+  padding: 32px;
+  margin-bottom: 20px;
+}
+
+.run-panel-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--platinum);
+  margin-bottom: 4px;
+  letter-spacing: 0.02em;
+}
+
+.run-panel-sub {
+  font-size: 12px;
+  color: var(--steel);
+  margin-bottom: 28px;
+  font-weight: 300;
+}
+
+.field-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--gold-dim);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.field-input {
+  width: 100%;
+  background: var(--navy-deep);
+  border: 1px solid var(--border-dim);
+  border-radius: 3px;
+  padding: 12px 16px;
+  color: var(--platinum);
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  font-weight: 300;
+  outline: none;
+  transition: border-color 0.25s;
+  margin-bottom: 20px;
+  letter-spacing: 0.02em;
+}
+
+.field-input:focus { border-color: var(--gold-dim); }
+.field-input::placeholder { color: var(--steel); }
+
+textarea.field-input {
+  resize: vertical;
+  min-height: 110px;
+  line-height: 1.7;
+}
+
+.btn-row { display: flex; gap: 12px; align-items: center; }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 28px;
+  border: 1px solid;
+  border-radius: 2px;
+  cursor: pointer;
+  font-family: 'Outfit', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: all 0.25s ease;
+  background: transparent;
+}
+
+.btn-gold {
+  border-color: var(--gold-dim);
+  color: var(--gold-light);
+}
+
+.btn-gold:hover:not(:disabled) {
+  background: var(--gold-glow);
+  border-color: var(--gold);
+  color: var(--gold-light);
+  box-shadow: 0 0 20px rgba(201,168,76,0.1);
+}
+
+.btn-gold:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.btn-ghost {
+  border-color: var(--border-dim);
+  color: var(--steel);
+}
+
+.btn-ghost:hover {
+  border-color: var(--border);
+  color: var(--silver);
+}
+
+/* ── PROGRESS ── */
+.progress-section { margin: 24px 0; }
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.progress-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--steel);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.progress-pct {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px;
+  font-weight: 300;
+  color: var(--gold-light);
+}
+
+.progress-track {
+  height: 2px;
+  background: var(--navy-rim);
+  border-radius: 1px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold-dim), var(--gold-light));
+  border-radius: 1px;
+  transition: width 0.6s cubic-bezier(0.16,1,0.3,1);
+  width: 0%;
+}
+
+/* ── LOG ── */
+.log-panel {
+  background: var(--navy-deep);
+  border: 1px solid var(--border-dim);
+  border-radius: 3px;
+  padding: 16px 20px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  min-height: 80px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.log-entry {
+  display: flex;
+  gap: 14px;
+  padding: 3px 0;
+  line-height: 1.6;
+  opacity: 0;
+  animation: logAppear 0.3s ease forwards;
+}
+
+@keyframes logAppear {
+  from { opacity: 0; transform: translateX(-4px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.log-ts { color: var(--steel); flex-shrink: 0; }
+.log-info { color: var(--silver); }
+.log-success { color: var(--green); }
+.log-error { color: var(--red); }
+.log-gold { color: var(--gold); }
+
+/* ── EMPTY STATE ── */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 32px;
+  text-align: center;
+}
+
+.empty-glyph {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 48px;
+  font-style: italic;
+  color: var(--navy-rim);
+  margin-bottom: 20px;
+  line-height: 1;
+}
+
+.empty-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px;
+  color: var(--steel);
+  font-weight: 300;
+  margin-bottom: 8px;
+}
+
+.empty-sub {
+  font-size: 12px;
+  color: var(--navy-rim);
+  font-weight: 300;
+  letter-spacing: 0.02em;
+}
+
+/* ── PROSE RENDERER ── */
+.prose {
+  font-size: 13px;
+  line-height: 1.85;
+  color: var(--silver);
+  font-weight: 300;
+}
+
+.prose h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 26px;
+  font-weight: 400;
+  color: var(--platinum);
+  margin: 28px 0 12px;
+  letter-spacing: 0.02em;
+  border-bottom: 1px solid var(--border-dim);
+  padding-bottom: 10px;
+}
+
+.prose h2 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--gold-light);
+  margin: 24px 0 10px;
+  font-style: italic;
+}
+
+.prose h3 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--platinum);
+  margin: 18px 0 8px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+}
+
+.prose p { margin-bottom: 12px; }
+
+.prose ul, .prose ol {
+  padding-left: 20px;
+  margin-bottom: 14px;
+}
+
+.prose li { margin-bottom: 5px; }
+
+.prose strong {
+  color: var(--platinum);
+  font-weight: 500;
+}
+
+.prose em { color: var(--gold-light); font-style: italic; }
+
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  font-size: 12px;
+}
+
+.prose th {
+  background: var(--navy-mid);
+  padding: 10px 14px;
+  text-align: left;
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--gold-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  border-bottom: 1px solid var(--border);
+}
+
+.prose td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border-dim);
+  color: var(--silver);
+  vertical-align: top;
+}
+
+.prose tr:hover td { background: rgba(201,168,76,0.02); }
+
+.prose hr {
+  border: none;
+  border-top: 1px solid var(--border-dim);
+  margin: 24px 0;
+}
+
+/* ── RISK TABLE ── */
+.risk-summary-card {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  padding: 28px 32px;
+  background: var(--navy);
+  border: 1px solid var(--border-dim);
+  border-radius: 4px;
+  margin-bottom: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.risk-rating-display {
+  flex-shrink: 0;
+  text-align: center;
+}
+
+.risk-rating-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--steel);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.risk-rating-value {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 48px;
+  font-weight: 300;
+  line-height: 1;
+  font-style: italic;
+}
+
+.risk-rating-value.red { color: var(--red); }
+.risk-rating-value.amber { color: var(--amber); }
+.risk-rating-value.green { color: var(--green); }
+
+.risk-divider-v {
+  width: 1px;
+  height: 60px;
+  background: var(--border-dim);
+  flex-shrink: 0;
+}
+
+.risk-meta { flex: 1; }
+
+.risk-meta-row {
+  display: flex;
+  gap: 32px;
+}
+
+.risk-meta-item {}
+.risk-meta-number {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 32px;
+  font-weight: 300;
+  color: var(--platinum);
+  line-height: 1;
+}
+
+.risk-meta-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--steel);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+/* ── SPRINT BARS ── */
+.sprint-visual {
+  background: var(--navy);
+  border: 1px solid var(--border-dim);
+  border-radius: 4px;
+  padding: 24px 28px;
+  margin-bottom: 16px;
+}
+
+.sprint-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-dim);
+  transition: all 0.2s;
+}
+
+.sprint-row:last-child { border-bottom: none; }
+.sprint-row:hover { padding-left: 4px; }
+
+.sprint-id {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--steel);
+  letter-spacing: 0.12em;
+  width: 60px;
+  flex-shrink: 0;
+}
+
+.sprint-focus {
+  font-size: 12px;
+  color: var(--silver);
+  width: 160px;
+  flex-shrink: 0;
+  font-weight: 300;
+}
+
+.sprint-track {
+  flex: 1;
+  height: 3px;
+  background: var(--navy-rim);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.sprint-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 1s cubic-bezier(0.16,1,0.3,1);
+}
+
+.sprint-fill.ok { background: linear-gradient(90deg, var(--green), rgba(74,171,133,0.6)); }
+.sprint-fill.warn { background: linear-gradient(90deg, var(--amber), rgba(212,149,74,0.6)); }
+.sprint-fill.over { background: linear-gradient(90deg, var(--red), rgba(224,92,92,0.6)); }
+
+.sprint-hrs {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--steel);
+  width: 50px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.sprint-badge {
+  width: 56px;
+  text-align: right;
+  flex-shrink: 0;
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+}
+
+.sprint-badge.ok { color: var(--green); }
+.sprint-badge.warn { color: var(--amber); }
+.sprint-badge.over { color: var(--red); }
+
+/* ── FEATURE LIST ── */
+.feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border-dim);
+  transition: all 0.2s;
+}
+
+.feature-item:last-child { border-bottom: none; }
+.feature-item:hover { padding-left: 4px; }
+
+.feature-number {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px;
+  font-weight: 300;
+  color: var(--navy-rim);
+  line-height: 1;
+  width: 28px;
+  flex-shrink: 0;
+  font-style: italic;
+}
+
+.feature-body { flex: 1; }
+
+.feature-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--platinum);
+  margin-bottom: 4px;
+}
+
+.feature-story {
+  font-size: 12px;
+  color: var(--steel);
+  font-weight: 300;
+  line-height: 1.5;
+}
+
+.feature-tags { display: flex; gap: 6px; margin-top: 8px; }
+
+.tag {
+  display: inline-block;
+  padding: 2px 8px;
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-radius: 1px;
+  border: 1px solid;
+}
+
+.tag-high { border-color: rgba(224,92,92,0.3); color: var(--red); }
+.tag-medium { border-color: rgba(212,149,74,0.3); color: var(--amber); }
+.tag-low { border-color: rgba(74,171,133,0.3); color: var(--green); }
+.tag-complex { border-color: rgba(201,168,76,0.3); color: var(--gold); }
+.tag-simple { border-color: var(--border); color: var(--steel); }
+
+/* ── OVERVIEW RISK LIST ── */
+.risk-item-mini {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-dim);
+  transition: padding 0.2s;
+}
+.risk-item-mini:last-child { border-bottom: none; }
+.risk-item-mini:hover { padding-left: 4px; }
+
+.risk-id-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--gold-dim);
+  letter-spacing: 0.1em;
+  width: 36px;
+  flex-shrink: 0;
+}
+
+.risk-desc-mini { flex: 1; font-size: 12px; color: var(--silver); font-weight: 300; }
+
+.risk-score {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  padding: 2px 8px;
+  border-radius: 1px;
+  border: 1px solid;
+  flex-shrink: 0;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.score-high { border-color: rgba(224,92,92,0.3); color: var(--red); }
+.score-medium { border-color: rgba(212,149,74,0.3); color: var(--amber); }
+.score-low { border-color: rgba(74,171,133,0.3); color: var(--green); }
+</style>
+</head>
+<body>
+
+<div class="bg-atmosphere"></div>
+<div class="bg-grid"></div>
+<div class="bg-vignette"></div>
+
+<div class="app">
+
+  <!-- HEADER -->
+  <header>
+    <div class="wordmark">
+      <div class="wordmark-title">F.R.I.D.A.Y</div>
+      <div class="wordmark-divider"></div>
+      <div class="wordmark-sub">Project Intelligence System</div>
+    </div>
+    <div class="header-right">
+      <div class="header-badge badge-idle" id="headerBadge">
+        <div class="badge-dot" id="badgeDot"></div>
+        <span id="badgeText">Awaiting Analysis</span>
+      </div>
+      <div class="header-time" id="clock">--:--:--</div>
+    </div>
+  </header>
+
+  <div class="body-wrap">
+
+    <!-- SIDEBAR -->
+    <nav class="sidebar">
+      <div class="sidebar-label">System</div>
+      <div class="nav-item active" onclick="switchTab('overview', this)">
+        <span class="nav-icon">◈</span> Overview
+      </div>
+      <div class="nav-item" onclick="switchTab('run', this)">
+        <span class="nav-icon">▷</span> Execute
+      </div>
+
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-label">Intelligence</div>
+
+      <div class="nav-item" onclick="switchTab('requirements', this)">
+        <span class="nav-icon">◻</span> Requirements
+        <div class="nav-dot" id="dot-requirements"></div>
+      </div>
+      <div class="nav-item" onclick="switchTab('sprint', this)">
+        <span class="nav-icon">◻</span> Sprint Plan
+        <div class="nav-dot" id="dot-sprint"></div>
+      </div>
+      <div class="nav-item" onclick="switchTab('risks', this)">
+        <span class="nav-icon">◻</span> Risk Register
+        <div class="nav-dot" id="dot-risks"></div>
+      </div>
+      <div class="nav-item" onclick="switchTab('report', this)">
+        <span class="nav-icon">◻</span> Status Report
+        <div class="nav-dot" id="dot-report"></div>
+      </div>
+
+      <div class="sidebar-divider"></div>
+      <div style="padding: 16px 20px;">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--steel);letter-spacing:0.12em;line-height:2">
+          <div>Team B · Fudan</div>
+          <div style="color:var(--navy-rim)">v2.0 · 2026</div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- CONTENT -->
+    <main class="content">
+
+      <!-- ── OVERVIEW ── -->
+      <div class="tab-panel active" id="tab-overview">
+        <div class="page-header">
+          <div class="page-eyebrow">Project Intelligence · Team B</div>
+          <div class="page-title">Mission <em>Control</em></div>
+          <div class="page-subtitle">AI-Powered News Research & Analysis Platform · Managed by F.R.I.D.A.Y Agent System</div>
+        </div>
+
+        <!-- Pipeline -->
+        <div class="pipeline">
+          <div class="pipe-node idle" id="pn-req">
+            <div class="pipe-icon">◻</div>
+            <div class="pipe-name">Requirements</div>
+            <div class="pipe-status" id="ps-req">Standby</div>
+          </div>
+          <div class="pipe-connector">──▶</div>
+          <div class="pipe-node idle" id="pn-sched">
+            <div class="pipe-icon">◻</div>
+            <div class="pipe-name">Scheduling</div>
+            <div class="pipe-status" id="ps-sched">Standby</div>
+          </div>
+          <div class="pipe-connector">──▶</div>
+          <div class="pipe-node idle" id="pn-risk">
+            <div class="pipe-icon">◻</div>
+            <div class="pipe-name">Risk Agent</div>
+            <div class="pipe-status" id="ps-risk">Standby</div>
+          </div>
+          <div class="pipe-connector">──▶</div>
+          <div class="pipe-node idle" id="pn-report">
+            <div class="pipe-icon">◻</div>
+            <div class="pipe-name">Report Agent</div>
+            <div class="pipe-status" id="ps-report">Standby</div>
+          </div>
+        </div>
+
+        <!-- Metrics -->
+        <div class="grid-4" style="margin-bottom:16px">
+          <div class="metric">
+            <div class="metric-label">Features Tracked</div>
+            <div class="metric-value" id="m-features">—</div>
+            <div class="metric-sub">User stories</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Sprints Planned</div>
+            <div class="metric-value" id="m-sprints">—</div>
+            <div class="metric-sub">Weeks 6 – 10</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Risks Identified</div>
+            <div class="metric-value" id="m-risks">—</div>
+            <div class="metric-sub">Active items</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Project Health</div>
+            <div class="metric-value" id="m-health" style="font-size:28px;font-style:italic">—</div>
+            <div class="metric-sub" id="m-health-sub">Execute pipeline to update</div>
+          </div>
+        </div>
+
+        <!-- Bottom grid -->
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-shimmer"></div>
+            <div class="card-title">Critical Risk Items</div>
+            <div id="ov-risks">
+              <div class="empty">
+                <div class="empty-glyph">∅</div>
+                <div class="empty-title">No data</div>
+                <div class="empty-sub">Execute the agent pipeline</div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-shimmer"></div>
+            <div class="card-title">Feature Priority Matrix</div>
+            <div id="ov-features">
+              <div class="empty">
+                <div class="empty-glyph">∅</div>
+                <div class="empty-title">No data</div>
+                <div class="empty-sub">Execute the agent pipeline</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── EXECUTE ── -->
+      <div class="tab-panel" id="tab-run">
+        <div class="page-header">
+          <div class="page-eyebrow">Agent Orchestration</div>
+          <div class="page-title">Execute <em>Pipeline</em></div>
+          <div class="page-subtitle">Configure credentials and initiate the 4-agent intelligence system live</div>
+        </div>
+        <div class="run-panel" style="margin-bottom:16px">
+          <div class="run-panel-title">Authentication &amp; Input</div>
+          <div class="run-panel-sub">Your API key is sent to the local server only and never stored</div>
+          <label class="field-label">Dify API Key</label>
+          <input type="password" class="field-input" id="apiKey" placeholder="app-xxxxxxxxxxxxxxxxxxxxxxxx" autocomplete="off">
+          <label class="field-label">Feature List Input</label>
+          <textarea class="field-input" id="featureInput" placeholder="Enter Team A feature descriptions, one per line..."></textarea>
+          <div class="btn-row">
+            <button class="btn btn-gold" id="runBtn" onclick="runPipeline()">▷ &nbsp;Execute All Agents</button>
+            <button class="btn btn-ghost" onclick="loadDefaults()">↺ &nbsp;Load Defaults</button>
+          </div>
+        </div>
+        <div class="run-panel">
+          <div class="run-panel-title">Pipeline Status</div>
+          <div class="progress-section">
+            <div class="progress-header">
+              <span class="progress-label">Execution Progress</span>
+              <span class="progress-pct" id="progPct">0%</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" id="progFill"></div>
+            </div>
+          </div>
+          <div class="log-panel" id="logPanel">
+            <div class="log-entry">
+              <span class="log-ts">--:--:--</span>
+              <span class="log-info">System ready. Configure credentials and execute.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── REQUIREMENTS ── -->
+      <div class="tab-panel" id="tab-requirements">
+        <div class="page-header">
+          <div class="page-eyebrow">Requirements Agent Output</div>
+          <div class="page-title">User <em>Stories</em></div>
+          <div class="page-subtitle">Structured requirements generated from Team A's feature descriptions</div>
+        </div>
+        <div id="req-content">
+          <div class="card">
+            <div class="card-shimmer"></div>
+            <div class="empty">
+              <div class="empty-glyph">I</div>
+              <div class="empty-title">Awaiting execution</div>
+              <div class="empty-sub">Navigate to Execute and run the agent pipeline to generate user stories</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SPRINT ── -->
+      <div class="tab-panel" id="tab-sprint">
+        <div class="page-header">
+          <div class="page-eyebrow">Scheduling Agent Output</div>
+          <div class="page-title">Sprint <em>Plan</em></div>
+          <div class="page-subtitle">WBS breakdown and capacity-aware sprint scheduling</div>
+        </div>
+        <div id="sprint-content">
+          <div class="card">
+            <div class="card-shimmer"></div>
+            <div class="empty">
+              <div class="empty-glyph">II</div>
+              <div class="empty-title">Awaiting execution</div>
+              <div class="empty-sub">Navigate to Execute and run the agent pipeline to generate the sprint plan</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── RISKS ── -->
+      <div class="tab-panel" id="tab-risks">
+        <div class="page-header">
+          <div class="page-eyebrow">Risk Agent Output</div>
+          <div class="page-title">Risk <em>Register</em></div>
+          <div class="page-subtitle">Active risk monitoring and mitigation intelligence</div>
+        </div>
+        <div id="risk-content">
+          <div class="card">
+            <div class="card-shimmer"></div>
+            <div class="empty">
+              <div class="empty-glyph">III</div>
+              <div class="empty-title">Awaiting execution</div>
+              <div class="empty-sub">Navigate to Execute and run the agent pipeline to generate the risk register</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── REPORT ── -->
+      <div class="tab-panel" id="tab-report">
+        <div class="page-header">
+          <div class="page-eyebrow">Report Agent Output</div>
+          <div class="page-title">Status <em>Report</em></div>
+          <div class="page-subtitle">Weekly synthesis of all agent outputs for stakeholder review</div>
+        </div>
+        <div id="report-content">
+          <div class="card">
+            <div class="card-shimmer"></div>
+            <div class="empty">
+              <div class="empty-glyph">IV</div>
+              <div class="empty-title">Awaiting execution</div>
+              <div class="empty-sub">Navigate to Execute and run the agent pipeline to generate the status report</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script>
+// STATE
+const state = {
+  user_stories: null,
+  wbs_sprint_plan: null,
+  risk_register: null,
+  project_status_report: null
+};
+
+function updateClock() {
+  document.getElementById('clock').textContent = new Date().toTimeString().slice(0,8);
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+function switchTab(id, el) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  if (el) el.classList.add('active');
+}
+
+function loadDefaults() {
+  const el = document.getElementById('featureInput');
+  if (el) el.value = '1. Collector Agent - retrieves articles from news sources by topic\n2. Filter/Rank Agent - removes duplicates and scores source credibility\n3. Summarizer Agent - converts long articles into short summaries\n4. Comparison Agent - compares how different outlets cover the same story\n5. Insight Agent - identifies trends and recurring themes\n6. Report Agent - combines all outputs into a final news brief';
+}
+loadDefaults();
+
+function log(msg, type) {
+  type = type || 'info';
+  const panel = document.getElementById('logPanel');
+  const ts = new Date().toTimeString().slice(0,8);
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+  entry.innerHTML = '<span class="log-ts">' + ts + '</span><span class="log-' + type + '">' + msg + '</span>';
+  panel.appendChild(entry);
+  panel.scrollTop = panel.scrollHeight;
+}
+
+function setProgress(pct) {
+  document.getElementById('progFill').style.width = pct + '%';
+  document.getElementById('progPct').textContent = Math.round(pct) + '%';
+}
+
+function setNode(id, st) {
+  const node = document.getElementById('pn-' + id);
+  const status = document.getElementById('ps-' + id);
+  if (!node || !status) return;
+  node.className = 'pipe-node ' + st;
+  const icons = { idle: '◻', running: '◈', done: '◆' };
+  node.querySelector('.pipe-icon').textContent = icons[st] || '◻';
+  status.textContent = st === 'running' ? 'Processing...' : st === 'done' ? 'Complete' : 'Standby';
+}
+
+function setBadge(rating) {
+  const badge = document.getElementById('headerBadge');
+  const dot = document.getElementById('badgeDot');
+  const text = document.getElementById('badgeText');
+  badge.className = 'header-badge';
+  dot.className = 'badge-dot';
+  if (rating === 'RED') { badge.classList.add('badge-red'); dot.classList.add('pulsing'); text.textContent = 'Risk · RED'; }
+  else if (rating === 'AMBER') { badge.classList.add('badge-amber'); dot.classList.add('pulsing'); text.textContent = 'Risk · AMBER'; }
+  else if (rating === 'GREEN') { badge.classList.add('badge-green'); text.textContent = 'Risk · GREEN'; }
+}
+
+function mdToHtml(text) {
+  if (!text) return '';
+  var result = text;
+  result = result.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+  result = result.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+  result = result.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+  result = result.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  result = result.replace(/^- (.+)$/gm, '<li>$1</li>');
+  result = result.replace(/---+/g, '<hr>');
+  return result;
+}
+
+function renderRequirements() {
+  const el = document.getElementById('req-content');
+  if (!state.user_stories) return;
+  el.innerHTML = '<div class="card"><div class="card-shimmer"></div><div class="card-title">Requirements Output</div><div class="prose">' + mdToHtml(state.user_stories) + '</div></div>';
+  document.getElementById('dot-requirements').classList.add('visible');
+}
+
+function renderSprint() {
+  const el = document.getElementById('sprint-content');
+  if (!state.wbs_sprint_plan) return;
+  var sprintData = [
+    { id: 'Sprint 1', week: 'Week 6', focus: 'Foundation', hours: null },
+    { id: 'Sprint 2', week: 'Week 7', focus: 'Collection', hours: null },
+    { id: 'Sprint 3', week: 'Week 8', focus: 'Filtering', hours: null },
+    { id: 'Sprint 4', week: 'Week 9', focus: 'Reporting', hours: null },
+    { id: 'Sprint 5', week: 'Week 10', focus: 'Final', hours: null }
+  ];
+  sprintData.forEach(function(s, i) {
+    var re = new RegExp('Sprint ' + (i+1) + '[^\n]*\n[^*\n]*Total[:\s]*([0-9]+)', 'i');
+    var match = state.wbs_sprint_plan.match(re);
+    if (match) s.hours = parseInt(match[1]);
+  });
+  var hasHours = sprintData.some(function(s) { return s.hours !== null; });
+  var html = '';
+  if (hasHours) {
+    html += '<div class="sprint-visual" style="margin-bottom:16px"><div class="card-title">Sprint Capacity Overview</div>';
+    sprintData.forEach(function(s) {
+      var h = s.hours || 38;
+      var pct = Math.min((h / 40) * 100, 110);
+      var cls = h > 40 ? 'over' : h === 40 ? 'warn' : 'ok';
+      var badge = h > 40 ? '⚠ Over' : h === 40 ? '• Full' : '✓ OK';
+      html += '<div class="sprint-row"><div class="sprint-id">' + s.id + '</div><div class="sprint-focus">' + s.week + ' · ' + s.focus + '</div><div class="sprint-track"><div class="sprint-fill ' + cls + '" style="width:' + pct + '%"></div></div><div class="sprint-hrs">' + h + 'h / 40h</div><div class="sprint-badge ' + cls + '">' + badge + '</div></div>';
+    });
+    html += '</div>';
+  }
+  html += '<div class="card"><div class="card-shimmer"></div><div class="card-title">Full WBS Breakdown</div><div class="prose">' + mdToHtml(state.wbs_sprint_plan) + '</div></div>';
+  el.innerHTML = html;
+  document.getElementById('dot-sprint').classList.add('visible');
+}
+
+function renderRisks() {
+  const el = document.getElementById('risk-content');
+  if (!state.risk_register) return;
+  var ratingMatch = state.risk_register.match(/(RED|AMBER|GREEN)/i);
+  var rating = ratingMatch ? ratingMatch[1].toUpperCase() : null;
+  var ratingColor = rating === 'RED' ? 'rgba(224,92,92,0.2)' : rating === 'AMBER' ? 'rgba(212,149,74,0.2)' : 'rgba(74,171,133,0.2)';
+  var riskCount = (state.risk_register.match(/### R\d+/gm) || []).length;
+  var highCount = (state.risk_register.match(/Risk Score.*HIGH/gi) || []).length;
+  var ratingClass = rating ? rating.toLowerCase() : '';
+  var html = '<div class="risk-summary-card" style="border-color:' + ratingColor + '"><div class="risk-rating-display"><div class="risk-rating-label">Overall Rating</div><div class="risk-rating-value ' + ratingClass + '">' + (rating || '—') + '</div></div><div class="risk-divider-v"></div><div class="risk-meta"><div class="risk-meta-row"><div class="risk-meta-item"><div class="risk-meta-number">' + (riskCount || '—') + '</div><div class="risk-meta-label">Total Risks</div></div><div class="risk-meta-item"><div class="risk-meta-number" style="color:var(--red)">' + (highCount || '—') + '</div><div class="risk-meta-label">High Score</div></div></div></div></div>';
+  html += '<div class="card"><div class="card-shimmer"></div><div class="card-title">Full Risk Register</div><div class="prose">' + mdToHtml(state.risk_register) + '</div></div>';
+  el.innerHTML = html;
+  document.getElementById('dot-risks').classList.add('visible');
+}
+
+function renderReport() {
+  const el = document.getElementById('report-content');
+  if (!state.project_status_report) return;
+  el.innerHTML = '<div class="card"><div class="card-shimmer"></div><div class="prose">' + mdToHtml(state.project_status_report) + '</div></div>';
+  document.getElementById('dot-report').classList.add('visible');
+}
+
+function updateOverview() {
+  var mf = document.getElementById('m-features');
+  var featureCount = (state.user_stories || '').split('## ').length - 1;
+  mf.textContent = featureCount > 0 ? featureCount : '6';
+  mf.classList.add('populated');
+
+  document.getElementById('m-sprints').textContent = '5';
+  document.getElementById('m-sprints').classList.add('populated');
+
+  var riskText = state.risk_register || '';
+  var riskParts = riskText.split('### R');
+  var riskCount = riskParts.length - 1;
+  var mr = document.getElementById('m-risks');
+  mr.textContent = riskCount > 0 ? riskCount : '—';
+  mr.classList.add('populated');
+
+  var rating = null;
+  if (riskText.indexOf('RED') >= 0) rating = 'RED';
+  else if (riskText.indexOf('AMBER') >= 0) rating = 'AMBER';
+  else if (riskText.indexOf('GREEN') >= 0) rating = 'GREEN';
+
+  if (rating) {
+    var mh = document.getElementById('m-health');
+    var mhs = document.getElementById('m-health-sub');
+    if (rating === 'RED') { mh.textContent = 'RED'; mh.style.color = 'var(--red)'; mhs.textContent = 'High risk — action required'; }
+    else if (rating === 'AMBER') { mh.textContent = 'AMBER'; mh.style.color = 'var(--amber)'; mhs.textContent = 'Moderate risk — monitor closely'; }
+    else { mh.textContent = 'GREEN'; mh.style.color = 'var(--green)'; mhs.textContent = 'On track — low risk'; }
+    mh.classList.add('populated');
+    setBadge(rating);
+  }
+
+  var ovr = document.getElementById('ov-risks');
+  if (riskCount > 0) {
+    var riskItems = riskParts.slice(1, 6);
+    ovr.innerHTML = riskItems.map(function(r) {
+      var firstLine = r.split('\n')[0].trim();
+      var id = 'R' + firstLine.split(' ')[0].replace(/[^0-9]/g, '');
+      var desc = firstLine.replace(/^[0-9]+\s*[-\u2013]\s*/, '');
+      return '<div class="risk-item-mini"><div class="risk-id-badge">' + id + '</div><div class="risk-desc-mini">' + desc + '</div><div class="risk-score score-high">HIGH</div></div>';
+    }).join('');
+  }
+
+  var storyText = state.user_stories || '';
+  var agents = ['Collector Agent','Filter/Rank Agent','Summarizer Agent','Comparison Agent','Insight Agent','Report Agent'];
+  var ovf = document.getElementById('ov-features');
+  if (storyText.length > 0) {
+    ovf.innerHTML = agents.map(function(name) {
+      var isHigh = ['Collector','Filter','Report','Summarizer'].some(function(h) { return name.indexOf(h) >= 0; });
+      return '<div class="feature-item" style="padding:8px 0"><div style="flex:1;font-size:12px;color:var(--silver);font-weight:300">' + name + '</div><div class="tag tag-' + (isHigh ? 'high' : 'medium') + '">' + (isHigh ? 'High' : 'Medium') + '</div></div>';
+    }).join('');
+  }
+}
+
+async function runPipeline() {
+  var apiKey = document.getElementById('apiKey').value.trim();
+  var featureList = document.getElementById('featureInput').value.trim();
+  if (!apiKey) { alert('Please enter your Dify API key'); return; }
+  if (!featureList) { alert('Please enter a feature list'); return; }
+  var btn = document.getElementById('runBtn');
+  btn.disabled = true;
+  btn.innerHTML = '◈ &nbsp;Executing...';
+  document.getElementById('logPanel').innerHTML = '';
+  setProgress(0);
+  ['req','sched','risk','report'].forEach(function(n) { setNode(n, 'idle'); });
+  log('F.R.I.D.A.Y pipeline initiated', 'gold');
+  log('Connecting to local server...', 'info');
+  setNode('req', 'running');
+  setProgress(8);
+  try {
+    var response = await fetch('http://localhost:5000/api/run', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ api_key: apiKey, feature_list: featureList })
+    });
+    setProgress(35);
+    setNode('req', 'done');
+    setNode('sched', 'running');
+    log('Requirements Agent — complete', 'success');
+    if (!response.ok) {
+      var errText = await response.text();
+      throw new Error('Server error ' + response.status + ': ' + errText.slice(0,120));
+    }
+    var data = await response.json();
+    setProgress(65);
+    setNode('sched', 'done');
+    setNode('risk', 'running');
+    log('Scheduling Agent — complete', 'success');
+    var outputs = (data && data.data && data.data.outputs) ? data.data.outputs : (data.outputs || {});
+    state.user_stories = outputs.user_stories || null;
+    state.wbs_sprint_plan = outputs.wbs_sprint_plan || null;
+    state.risk_register = outputs.risk_register || null;
+    state.project_status_report = outputs.project_status_report || null;
+    setProgress(88);
+    setNode('risk', 'done');
+    setNode('report', 'running');
+    log('Risk Agent — complete', 'success');
+    setProgress(100);
+    setNode('report', 'done');
+    log('Report Agent — complete', 'success');
+    log('All agents completed · Dashboard updated', 'gold');
+    renderRequirements();
+    renderSprint();
+    renderRisks();
+    renderReport();
+    updateOverview();
+  } catch(err) {
+    log('Error: ' + err.message, 'error');
+    if (err.message.indexOf('fetch') >= 0 || err.message.indexOf('Failed') >= 0) {
+      log('Make sure server.py is running: python server.py', 'error');
+    }
+    console.error(err);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '▷ &nbsp;Execute All Agents';
+  }
+}
+
+</script>
+</body>
+</html>
