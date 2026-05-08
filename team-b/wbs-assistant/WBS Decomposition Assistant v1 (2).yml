@@ -1,0 +1,541 @@
+app:
+  description: ''
+  icon: earth_asia
+  icon_background: '#D3F8DF'
+  icon_type: emoji
+  mode: workflow
+  name: WBS Decomposition Assistant v1
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/anthropic:0.3.10@4c9f48873be942854bc7c73965ce6f9266fa4985ac426fb88e5001dfa744649c
+    version: null
+kind: app
+version: 0.6.0
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      allowed_file_extensions:
+      - .JPG
+      - .JPEG
+      - .PNG
+      - .GIF
+      - .WEBP
+      - .SVG
+      allowed_file_types:
+      - image
+      allowed_file_upload_methods:
+      - local_file
+      - remote_url
+      enabled: false
+      fileUploadConfig:
+        attachment_image_file_size_limit: 2
+        audio_file_size_limit: 50
+        batch_count_limit: 5
+        file_size_limit: 15
+        file_upload_limit: 50
+        image_file_batch_limit: 10
+        image_file_size_limit: 10
+        single_chunk_attachment_limit: 10
+        video_file_size_limit: 100
+        workflow_file_upload_limit: 10
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
+      number_limits: 3
+    opening_statement: ''
+    retriever_resource:
+      enabled: true
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: start
+        targetType: llm
+      id: 1776398070605--1776398370545-target
+      source: '1776398070605'
+      sourceHandle: source
+      target: '1776398370545'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: llm
+        targetType: llm
+      id: 1776398370545-source-1776400388556-target
+      source: '1776398370545'
+      sourceHandle: source
+      target: '1776400388556'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: llm
+        targetType: llm
+      id: 1776400388556--1776401332605-target
+      source: '1776400388556'
+      sourceHandle: source
+      target: '1776401332605'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: llm
+        targetType: end
+      id: 1776401332605--1776401405425-target
+      source: '1776401332605'
+      sourceHandle: source
+      target: '1776401405425'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: llm
+        targetType: end
+      id: 1776398370545-source-1776491688866-target
+      source: '1776398370545'
+      sourceHandle: source
+      target: '1776491688866'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: llm
+        targetType: end
+      id: 1776400388556-source-1776491851381-target
+      source: '1776400388556'
+      sourceHandle: source
+      target: '1776491851381'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: llm
+        targetType: llm
+      id: 1776401332605-source-1776744186576-target
+      source: '1776401332605'
+      sourceHandle: source
+      target: '1776744186576'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: llm
+        targetType: end
+      id: 1776744186576-source-1776744272427-target
+      source: '1776744186576'
+      sourceHandle: source
+      target: '1776744272427'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    nodes:
+    - data:
+        desc: Accepts Team A's product feature list as input
+        selected: false
+        title: User Input
+        type: start
+        variables:
+        - default: ''
+          hint: ''
+          label: Team A Feature List
+          max_length: 2000
+          options: []
+          placeholder: ''
+          required: true
+          type: paragraph
+          variable: feature_list
+      height: 151
+      id: '1776398070605'
+      position:
+        x: 80
+        y: 282
+      positionAbsolute:
+        x: 80
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        desc: Converts features into structured user stories with acceptance criteria
+        model:
+          completion_params:
+            temperature: 0.7
+          mode: chat
+          name: claude-haiku-4-5-20251001
+          provider: langgenius/anthropic/anthropic
+        prompt_template:
+        - id: 47cd2714-0c18-47c2-b0a4-826f315790f0
+          role: system
+          text: 'You are a Requirements Agent for a project management system. Your
+            job is to take a list of product features and convert them into structured
+            user stories with acceptance criteria.
+
+
+            For each feature provided, output the following:
+
+
+            1. User Story: "As a [user type], I want [feature] so that [benefit]"
+
+            2. Acceptance Criteria: 3-5 bullet points defining when this story is
+            complete
+
+            3. Priority: High / Medium / Low
+
+            4. Estimated Complexity: Simple / Medium / Complex
+
+
+            Format your output as a clean, numbered list grouped by feature. At the
+            end, provide a summary table showing all stories with their priority and
+            complexity.
+
+
+            Be specific and practical. The product being built is an AI-powered news
+            research and analysis platform.'
+        - id: cd6e14a7-917f-4feb-bd81-7384588a1042
+          role: user
+          text: 'Please analyze the following product features and convert them into
+            user stories: {{#1776398070605.feature_list#}}'
+        selected: false
+        title: Requirements Agent
+        type: llm
+        vision:
+          enabled: false
+      height: 130
+      id: '1776398370545'
+      position:
+        x: 382
+        y: 282
+      positionAbsolute:
+        x: 382
+        y: 282
+      selected: true
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        desc: Generates WBS breakdown and sprint plan based on user stories
+        model:
+          completion_params:
+            temperature: 0.7
+          mode: chat
+          name: claude-haiku-4-5-20251001
+          provider: langgenius/anthropic/anthropic
+        prompt_template:
+        - id: 8a887590-35ad-48a2-af39-451fe7777f0a
+          role: system
+          text: "You are a Scheduling Agent for a project management system. Your\
+            \ job is to take a list of user stories and generate a Work Breakdown\
+            \ Structure (WBS) and sprint plan.\n\nGiven the user stories, produce\
+            \ the following:\n\n1. WBS - Break each user story into 3-5 concrete development\
+            \ tasks\n2. Sprint Plan - Assign tasks across sprints assuming:\n   -\
+            \ 4 team members\n   - 10 hours per person per week (40 person-hours/week)\n\
+            \   - 5 weeks available (Weeks 6-10)\n   - High priority items go in earlier\
+            \ sprints\n3. Effort Estimate - Estimate hours per task\n4. Sprint Summary\
+            \ Table - Show which tasks land in which sprint with total hours per sprint\n\
+            \nKeep the plan realistic. Flag if any sprint is over capacity."
+        - id: c7e0c0b6-433d-4b95-b456-5be98e7e1673
+          role: user
+          text: 'Please generate a WBS and sprint plan based on the following user
+            stories: {{#1776398370545.text#}}'
+        selected: false
+        title: Scheduling Agent
+        type: llm
+        vision:
+          enabled: false
+      height: 130
+      id: '1776400388556'
+      position:
+        x: 797.5597346280844
+        y: 226.82556312691747
+      positionAbsolute:
+        x: 797.5597346280844
+        y: 226.82556312691747
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        desc: Identifies risks and issues in the sprint plan and generates a risk
+          register
+        model:
+          completion_params:
+            temperature: 0.7
+          mode: chat
+          name: claude-haiku-4-5-20251001
+          provider: langgenius/anthropic/anthropic
+        prompt_template:
+        - id: da729735-4568-4cae-b3fa-a9ba663e56fb
+          role: system
+          text: 'You are a Risk Agent for a project management system. Your job is
+            to analyze a project sprint plan and identify potential risks before they
+            become blockers.
+
+
+            For each risk you identify, output the following:
+
+
+            1. Risk ID: R001, R002, etc.
+
+            2. Risk Description: What could go wrong
+
+            3. Likelihood: High / Medium / Low
+
+            4. Impact: High / Medium / Low
+
+            5. Risk Score: High / Medium / Low (based on likelihood × impact)
+
+            6. Affected Sprint: Which sprint(s) are impacted
+
+            7. Mitigation Strategy: Concrete steps to reduce the risk
+
+
+            Focus on these risk categories:
+
+            - Schedule risks (tasks taking longer than estimated)
+
+            - Technical risks (complex features that may be harder than expected)
+
+            - Dependency risks (tasks that block other tasks)
+
+            - Capacity risks (team running out of time or bandwidth)
+
+            - External risks (third party APIs, tools, or data sources)
+
+
+            At the end produce:
+
+            - A Risk Register table summarising all risks
+
+            - An overall project risk rating (Green / Amber / Red)
+
+            - Top 3 recommended actions for the project manager'
+        - id: 4de7108e-7038-4de6-be67-aebe71d98232
+          role: user
+          text: 'Please analyze the following sprint plan and generate a risk register:
+            {{#1776400388556.text#}}'
+        selected: false
+        title: Risk Agent
+        type: llm
+        vision:
+          enabled: false
+      height: 130
+      id: '1776401332605'
+      position:
+        x: 1146.7645887755932
+        y: 167.58582160479182
+      positionAbsolute:
+        x: 1146.7645887755932
+        y: 167.58582160479182
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        outputs:
+        - value_selector:
+          - '1776401332605'
+          - text
+          value_type: string
+          variable: risk_register
+        selected: false
+        title: Output node 3 — Risk Agent
+        type: end
+      height: 87
+      id: '1776401405425'
+      position:
+        x: 1642.6911474518372
+        y: -44.583193102308854
+      positionAbsolute:
+        x: 1642.6911474518372
+        y: -44.583193102308854
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        outputs:
+        - value_selector:
+          - '1776398370545'
+          - text
+          value_type: string
+          variable: user_stories
+        selected: false
+        title: Output Node 1 — Requirements Agent
+        type: end
+      height: 87
+      id: '1776491688866'
+      position:
+        x: 716.1046621238495
+        y: 619.2820324629015
+      positionAbsolute:
+        x: 716.1046621238495
+        y: 619.2820324629015
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        outputs:
+        - value_selector:
+          - '1776400388556'
+          - text
+          value_type: string
+          variable: wbs_sprint_plan
+        selected: false
+        title: Output node 2 — Scheduling Agent
+        type: end
+      height: 87
+      id: '1776491851381'
+      position:
+        x: 1116.4186484953977
+        y: -60.74298829208711
+      positionAbsolute:
+        x: 1116.4186484953977
+        y: -60.74298829208711
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        desc: Aggregates all agent outputs into a final project status report
+        model:
+          completion_params:
+            temperature: 0.7
+          mode: chat
+          name: claude-haiku-4-5-20251001
+          provider: langgenius/anthropic/anthropic
+        prompt_template:
+        - id: 1cc14add-ce37-446b-b748-63b6a2201ee4
+          role: system
+          text: "You are a Report Agent for a project management system. Your job\
+            \ is to synthesize outputs from three upstream agents into a single, coherent\
+            \ weekly project status report.\n\nYou will receive:\n- User Stories and\
+            \ feature backlog (from Requirements Agent)\n- WBS breakdown and sprint\
+            \ plan (from Scheduling Agent)\n- Risk register and risk rating (from\
+            \ Risk Agent)\n\nProduce a structured Weekly Project Status Report containing:\n\
+            \n1. Executive Summary (3-4 sentences covering overall project health)\n\
+            \n2. Sprint Progress Summary\n   - Current sprint and week\n   - Tasks\
+            \ completed vs planned\n   - Capacity utilization\n\n3. Feature Backlog\
+            \ Status\n   - High priority features and their status\n   - Any scope\
+            \ changes or concerns\n\n4. Risk Dashboard\n   - Overall risk rating (Red/Amber/Green)\n\
+            \   - Top 3 active risks with status\n   - Any new risks identified this\
+            \ week\n\n5. Key Decisions Required\n   - Items the PM needs to decide\
+            \ on immediately\n\n6. Next Sprint Preview\n   - What's planned for next\
+            \ week\n   - Any preparation needed\n\n7. Team Recommendations\n   - Top\
+            \ 3 actionable recommendations for the PM this week\n\nFormat this as\
+            \ a professional project status report. Be concise and decision-focused.\
+            \ The audience is the Project Manager who needs to act on this information\
+            \ immediately."
+        - id: f402f460-c8cf-431b-8eca-3cc3533e1294
+          role: user
+          text: 'Please generate a weekly project status report based on the following
+            agent outputs:
+
+
+            REQUIREMENTS & USER STORIES: {{#1776398370545.text#}}
+
+
+            WBS & SPRINT PLAN: {{#1776400388556.text#}}
+
+
+            RISK REGISTER: {{#1776401332605.text#}}'
+        selected: false
+        title: Report Agent
+        type: llm
+        vision:
+          enabled: false
+      height: 130
+      id: '1776744186576'
+      position:
+        x: 1650.5306442841716
+        y: 335.8938711431657
+      positionAbsolute:
+        x: 1650.5306442841716
+        y: 335.8938711431657
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        outputs:
+        - value_selector:
+          - '1776744186576'
+          - text
+          value_type: string
+          variable: project_status_report
+        selected: false
+        title: Output 4
+        type: end
+      height: 87
+      id: '1776744272427'
+      position:
+        x: 1953.8372270895607
+        y: 335.8938711431657
+      positionAbsolute:
+        x: 1953.8372270895607
+        y: 335.8938711431657
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    viewport:
+      x: 268.8558649725262
+      y: 200.05421405837316
+      zoom: 0.4395811540834578
+  rag_pipeline_variables: []
