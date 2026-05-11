@@ -5,7 +5,14 @@ from fastapi.testclient import TestClient
 
 from news_brief_mvp.auth import RBACSettings
 from news_brief_mvp.main import create_app
-from news_brief_mvp.models import ArticleCitation, ArticleRecord, BriefResponse, HandoffArtifact
+from news_brief_mvp.models import (
+    ArticleCitation,
+    ArticleRecord,
+    BriefResponse,
+    HandoffArtifact,
+    SourceCatalogItem,
+    TrustedSourceSettings,
+)
 
 
 VIEWER_HEADERS = {"X-API-Key": "viewer-local-token"}
@@ -19,6 +26,25 @@ class StubService:
         self.markdown_path_value = markdown_path or export_path.with_suffix(".md")
         self.last_list_limit = None
         self.deleted_brief_ids = []
+        self.trusted_source_settings = TrustedSourceSettings(selected_source_ids=["reuters"])
+        self.source_catalog = [
+            SourceCatalogItem(
+                id="reuters",
+                name="Reuters",
+                domain="reuters.com",
+                category="wire",
+                region="global",
+                weight=0.98,
+            ),
+            SourceCatalogItem(
+                id="financial-times",
+                name="Financial Times",
+                domain="ft.com",
+                category="business",
+                region="global",
+                weight=0.92,
+            ),
+        ]
         self.response = BriefResponse(
             brief_id="brief-123",
             topic="AI chip export controls",
@@ -86,6 +112,16 @@ class StubService:
         if brief_id == "brief-missing":
             raise FileNotFoundError(brief_id)
         self.deleted_brief_ids.append(brief_id)
+
+    def get_source_catalog(self):
+        return self.source_catalog
+
+    def get_trusted_source_settings(self):
+        return self.trusted_source_settings
+
+    def update_trusted_source_settings(self, settings):
+        self.trusted_source_settings = settings
+        return settings
 
 
 def test_post_api_briefs_returns_json_contract(tmp_path) -> None:
@@ -236,6 +272,54 @@ def test_config_api_returns_frontend_bootstrap_data(tmp_path) -> None:
     assert payload["rbac"]["demo_tokens"]["analyst"] == "analyst-local-token"
     assert payload["persona_options"][0]["value"] == "research_analyst"
     assert any(option["label"] == "Financial analyst" for option in payload["persona_options"])
+
+
+def test_trusted_sources_api_returns_catalog_and_global_settings(tmp_path) -> None:
+    export_path = tmp_path / "brief.html"
+    export_path.write_text("<html><body>Brief</body></html>")
+    client = TestClient(create_app(service=StubService(export_path), artifact_root=tmp_path))
+
+    response = client.get("/api/trusted-sources", headers=VIEWER_HEADERS)
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["settings"]["selected_source_ids"] == ["reuters"]
+    assert payload["catalog"][0]["id"] == "reuters"
+    assert payload["catalog"][0]["domain"] == "reuters.com"
+
+
+def test_trusted_sources_settings_can_be_updated_by_analyst_or_admin(tmp_path) -> None:
+    export_path = tmp_path / "brief.html"
+    export_path.write_text("<html><body>Brief</body></html>")
+    service = StubService(export_path)
+    client = TestClient(create_app(service=service, artifact_root=tmp_path))
+
+    viewer_response = client.put(
+        "/api/trusted-sources",
+        headers=VIEWER_HEADERS,
+        json={"selected_source_ids": ["financial-times"], "custom_sources": []},
+    )
+    analyst_response = client.put(
+        "/api/trusted-sources",
+        headers=ANALYST_HEADERS,
+        json={
+            "selected_source_ids": ["financial-times"],
+            "custom_sources": [
+                {
+                    "name": "Local Trade Journal",
+                    "domain": "trade.example",
+                    "feed_url": "https://trade.example/feed.xml",
+                }
+            ],
+        },
+    )
+
+    assert viewer_response.status_code == 403
+    assert analyst_response.status_code == 200
+    payload = analyst_response.json()
+    assert payload["selected_source_ids"] == ["financial-times"]
+    assert payload["custom_sources"][0]["id"] == "custom-local-trade-journal"
+    assert service.trusted_source_settings.custom_sources[0].domain == "trade.example"
 
 
 def test_recent_and_saved_brief_json_endpoints(tmp_path) -> None:

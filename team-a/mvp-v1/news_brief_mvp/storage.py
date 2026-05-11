@@ -5,7 +5,7 @@ import json
 import shutil
 from pathlib import Path
 
-from .models import BriefResponse, HandoffArtifact
+from .models import BriefResponse, HandoffArtifact, TrustedSourceSettings
 
 
 class ArtifactStore:
@@ -26,6 +26,9 @@ class ArtifactStore:
 
     def manifest_path(self) -> Path:
         return self.root / "manifest.json"
+
+    def trusted_sources_path(self) -> Path:
+        return self.root / "trusted_sources.json"
 
     def export_path(self, brief_id: str) -> Path:
         return self.brief_dir(brief_id) / "brief.html"
@@ -60,6 +63,18 @@ class ArtifactStore:
             raise FileNotFoundError(brief_id)
         shutil.rmtree(path)
         self._remove_from_manifest(brief_id)
+
+    def load_trusted_source_settings(self) -> TrustedSourceSettings:
+        path = self.trusted_sources_path()
+        if not path.exists():
+            return TrustedSourceSettings()
+        try:
+            return TrustedSourceSettings.model_validate_json(path.read_text())
+        except Exception:
+            return TrustedSourceSettings()
+
+    def save_trusted_source_settings(self, settings: TrustedSourceSettings) -> None:
+        self.trusted_sources_path().write_text(settings.model_dump_json(indent=2))
 
     def list_briefs(self, limit: int = 6) -> list[BriefResponse]:
         manifest_briefs = self._list_from_manifest(limit=limit)

@@ -6,7 +6,15 @@ import { BriefHistory } from "./components/BriefHistory";
 import { BriefReport } from "./components/BriefReport";
 import { EmptyState } from "./components/EmptyState";
 import { LoginPage } from "./components/LoginPage";
-import type { AppConfig, AuthSession, BriefResponse } from "./types";
+import { TrustedSourcesPage } from "./components/TrustedSourcesPage";
+import type {
+  AppConfig,
+  AuthSession,
+  BriefResponse,
+  CustomTrustedSource,
+  TrustedSourcePayload,
+  TrustedSourceSettings,
+} from "./types";
 import {
   createTranslator,
   htmlLang,
@@ -18,12 +26,26 @@ import {
 import { loadStoredAuthSession, persistAuthSession } from "./utils/auth";
 import { safeJson } from "./utils/http";
 
-type AppView = "briefing" | "history";
+type AppView = "briefing" | "history" | "sources";
+
+const emptyTrustedSourceSettings: TrustedSourceSettings = {
+  selected_source_ids: [],
+  custom_sources: [],
+};
+
+const emptyCustomSourceDraft: CustomTrustedSource = {
+  name: "",
+  domain: "",
+  feed_url: "",
+};
 
 export default function App() {
   const [config, setConfig] = useState<AppConfig>(fallbackConfig);
   const [authSession, setAuthSession] = useState<AuthSession | null>(() => loadStoredAuthSession());
   const [recentBriefs, setRecentBriefs] = useState<BriefResponse[]>([]);
+  const [trustedSourcePayload, setTrustedSourcePayload] = useState<TrustedSourcePayload | null>(null);
+  const [trustedSourceDraft, setTrustedSourceDraft] = useState<TrustedSourceSettings>(emptyTrustedSourceSettings);
+  const [customSourceDraft, setCustomSourceDraft] = useState<CustomTrustedSource>(emptyCustomSourceDraft);
   const [brief, setBrief] = useState<BriefResponse | null>(null);
   const [topic, setTopic] = useState("");
   const [goal, setGoal] = useState("");
@@ -32,7 +54,9 @@ export default function App() {
   const [language, setLanguage] = useState<Language>(() => loadStoredLanguage());
   const [activeView, setActiveView] = useState<AppView>("briefing");
   const [isLoading, setIsLoading] = useState(false);
+  const [isSavingTrustedSources, setIsSavingTrustedSources] = useState(false);
   const [error, setError] = useState("");
+  const [trustedSourcesError, setTrustedSourcesError] = useState("");
   const [loginError, setLoginError] = useState("");
   const [toast, setToast] = useState("");
   const t = useMemo(() => createTranslator(language), [language]);
@@ -45,6 +69,7 @@ export default function App() {
   );
   const roleLabel = localizeRole(activeRole, language, roleMeta?.label || activeRole);
   const canDeleteBriefs = !config.rbac.enabled || activeRole === "admin";
+  const canManageTrustedSources = !config.rbac.enabled || activeRole === "admin" || activeRole === "analyst";
 
   useEffect(() => {
     async function bootstrap() {
@@ -69,8 +94,11 @@ export default function App() {
   useEffect(() => {
     if (!config.rbac.enabled || activeToken) {
       loadRecentBriefs(activeToken);
+      loadTrustedSources(activeToken);
     } else {
       setRecentBriefs([]);
+      setTrustedSourcePayload(null);
+      setTrustedSourceDraft(emptyTrustedSourceSettings);
     }
   }, [activeToken, config.rbac.enabled]);
 
@@ -109,8 +137,12 @@ export default function App() {
     setAuthSession(null);
     setBrief(null);
     setRecentBriefs([]);
+    setTrustedSourcePayload(null);
+    setTrustedSourceDraft(emptyTrustedSourceSettings);
+    setCustomSourceDraft(emptyCustomSourceDraft);
     setActiveView("briefing");
     setError("");
+    setTrustedSourcesError("");
     setLoginError("");
     setToast(t("toast.signedOut"));
   }
@@ -129,6 +161,116 @@ export default function App() {
       setRecentBriefs((await response.json()) as BriefResponse[]);
     } catch {
       setRecentBriefs([]);
+    }
+  }
+
+  async function loadTrustedSources(token = activeToken) {
+    if (config.rbac.enabled && !token) return;
+    try {
+      const response = await fetch("/api/trusted-sources", {
+        headers: authHeaders(token),
+      });
+      if (response.status === 401) {
+        setAuthSession(null);
+        return;
+      }
+      if (!response.ok) {
+        const payload = await safeJson(response);
+        throw new Error(payload?.detail || t("error.requestFailed", { status: response.status }));
+      }
+      const payload = (await response.json()) as TrustedSourcePayload;
+      setTrustedSourcePayload(payload);
+      setTrustedSourceDraft(payload.settings);
+      setTrustedSourcesError("");
+    } catch (err) {
+      setTrustedSourcesError(err instanceof Error ? err.message : t("error.trustedSourcesLoad"));
+    }
+  }
+
+  function onToggleCatalogSource(sourceId: string) {
+    setTrustedSourceDraft((current) => {
+      const selected = new Set(current.selected_source_ids);
+      if (selected.has(sourceId)) {
+        selected.delete(sourceId);
+      } else {
+        selected.add(sourceId);
+      }
+      return {
+        ...current,
+        selected_source_ids: Array.from(selected),
+      };
+    });
+  }
+
+  function updateCustomSourceDraft(field: keyof CustomTrustedSource, value: string) {
+    setCustomSourceDraft((current) => ({ ...current, [field]: value }));
+  }
+
+  function onAddCustomSource() {
+    const name = customSourceDraft.name.trim();
+    const domain = customSourceDraft.domain.trim();
+    const feedUrl = customSourceDraft.feed_url.trim();
+    if (!name) {
+      setTrustedSourcesError(t("error.sourceNameRequired"));
+      return;
+    }
+    if (!domain && !feedUrl) {
+      setTrustedSourcesError(t("error.sourceEndpointRequired"));
+      return;
+    }
+
+    const source: CustomTrustedSource = {
+      id: `custom-${slugify(name || domain || feedUrl) || "source"}`,
+      name,
+      domain,
+      feed_url: feedUrl,
+      weight: 0.96,
+    };
+    setTrustedSourceDraft((current) => ({
+      ...current,
+      custom_sources: [
+        ...current.custom_sources.filter((item) => (item.id || item.name) !== source.id),
+        source,
+      ],
+    }));
+    setCustomSourceDraft(emptyCustomSourceDraft);
+    setTrustedSourcesError("");
+  }
+
+  function removeCustomSource(sourceId: string) {
+    setTrustedSourceDraft((current) => ({
+      ...current,
+      custom_sources: current.custom_sources.filter((item) => (item.id || item.name) !== sourceId),
+    }));
+  }
+
+  async function saveTrustedSources() {
+    setTrustedSourcesError("");
+    setIsSavingTrustedSources(true);
+    try {
+      const response = await fetch("/api/trusted-sources", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...authHeaders(),
+        },
+        body: JSON.stringify(trustedSourceDraft),
+      });
+      if (!response.ok) {
+        const payload = await safeJson(response);
+        throw new Error(payload?.detail || t("error.requestFailed", { status: response.status }));
+      }
+      const settings = (await response.json()) as TrustedSourceSettings;
+      setTrustedSourceDraft(settings);
+      setTrustedSourcePayload((current) => ({
+        catalog: current?.catalog || [],
+        settings,
+      }));
+      setToast(t("toast.trustedSourcesSaved"));
+    } catch (err) {
+      setTrustedSourcesError(err instanceof Error ? err.message : t("error.trustedSourcesSave"));
+    } finally {
+      setIsSavingTrustedSources(false);
     }
   }
 
@@ -271,8 +413,34 @@ export default function App() {
             onDeleteBrief={deleteBrief}
           />
         )}
+
+        {activeView === "sources" && (
+          <TrustedSourcesPage
+            catalog={trustedSourcePayload?.catalog || []}
+            settings={trustedSourceDraft}
+            customDraft={customSourceDraft}
+            canManage={canManageTrustedSources}
+            isSaving={isSavingTrustedSources}
+            error={trustedSourcesError}
+            language={language}
+            t={t}
+            onToggleCatalogSource={onToggleCatalogSource}
+            onCustomDraftChange={updateCustomSourceDraft}
+            onAddCustomSource={onAddCustomSource}
+            onRemoveCustomSource={removeCustomSource}
+            onSave={saveTrustedSources}
+          />
+        )}
       </AppShell>
       {toast && <div className="toast-message">{toast}</div>}
     </>
   );
+}
+
+function slugify(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 }

@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Dict, List, Literal, Optional
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 BriefMode = Literal["auto", "live", "fallback"]
@@ -78,6 +78,73 @@ class SourceEvidence(BaseModel):
     freshness_score: float = 0.0
     topic_fit: float = 0.0
     why_selected: str = ""
+
+
+class SourceCatalogItem(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str = Field(min_length=1, max_length=80)
+    name: str = Field(min_length=1, max_length=120)
+    domain: str = Field(default="", max_length=160)
+    feed_url: str = Field(default="", max_length=260)
+    category: str = Field(default="general", max_length=80)
+    region: str = Field(default="global", max_length=80)
+    weight: float = Field(default=0.45, ge=0.0, le=1.0)
+    subscription_note: str = Field(default="", max_length=180)
+
+    @field_validator("id", "domain")
+    @classmethod
+    def normalize_identifier(cls, value: str) -> str:
+        return value.strip().lower()
+
+    @field_validator("name", "feed_url", "category", "region", "subscription_note")
+    @classmethod
+    def strip_text(cls, value: str) -> str:
+        return " ".join(value.strip().split())
+
+
+class CustomTrustedSource(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str = Field(default="", max_length=90)
+    name: str = Field(min_length=1, max_length=120)
+    domain: str = Field(default="", max_length=160)
+    feed_url: str = Field(default="", max_length=260)
+    weight: float = Field(default=0.96, ge=0.0, le=1.0)
+
+    @model_validator(mode="after")
+    def normalize_custom_source(self) -> "CustomTrustedSource":
+        self.name = " ".join(self.name.strip().split())
+        self.domain = _normalize_domain(self.domain)
+        self.feed_url = self.feed_url.strip()
+        if not self.domain and not self.feed_url:
+            raise ValueError("Custom trusted sources require a domain or RSS feed URL.")
+        if not self.id:
+            self.id = f"custom-{_slugify(self.name) or _slugify(self.domain) or _slugify(self.feed_url) or 'source'}"
+        else:
+            self.id = _slugify(self.id) or _slugify(self.name) or _slugify(self.domain) or "source"
+            if not self.id.startswith("custom-"):
+                self.id = f"custom-{self.id}"
+        return self
+
+
+class TrustedSourceSettings(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    selected_source_ids: List[str] = Field(default_factory=list, max_length=24)
+    custom_sources: List[CustomTrustedSource] = Field(default_factory=list, max_length=12)
+
+    @field_validator("selected_source_ids")
+    @classmethod
+    def normalize_selected_source_ids(cls, values: List[str]) -> List[str]:
+        seen = set()
+        normalized = []
+        for value in values:
+            item = _slugify(value)
+            if item and item not in seen:
+                seen.add(item)
+                normalized.append(item)
+        return normalized
 
 
 class BriefSections(BaseModel):
@@ -201,3 +268,26 @@ class FallbackDataset(BaseModel):
     dataset_topic: str
     articles: List[ArticleRecord]
     precomputed_sections: BriefSections
+
+
+def _normalize_domain(value: str) -> str:
+    domain = value.strip().lower()
+    for prefix in ("https://", "http://"):
+        if domain.startswith(prefix):
+            domain = domain[len(prefix):]
+    domain = domain.split("/", 1)[0]
+    return domain[4:] if domain.startswith("www.") else domain
+
+
+def _slugify(value: str) -> str:
+    text = value.strip().lower()
+    chars = []
+    last_dash = False
+    for char in text:
+        if char.isalnum():
+            chars.append(char)
+            last_dash = False
+        elif not last_dash:
+            chars.append("-")
+            last_dash = True
+    return "".join(chars).strip("-")

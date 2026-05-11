@@ -6,7 +6,10 @@ from news_brief_mvp.models import (
     BriefRequest,
     BriefSections,
     FallbackDataset,
+    SourceCatalogItem,
+    TrustedSourceSettings,
 )
+from news_brief_mvp.data_loader import SourceRegistry
 from news_brief_mvp.service import BriefService
 from news_brief_mvp.storage import ArtifactStore
 
@@ -230,3 +233,47 @@ def test_generate_brief_live_mode_returns_ranked_articles_and_sections(tmp_path)
     assert response.articles[0].total_score >= response.articles[-1].total_score
     assert response.key_takeaways[0] == "Policy direction is still evolving."
     assert response.citations[0].article_id == response.articles[0].id
+
+
+def test_generate_brief_boosts_globally_trusted_sources(tmp_path) -> None:
+    store = ArtifactStore(tmp_path / "artifacts")
+    service = BriefService(
+        live_retriever=FakeLiveRetriever(
+            [
+                build_article("one", "US weighs AI chip export controls", "Reuters", 2),
+                build_article("two", "Chipmakers assess AI chip export controls", "TechCrunch", 2),
+                build_article("three", "Allies react to AI chip export controls", "BBC", 2),
+                build_article("four", "Investors parse AI chip export controls", "Financial Times", 2),
+            ]
+        ),
+        llm_client=FailingLLM(),
+        artifact_store=store,
+        fallback_dataset=make_fallback_dataset(),
+        minimum_live_articles=4,
+        source_registry=SourceRegistry(
+            weights={"default": 0.45, "techcrunch": 0.72, "reuters": 0.98},
+            direct_feeds=[],
+            catalog=[
+                SourceCatalogItem(
+                    id="techcrunch",
+                    name="TechCrunch",
+                    domain="techcrunch.com",
+                    category="technology",
+                    region="us",
+                    weight=0.72,
+                )
+            ],
+        ),
+    )
+    service.update_trusted_source_settings(
+        TrustedSourceSettings(selected_source_ids=["techcrunch"])
+    )
+
+    response = service.generate_brief(
+        BriefRequest(topic="AI chip export controls", mode="live", persona="research_analyst")
+    )
+
+    assert response.articles[0].source == "TechCrunch"
+    assert response.articles[0].source_weight == 1.0
+    assert response.pipeline_metadata["trusted_source_ids"] == ["techcrunch"]
+    assert "Trusted source preference applied." in response.quality_notes

@@ -2,6 +2,7 @@ import {
   Bookmark,
   FileText,
   LogOut,
+  RadioTower,
   Search,
   ShieldCheck,
   SlidersHorizontal,
@@ -13,13 +14,13 @@ import { LanguageToggle } from "./LanguageToggle";
 
 type AppShellProps = {
   children: ReactNode;
-  activeView: "briefing" | "history";
+  activeView: "briefing" | "history" | "sources";
   roleLabel: string;
   rbacEnabled: boolean;
   language: Language;
   t: TFunction;
   onHint: (message: string) => void;
-  onViewChange: (view: "briefing" | "history") => void;
+  onViewChange: (view: "briefing" | "history" | "sources") => void;
   onLanguageChange: (language: Language) => void;
   onLogout: () => void;
 };
@@ -96,6 +97,16 @@ export function AppShell({
             onClick={() => onViewChange("history")}
           >
             <Bookmark size={18} />
+          </button>
+          <button
+            className="rail-button"
+            type="button"
+            aria-label={t("nav.trustedSources")}
+            title={t("nav.trustedSources")}
+            aria-current={activeView === "sources" ? "page" : undefined}
+            onClick={() => onViewChange("sources")}
+          >
+            <RadioTower size={18} />
           </button>
         </nav>
       </aside>

@@ -19,6 +19,7 @@ def test_frontend_redesign_has_command_center_component_boundaries() -> None:
         "components/BriefReport.tsx",
         "components/EmptyState.tsx",
         "components/LanguageToggle.tsx",
+        "components/TrustedSourcesPage.tsx",
     ]
 
     missing_files = [
@@ -74,7 +75,8 @@ def test_side_rail_switches_between_workspace_views() -> None:
 
     assert 'aria-label={t("nav.newBrief")}' in app_shell
     assert 'aria-label={t("nav.recentBriefs")}' in app_shell
-    assert app_shell.count('className="rail-button"') == 2
+    assert 'aria-label={t("nav.trustedSources")}' in app_shell
+    assert app_shell.count('className="rail-button"') == 3
     assert "Source evidence" not in app_shell
     assert "Signal watch" not in app_shell
     assert 'className="rail-logo" href="/"' not in app_shell
@@ -83,6 +85,7 @@ def test_side_rail_switches_between_workspace_views() -> None:
     assert "scrollIntoView" not in app_shell
     assert 'onViewChange("briefing")' in app_shell
     assert 'onViewChange("history")' in app_shell
+    assert 'onViewChange("sources")' in app_shell
     assert 'aria-current={activeView === "briefing" ? "page" : undefined}' in app_shell
     assert 'aria-current={activeView === "history" ? "page" : undefined}' in app_shell
 
@@ -128,12 +131,31 @@ def test_source_rows_keep_citation_body_left_aligned() -> None:
 def test_app_splits_briefing_and_history_views() -> None:
     app = (FRONTEND_SRC / "App.tsx").read_text()
 
-    assert 'type AppView = "briefing" | "history"' in app
+    assert 'type AppView = "briefing" | "history" | "sources"' in app
     assert "activeView === \"briefing\"" in app
     assert "activeView === \"history\"" in app
+    assert "activeView === \"sources\"" in app
     assert "setActiveView(\"briefing\")" in app
     assert "<BriefHistory" in app
+    assert "<TrustedSourcesPage" in app
     assert "<RecentBriefs" not in app
+
+
+def test_frontend_supports_global_trusted_sources_settings() -> None:
+    app = (FRONTEND_SRC / "App.tsx").read_text()
+    types = (FRONTEND_SRC / "types.ts").read_text()
+    trusted_sources = (FRONTEND_SRC / "components" / "TrustedSourcesPage.tsx").read_text()
+
+    assert "SourceCatalogItem" in types
+    assert "TrustedSourceSettings" in types
+    assert "/api/trusted-sources" in app
+    assert "loadTrustedSources" in app
+    assert "saveTrustedSources" in app
+    assert "trustedSourcePayload" in app
+    assert 'className="trusted-sources-page"' in trusted_sources
+    assert "onToggleCatalogSource" in trusted_sources
+    assert "onAddCustomSource" in trusted_sources
+    assert "onSave" in trusted_sources
 
 
 def test_brief_history_page_supports_dense_history_and_delete_controls() -> None:

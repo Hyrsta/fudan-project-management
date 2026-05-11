@@ -14,12 +14,14 @@ from .auth import (
     PERMISSION_BRIEFS_READ,
     PERMISSION_EXPORTS_READ,
     PERMISSION_HANDOFF_READ,
+    PERMISSION_SOURCES_READ,
+    PERMISSION_SOURCES_WRITE,
     RBACSettings,
     load_rbac_settings_from_env,
     rbac_template_context,
     require_permissions,
 )
-from .models import BriefRequest
+from .models import BriefRequest, TrustedSourceSettings
 from .personas import get_persona_options
 from .service import LiveRunFailed, build_default_service
 
@@ -86,6 +88,28 @@ def create_app(
                 for brief in app.state.service.list_recent_briefs(limit=limit)
             ]
         )
+
+    @app.get("/api/trusted-sources")
+    def trusted_sources(
+        _principal=Depends(require_permissions(PERMISSION_SOURCES_READ)),
+    ):
+        return JSONResponse(
+            content={
+                "catalog": [
+                    source.model_dump(mode="json")
+                    for source in app.state.service.get_source_catalog()
+                ],
+                "settings": app.state.service.get_trusted_source_settings().model_dump(mode="json"),
+            }
+        )
+
+    @app.put("/api/trusted-sources")
+    def update_trusted_sources(
+        settings: TrustedSourceSettings,
+        _principal=Depends(require_permissions(PERMISSION_SOURCES_WRITE)),
+    ):
+        updated_settings = app.state.service.update_trusted_source_settings(settings)
+        return JSONResponse(content=updated_settings.model_dump(mode="json"))
 
     @app.post("/api/briefs")
     async def create_brief(

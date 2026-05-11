@@ -32,6 +32,35 @@ export type AuthSession = {
   custom: boolean;
 };
 
+export type SourceCatalogItem = {
+  id: string;
+  name: string;
+  domain: string;
+  feed_url: string;
+  category: string;
+  region: string;
+  weight: number;
+  subscription_note: string;
+};
+
+export type CustomTrustedSource = {
+  id?: string;
+  name: string;
+  domain: string;
+  feed_url: string;
+  weight?: number;
+};
+
+export type TrustedSourceSettings = {
+  selected_source_ids: string[];
+  custom_sources: CustomTrustedSource[];
+};
+
+export type TrustedSourcePayload = {
+  catalog: SourceCatalogItem[];
+  settings: TrustedSourceSettings;
+};
+
 export type ArticleRecord = {
   id: string;
   title: string;
