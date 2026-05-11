@@ -56,3 +56,13 @@ def test_profile_chip_opens_menu_with_logout_action() -> None:
     assert 'role="menu"' in app_shell
     assert "Sign out" in app_shell
     assert ".profile-dropdown" in styles
+
+
+def test_coverage_select_label_stays_on_one_line() -> None:
+    styles = (FRONTEND_SRC / "styles.css").read_text()
+
+    select_label_rule = styles.split(".select-shell span {", 1)[1].split("}", 1)[0]
+
+    assert "display: inline-flex" in select_label_rule
+    assert "align-items: center" in select_label_rule
+    assert "white-space: nowrap" in select_label_rule

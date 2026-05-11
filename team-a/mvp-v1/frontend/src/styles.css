@@ -634,9 +634,15 @@ input {
 }
 
 .select-shell span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   align-self: stretch;
   border-right: 1px solid var(--border);
   padding: 0 11px;
+  min-width: 118px;
+  white-space: nowrap;
 }
 
 select {
