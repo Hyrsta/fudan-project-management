@@ -10,10 +10,11 @@ from fastapi.security import APIKeyHeader
 
 
 Role = Literal["viewer", "analyst", "admin"]
-Permission = Literal["briefs:read", "briefs:create", "exports:read", "handoff:read"]
+Permission = Literal["briefs:read", "briefs:create", "briefs:delete", "exports:read", "handoff:read"]
 
 PERMISSION_BRIEFS_READ: Permission = "briefs:read"
 PERMISSION_BRIEFS_CREATE: Permission = "briefs:create"
+PERMISSION_BRIEFS_DELETE: Permission = "briefs:delete"
 PERMISSION_EXPORTS_READ: Permission = "exports:read"
 PERMISSION_HANDOFF_READ: Permission = "handoff:read"
 
@@ -33,6 +34,7 @@ ROLE_PERMISSIONS: Dict[Role, FrozenSet[Permission]] = {
         {
             PERMISSION_BRIEFS_READ,
             PERMISSION_BRIEFS_CREATE,
+            PERMISSION_BRIEFS_DELETE,
             PERMISSION_EXPORTS_READ,
             PERMISSION_HANDOFF_READ,
         }

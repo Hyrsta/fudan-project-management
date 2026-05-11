@@ -3,13 +3,14 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Optional
 
-from fastapi import Depends, FastAPI, Form, HTTPException, Request
+from fastapi import Depends, FastAPI, Form, HTTPException, Query, Request
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from .auth import (
     PERMISSION_BRIEFS_CREATE,
+    PERMISSION_BRIEFS_DELETE,
     PERMISSION_BRIEFS_READ,
     PERMISSION_EXPORTS_READ,
     PERMISSION_HANDOFF_READ,
@@ -74,6 +75,18 @@ def create_app(
             ]
         )
 
+    @app.get("/api/briefs/history")
+    def brief_history(
+        limit: int = Query(default=50, ge=1, le=100),
+        _principal=Depends(require_permissions(PERMISSION_BRIEFS_READ)),
+    ):
+        return JSONResponse(
+            content=[
+                brief.model_dump(mode="json")
+                for brief in app.state.service.list_recent_briefs(limit=limit)
+            ]
+        )
+
     @app.post("/api/briefs")
     async def create_brief(
         request: Request,
@@ -120,6 +133,17 @@ def create_app(
         except FileNotFoundError as exc:
             raise HTTPException(status_code=404, detail="Brief not found.") from exc
         return JSONResponse(content=brief.model_dump(mode="json"))
+
+    @app.delete("/api/briefs/{brief_id}")
+    def delete_brief(
+        brief_id: str,
+        _principal=Depends(require_permissions(PERMISSION_BRIEFS_DELETE)),
+    ):
+        try:
+            app.state.service.delete_brief(brief_id)
+        except FileNotFoundError as exc:
+            raise HTTPException(status_code=404, detail="Brief not found.") from exc
+        return JSONResponse(content={"status": "deleted", "brief_id": brief_id})
 
     @app.get("/briefs/{brief_id}", response_class=HTMLResponse)
     def show_brief(

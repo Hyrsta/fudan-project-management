@@ -85,3 +85,14 @@ def test_artifact_store_skips_corrupt_manifest_entries(tmp_path) -> None:
 
     assert [brief.brief_id for brief in briefs] == ["brief-final"]
 
+
+def test_artifact_store_deletes_brief_artifacts_and_manifest_entry(tmp_path) -> None:
+    store = ArtifactStore(tmp_path / "artifacts")
+    response = make_final_product_response(store.root)
+    store.save(response, handoff=response.to_handoff_artifact())
+
+    store.delete_brief(response.brief_id)
+
+    assert not (store.root / response.brief_id).exists()
+    assert store.list_briefs(limit=3) == []
+

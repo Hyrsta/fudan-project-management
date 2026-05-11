@@ -1,25 +1,41 @@
 import {
   Bookmark,
-  Database,
   FileText,
   LogOut,
-  Radar,
   Search,
   ShieldCheck,
   SlidersHorizontal,
   UserRound,
 } from "lucide-react";
 import { ReactNode, useEffect, useRef, useState } from "react";
+import type { Language, TFunction } from "../i18n";
+import { LanguageToggle } from "./LanguageToggle";
 
 type AppShellProps = {
   children: ReactNode;
+  activeView: "briefing" | "history";
   roleLabel: string;
   rbacEnabled: boolean;
+  language: Language;
+  t: TFunction;
   onHint: (message: string) => void;
+  onViewChange: (view: "briefing" | "history") => void;
+  onLanguageChange: (language: Language) => void;
   onLogout: () => void;
 };
 
-export function AppShell({ children, roleLabel, rbacEnabled, onHint, onLogout }: AppShellProps) {
+export function AppShell({
+  children,
+  activeView,
+  roleLabel,
+  rbacEnabled,
+  language,
+  t,
+  onHint,
+  onViewChange,
+  onLanguageChange,
+  onLogout,
+}: AppShellProps) {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement | null>(null);
   const roleInitials = roleLabel.slice(0, 2).toUpperCase();
@@ -54,37 +70,32 @@ export function AppShell({ children, roleLabel, rbacEnabled, onHint, onLogout }:
 
   return (
     <div className="app-frame command-center">
-      <aside className="side-rail" aria-label="Primary navigation">
-        <a className="rail-logo" href="/" aria-label="News Intelligence Studio">
-          <FileText size={18} />
-        </a>
-        <nav className="rail-nav" aria-label="Workspace">
-          <button className="rail-button is-active" type="button" aria-label="Research">
+      <aside className="side-rail" aria-label={t("nav.workspace")}>
+        <div className="rail-brand" title={t("product.name")} aria-hidden="true">
+          <span className="rail-logo-mark">
+            <FileText size={18} />
+          </span>
+        </div>
+        <nav className="rail-nav" aria-label={t("nav.primary")}>
+          <button
+            className="rail-button"
+            type="button"
+            aria-label={t("nav.newBrief")}
+            title={t("nav.newBrief")}
+            aria-current={activeView === "briefing" ? "page" : undefined}
+            onClick={() => onViewChange("briefing")}
+          >
             <Search size={18} />
           </button>
           <button
             className="rail-button"
             type="button"
-            aria-label="Saved reports"
-            onClick={() => onHint("Recent reports are beside the command bar")}
+            aria-label={t("nav.recentBriefs")}
+            title={t("nav.recentBriefs")}
+            aria-current={activeView === "history" ? "page" : undefined}
+            onClick={() => onViewChange("history")}
           >
             <Bookmark size={18} />
-          </button>
-          <button
-            className="rail-button"
-            type="button"
-            aria-label="Source evidence"
-            onClick={() => onHint("Open a report to inspect ranked source evidence")}
-          >
-            <Database size={18} />
-          </button>
-          <button
-            className="rail-button"
-            type="button"
-            aria-label="Signal watch"
-            onClick={() => onHint("Watch items appear inside generated reports")}
-          >
-            <Radar size={18} />
           </button>
         </nav>
       </aside>
@@ -95,12 +106,15 @@ export function AppShell({ children, roleLabel, rbacEnabled, onHint, onLogout }:
             <div className="brand-block">
               <span className="eyebrow">
                 <SlidersHorizontal size={14} />
-                Analyst command center
+                {t("app.commandCenter")}
               </span>
-              <h1>News Intelligence Studio</h1>
+              <h1>{t("product.name")}</h1>
             </div>
             <div className="top-actions">
-              <span className="status-chip sync">Local data synced</span>
+              <span className="status-chip sync">{t("app.localDataSynced")}</span>
+              <div className="top-language-switch">
+                <LanguageToggle language={language} t={t} onLanguageChange={onLanguageChange} />
+              </div>
               <div className="profile-menu" ref={profileMenuRef}>
                 <button
                   className="status-chip profile-trigger"
@@ -120,17 +134,17 @@ export function AppShell({ children, roleLabel, rbacEnabled, onHint, onLogout }:
                       <span className="avatar-chip">{roleInitials}</span>
                       <span>
                         <strong>{roleLabel}</strong>
-                        <small>Local workspace session</small>
+                        <small>{t("profile.session")}</small>
                       </span>
                     </div>
-                    <button className="profile-menu-item" type="button" role="menuitem" onClick={() => onHint("Current role controls route access")}>
+                    <button className="profile-menu-item" type="button" role="menuitem" onClick={() => onHint(t("profile.roleHint"))}>
                       <UserRound size={16} />
-                      Role details
+                      {t("profile.roleDetails")}
                     </button>
                     {rbacEnabled && (
                       <button className="profile-menu-item is-danger" type="button" role="menuitem" onClick={handleLogout}>
                         <LogOut size={16} />
-                        Sign out
+                        {t("profile.signOut")}
                       </button>
                     )}
                   </div>

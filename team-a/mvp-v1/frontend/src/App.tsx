@@ -2,13 +2,23 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { fallbackConfig } from "./config";
 import { AppShell } from "./components/AppShell";
 import { BriefComposer } from "./components/BriefComposer";
+import { BriefHistory } from "./components/BriefHistory";
 import { BriefReport } from "./components/BriefReport";
 import { EmptyState } from "./components/EmptyState";
 import { LoginPage } from "./components/LoginPage";
-import { RecentBriefs } from "./components/RecentBriefs";
 import type { AppConfig, AuthSession, BriefResponse } from "./types";
+import {
+  createTranslator,
+  htmlLang,
+  loadStoredLanguage,
+  localizeRole,
+  persistLanguage,
+  type Language,
+} from "./i18n";
 import { loadStoredAuthSession, persistAuthSession } from "./utils/auth";
 import { safeJson } from "./utils/http";
+
+type AppView = "briefing" | "history";
 
 export default function App() {
   const [config, setConfig] = useState<AppConfig>(fallbackConfig);
@@ -19,10 +29,13 @@ export default function App() {
   const [goal, setGoal] = useState("");
   const [mode, setMode] = useState("auto");
   const [persona, setPersona] = useState("research_analyst");
+  const [language, setLanguage] = useState<Language>(() => loadStoredLanguage());
+  const [activeView, setActiveView] = useState<AppView>("briefing");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [loginError, setLoginError] = useState("");
   const [toast, setToast] = useState("");
+  const t = useMemo(() => createTranslator(language), [language]);
 
   const activeRole = authSession?.role || config.rbac.default_role;
   const activeToken = config.rbac.enabled ? authSession?.token || "" : "";
@@ -30,7 +43,8 @@ export default function App() {
     () => config.rbac.roles.find((item) => item.value === activeRole) || config.rbac.roles[0],
     [activeRole, config.rbac.roles],
   );
-  const roleLabel = roleMeta?.label || activeRole;
+  const roleLabel = localizeRole(activeRole, language, roleMeta?.label || activeRole);
+  const canDeleteBriefs = !config.rbac.enabled || activeRole === "admin";
 
   useEffect(() => {
     async function bootstrap() {
@@ -46,11 +60,11 @@ export default function App() {
           );
         }
       } catch {
-        setError("Could not load workspace configuration.");
+        setError(t("error.configLoad"));
       }
     }
     bootstrap();
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     if (!config.rbac.enabled || activeToken) {
@@ -65,6 +79,11 @@ export default function App() {
   }, [authSession, config.rbac]);
 
   useEffect(() => {
+    persistLanguage(language);
+    document.documentElement.lang = htmlLang(language);
+  }, [language]);
+
+  useEffect(() => {
     if (!toast) return;
     const timer = window.setTimeout(() => setToast(""), 2400);
     return () => window.clearTimeout(timer);
@@ -72,32 +91,34 @@ export default function App() {
 
   async function handleLogin(nextSession: AuthSession) {
     setLoginError("");
-    const response = await fetch("/api/briefs/recent", {
+    const response = await fetch("/api/briefs/history?limit=50", {
       headers: authHeaders(nextSession.token),
     });
     if (!response.ok) {
       const payload = await safeJson(response);
-      throw new Error(payload?.detail || "Access key was rejected.");
+      throw new Error(payload?.detail || t("error.accessRejected"));
     }
     setRecentBriefs((await response.json()) as BriefResponse[]);
     setAuthSession(nextSession);
     setBrief(null);
-    setToast("Signed in");
+    setActiveView("briefing");
+    setToast(t("toast.signedIn"));
   }
 
   function handleLogout() {
     setAuthSession(null);
     setBrief(null);
     setRecentBriefs([]);
+    setActiveView("briefing");
     setError("");
     setLoginError("");
-    setToast("Signed out");
+    setToast(t("toast.signedOut"));
   }
 
   async function loadRecentBriefs(token = activeToken) {
     if (config.rbac.enabled && !token) return;
     try {
-      const response = await fetch("/api/briefs/recent", {
+      const response = await fetch("/api/briefs/history?limit=50", {
         headers: authHeaders(token),
       });
       if (response.status === 401) {
@@ -108,6 +129,26 @@ export default function App() {
       setRecentBriefs((await response.json()) as BriefResponse[]);
     } catch {
       setRecentBriefs([]);
+    }
+  }
+
+  async function deleteBrief(briefId: string) {
+    if (!window.confirm(t("error.deleteConfirm"))) return;
+    setError("");
+    try {
+      const response = await fetch(`/api/briefs/${encodeURIComponent(briefId)}`, {
+        method: "DELETE",
+        headers: authHeaders(),
+      });
+      if (!response.ok) {
+        const payload = await safeJson(response);
+        throw new Error(payload?.detail || t("error.requestFailed", { status: response.status }));
+      }
+      setRecentBriefs((items) => items.filter((item) => item.brief_id !== briefId));
+      setBrief((current) => (current?.brief_id === briefId ? null : current));
+      setToast(t("toast.briefDeleted"));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("error.deleteFailed"));
     }
   }
 
@@ -131,14 +172,15 @@ export default function App() {
       });
       if (!response.ok) {
         const payload = await safeJson(response);
-        throw new Error(payload?.detail || `Request failed with ${response.status}`);
+        throw new Error(payload?.detail || t("error.requestFailed", { status: response.status }));
       }
       const payload = (await response.json()) as BriefResponse;
       setBrief(payload);
-      setToast("Brief generated");
+      setActiveView("briefing");
+      setToast(t("toast.briefGenerated"));
       loadRecentBriefs();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not generate the brief.");
+      setError(err instanceof Error ? err.message : t("error.generateFailed"));
     } finally {
       setIsLoading(false);
     }
@@ -152,19 +194,28 @@ export default function App() {
       });
       if (!response.ok) {
         const payload = await safeJson(response);
-        throw new Error(payload?.detail || `Request failed with ${response.status}`);
+        throw new Error(payload?.detail || t("error.requestFailed", { status: response.status }));
       }
       setBrief((await response.json()) as BriefResponse);
-      setToast("Brief loaded");
+      setActiveView("briefing");
+      setToast(t("toast.briefLoaded"));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not open the brief.");
+      setError(err instanceof Error ? err.message : t("error.openFailed"));
     }
   }
 
   if (config.rbac.enabled && !authSession) {
     return (
       <>
-        <LoginPage config={config.rbac} error={loginError} onError={setLoginError} onLogin={handleLogin} />
+        <LoginPage
+          config={config.rbac}
+          error={loginError}
+          language={language}
+          t={t}
+          onError={setLoginError}
+          onLanguageChange={setLanguage}
+          onLogin={handleLogin}
+        />
         {toast && <div className="toast-message">{toast}</div>}
       </>
     );
@@ -173,32 +224,53 @@ export default function App() {
   return (
     <>
       <AppShell
+        activeView={activeView}
         roleLabel={roleLabel}
         rbacEnabled={config.rbac.enabled}
+        language={language}
+        t={t}
         onHint={setToast}
+        onViewChange={setActiveView}
+        onLanguageChange={setLanguage}
         onLogout={handleLogout}
       >
-        <section className="analyst-grid">
-          <BriefComposer
-            topic={topic}
-            goal={goal}
-            mode={mode}
-            persona={persona}
-            personaOptions={config.persona_options}
-            isLoading={isLoading}
-            error={error}
-            onTopicChange={setTopic}
-            onGoalChange={setGoal}
-            onModeChange={setMode}
-            onPersonaChange={setPersona}
-            onSubmit={submitBrief}
-          />
-          <RecentBriefs briefs={recentBriefs} onOpenBrief={openBrief} />
-        </section>
+        {activeView === "briefing" && (
+          <>
+            <section className="briefing-view">
+              <BriefComposer
+                topic={topic}
+                goal={goal}
+                mode={mode}
+                persona={persona}
+                personaOptions={config.persona_options}
+                language={language}
+                t={t}
+                isLoading={isLoading}
+                error={error}
+                onTopicChange={setTopic}
+                onGoalChange={setGoal}
+                onModeChange={setMode}
+                onPersonaChange={setPersona}
+                onSubmit={submitBrief}
+              />
+            </section>
 
-        <section id="result-panel" className="result-panel">
-          {brief ? <BriefReport brief={brief} /> : <EmptyState />}
-        </section>
+            <section id="result-panel" className="result-panel">
+              {brief ? <BriefReport brief={brief} language={language} t={t} /> : <EmptyState t={t} />}
+            </section>
+          </>
+        )}
+
+        {activeView === "history" && (
+          <BriefHistory
+            briefs={recentBriefs}
+            canDelete={canDeleteBriefs}
+            language={language}
+            t={t}
+            onOpenBrief={openBrief}
+            onDeleteBrief={deleteBrief}
+          />
+        )}
       </AppShell>
       {toast && <div className="toast-message">{toast}</div>}
     </>

@@ -1,34 +1,39 @@
 import { Database, FileText, GitCompareArrows, Link, Radar } from "lucide-react";
+import type { TFunction } from "../i18n";
 
-export function EmptyState() {
+type EmptyStateProps = {
+  t: TFunction;
+};
+
+export function EmptyState({ t }: EmptyStateProps) {
   return (
     <article className="empty-state">
       <div className="empty-copy-block">
         <div className="report-kicker">
-          <span className="badge success">Ready</span>
+          <span className="badge success">{t("report.ready")}</span>
           <span className="badge neutral">
             <Database size={15} />
-            Source aware
+            {t("empty.sourceAware")}
           </span>
         </div>
-        <h2>Ready for a briefing</h2>
-        <p>Enter a topic, choose a lens, and generate a source-ranked report.</p>
-        <div className="capability-row" aria-label="Report capabilities">
+        <h2>{t("empty.ready")}</h2>
+        <p>{t("empty.copy")}</p>
+        <div className="capability-row" aria-label={t("empty.capabilities")}>
           <span>
             <Link size={15} />
-            Evidence
+            {t("empty.evidence")}
           </span>
           <span>
             <GitCompareArrows size={15} />
-            Comparison
+            {t("empty.comparison")}
           </span>
           <span>
             <Radar size={15} />
-            Watch
+            {t("empty.watch")}
           </span>
           <span>
             <FileText size={15} />
-            Exports
+            {t("empty.exports")}
           </span>
         </div>
       </div>

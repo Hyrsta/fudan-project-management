@@ -165,6 +165,9 @@ class BriefService:
     def list_recent_briefs(self, limit: int = 6) -> List[BriefResponse]:
         return self.artifact_store.list_briefs(limit=limit)
 
+    def delete_brief(self, brief_id: str) -> None:
+        self.artifact_store.delete_brief(brief_id)
+
     def _prepare_live_articles(self, articles: Sequence[ArticleRecord], topic: str) -> List[ArticleRecord]:
         scored = score_articles(articles, topic=topic)
         deduplicated = deduplicate_articles(scored)

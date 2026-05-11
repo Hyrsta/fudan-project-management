@@ -17,6 +17,8 @@ class StubService:
     def __init__(self, export_path: Path, markdown_path: Path = None):
         self.export_path_value = export_path
         self.markdown_path_value = markdown_path or export_path.with_suffix(".md")
+        self.last_list_limit = None
+        self.deleted_brief_ids = []
         self.response = BriefResponse(
             brief_id="brief-123",
             topic="AI chip export controls",
@@ -63,6 +65,8 @@ class StubService:
         return self.response
 
     def load_brief_response(self, brief_id: str):
+        if brief_id == "brief-missing":
+            raise FileNotFoundError(brief_id)
         return self.response
 
     def get_export_path(self, brief_id: str):
@@ -74,8 +78,14 @@ class StubService:
     def load_handoff(self, brief_id: str):
         return self.handoff
 
-    def list_recent_briefs(self):
+    def list_recent_briefs(self, limit=6):
+        self.last_list_limit = limit
         return [self.response]
+
+    def delete_brief(self, brief_id: str):
+        if brief_id == "brief-missing":
+            raise FileNotFoundError(brief_id)
+        self.deleted_brief_ids.append(brief_id)
 
 
 def test_post_api_briefs_returns_json_contract(tmp_path) -> None:
@@ -244,6 +254,38 @@ def test_recent_and_saved_brief_json_endpoints(tmp_path) -> None:
     assert saved_response.status_code == 200
     assert saved_response.json()["overview"] == "Fallback overview"
     assert unauthorized_saved_response.status_code == 401
+
+
+def test_history_endpoint_returns_expanded_recent_brief_list(tmp_path) -> None:
+    export_path = tmp_path / "brief.html"
+    export_path.write_text("<html><body>Brief</body></html>")
+    service = StubService(export_path)
+    client = TestClient(create_app(service=service, artifact_root=tmp_path))
+
+    response = client.get("/api/briefs/history?limit=50", headers=VIEWER_HEADERS)
+
+    assert response.status_code == 200
+    assert response.json()[0]["brief_id"] == "brief-123"
+    assert service.last_list_limit == 50
+
+
+def test_delete_brief_is_admin_only_and_returns_not_found(tmp_path) -> None:
+    export_path = tmp_path / "brief.html"
+    export_path.write_text("<html><body>Brief</body></html>")
+    service = StubService(export_path)
+    client = TestClient(create_app(service=service, artifact_root=tmp_path))
+
+    viewer_response = client.delete("/api/briefs/brief-123", headers=VIEWER_HEADERS)
+    analyst_response = client.delete("/api/briefs/brief-123", headers=ANALYST_HEADERS)
+    admin_response = client.delete("/api/briefs/brief-123", headers=ADMIN_HEADERS)
+    missing_response = client.delete("/api/briefs/brief-missing", headers=ADMIN_HEADERS)
+
+    assert viewer_response.status_code == 403
+    assert analyst_response.status_code == 403
+    assert admin_response.status_code == 200
+    assert admin_response.json() == {"status": "deleted", "brief_id": "brief-123"}
+    assert missing_response.status_code == 404
+    assert service.deleted_brief_ids == ["brief-123"]
 
 
 def test_show_brief_returns_partial_for_htmx_inspection(tmp_path) -> None:

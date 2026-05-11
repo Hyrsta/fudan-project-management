@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import html
 import json
+import shutil
 from pathlib import Path
 
 from .models import BriefResponse, HandoffArtifact
@@ -13,7 +14,7 @@ class ArtifactStore:
         self.root.mkdir(parents=True, exist_ok=True)
 
     def brief_dir(self, brief_id: str) -> Path:
-        path = self.root / brief_id
+        path = self._brief_dir_path(brief_id)
         path.mkdir(parents=True, exist_ok=True)
         return path
 
@@ -52,6 +53,13 @@ class ArtifactStore:
 
     def load_handoff(self, brief_id: str) -> HandoffArtifact:
         return HandoffArtifact.model_validate_json(self.handoff_path(brief_id).read_text())
+
+    def delete_brief(self, brief_id: str) -> None:
+        path = self._brief_dir_path(brief_id)
+        if not path.is_dir():
+            raise FileNotFoundError(brief_id)
+        shutil.rmtree(path)
+        self._remove_from_manifest(brief_id)
 
     def list_briefs(self, limit: int = 6) -> list[BriefResponse]:
         manifest_briefs = self._list_from_manifest(limit=limit)
@@ -126,6 +134,23 @@ class ArtifactStore:
         ]
         manifest["briefs"] = [entry] + existing
         self.manifest_path().write_text(json.dumps(manifest, indent=2))
+
+    def _remove_from_manifest(self, brief_id: str) -> None:
+        manifest = self._read_manifest()
+        manifest["briefs"] = [
+            item for item in manifest.get("briefs", [])
+            if item.get("brief_id") != brief_id
+        ]
+        self.manifest_path().write_text(json.dumps(manifest, indent=2))
+
+    def _brief_dir_path(self, brief_id: str) -> Path:
+        if not brief_id or Path(brief_id).name != brief_id:
+            raise FileNotFoundError(brief_id)
+        root = self.root.resolve()
+        path = (self.root / brief_id).resolve()
+        if path == root or root not in path.parents:
+            raise FileNotFoundError(brief_id)
+        return path
 
 
 def _render_export_html(response: BriefResponse) -> str:

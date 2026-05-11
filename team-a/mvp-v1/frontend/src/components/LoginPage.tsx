@@ -1,15 +1,20 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Activity, FileText, KeyRound, LogIn, ShieldCheck } from "lucide-react";
+import type { Language, TFunction } from "../i18n";
 import type { AuthSession, RbacConfig } from "../types";
+import { LanguageToggle } from "./LanguageToggle";
 
 type LoginPageProps = {
   config: RbacConfig;
   error: string;
+  language: Language;
+  t: TFunction;
   onError: (value: string) => void;
+  onLanguageChange: (language: Language) => void;
   onLogin: (session: AuthSession) => Promise<void>;
 };
 
-export function LoginPage({ config, error, onError, onLogin }: LoginPageProps) {
+export function LoginPage({ config, error, language, t, onError, onLanguageChange, onLogin }: LoginPageProps) {
   const hasDemoTokens = Object.keys(config.demo_tokens).length > 0;
   const [mode, setMode] = useState<"demo" | "custom">(hasDemoTokens ? "demo" : "custom");
   const [apiKey, setApiKey] = useState("");
@@ -25,7 +30,7 @@ export function LoginPage({ config, error, onError, onLogin }: LoginPageProps) {
     onError("");
     const token = mode === "demo" ? config.demo_tokens[demoRole] : apiKey.trim();
     if (!token) {
-      onError(mode === "demo" ? "Demo access is not configured." : "Enter an API key.");
+      onError(mode === "demo" ? t("error.demoNotConfigured") : t("error.enterApiKey"));
       return;
     }
 
@@ -33,7 +38,7 @@ export function LoginPage({ config, error, onError, onLogin }: LoginPageProps) {
     try {
       await onLogin({ role: mode === "demo" ? demoRole : config.default_role, token, custom: mode === "custom" });
     } catch (err) {
-      onError(err instanceof Error ? err.message : "Could not sign in.");
+      onError(err instanceof Error ? err.message : t("error.signInFailed"));
     } finally {
       setIsSubmitting(false);
     }
@@ -41,17 +46,17 @@ export function LoginPage({ config, error, onError, onLogin }: LoginPageProps) {
 
   return (
     <main className="login-screen command-center">
-      <section className="login-shell" aria-label="Sign in">
+      <section className="login-shell" aria-label={t("auth.signInLabel")}>
         <div className="login-intel">
-          <a className="rail-logo login-logo" href="/" aria-label="News Intelligence Studio">
+          <a className="rail-logo login-logo" href="/" aria-label={t("product.name")}>
             <FileText size={20} />
           </a>
           <span className="eyebrow">
             <Activity size={14} />
-            Local service online
+            {t("product.online")}
           </span>
-          <h1>News Intelligence Studio</h1>
-          <p>Source-ranked reports, persona lenses, and local handoff exports in one controlled workspace.</p>
+          <h1>{t("product.name")}</h1>
+          <p>{t("product.description")}</p>
           <div className="signal-board" aria-hidden="true">
             <span />
             <span />
@@ -69,23 +74,22 @@ export function LoginPage({ config, error, onError, onLogin }: LoginPageProps) {
           <div className="login-head">
             <span className="command-title">
               <ShieldCheck size={16} />
-              Secure local access
+              {t("auth.secureLocalAccess")}
             </span>
-            <h2>Enter workspace</h2>
+            <h2>{t("auth.enterWorkspace")}</h2>
           </div>
+          <LanguageToggle language={language} t={t} onLanguageChange={onLanguageChange} />
 
           {mode === "demo" ? (
             <div className="login-entry-panel">
-              <p>
-                Open the local demo with report generation, saved briefs, exports, and handoff access enabled.
-              </p>
+              <p>{t("auth.demoDescription")}</p>
               <button className="primary-button" type="submit" disabled={isSubmitting || !hasDemoTokens}>
                 <LogIn size={18} />
-                {isSubmitting ? "Signing in" : "Enter demo workspace"}
+                {isSubmitting ? t("auth.signingIn") : t("auth.enterDemoWorkspace")}
               </button>
               <button className="text-link-button login-switch" type="button" onClick={() => setMode("custom")}>
                 <KeyRound size={16} />
-                Use API key
+                {t("auth.useApiKey")}
               </button>
             </div>
           ) : (
@@ -93,7 +97,7 @@ export function LoginPage({ config, error, onError, onLogin }: LoginPageProps) {
               <label className="login-field">
                 <span>
                   <KeyRound size={16} />
-                  API key
+                  {t("auth.apiKey")}
                 </span>
                 <input
                   type="password"
@@ -104,7 +108,7 @@ export function LoginPage({ config, error, onError, onLogin }: LoginPageProps) {
                 />
               </label>
               <button className="secondary-button login-switch" type="button" disabled={!hasDemoTokens} onClick={() => setMode("demo")}>
-                Use demo workspace
+                {t("auth.useDemoWorkspace")}
               </button>
             </div>
           )}
@@ -117,7 +121,7 @@ export function LoginPage({ config, error, onError, onLogin }: LoginPageProps) {
           {mode === "custom" && (
             <button className="primary-button" type="submit" disabled={isSubmitting}>
               <LogIn size={18} />
-              {isSubmitting ? "Signing in" : "Enter workspace"}
+              {isSubmitting ? t("auth.signingIn") : t("auth.enterWorkspace")}
             </button>
           )}
         </form>

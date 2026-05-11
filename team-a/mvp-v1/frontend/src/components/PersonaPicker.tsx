@@ -7,6 +7,7 @@ import {
   LucideIcon,
   ShieldAlert,
 } from "lucide-react";
+import { localizePersona, type Language, type TFunction } from "../i18n";
 import type { PersonaOption } from "../types";
 
 const personaIcons: Record<string, LucideIcon> = {
@@ -21,19 +22,22 @@ const personaIcons: Record<string, LucideIcon> = {
 type PersonaPickerProps = {
   options: PersonaOption[];
   value: string;
+  language: Language;
+  t: TFunction;
   onChange: (value: string) => void;
 };
 
-export function PersonaPicker({ options, value, onChange }: PersonaPickerProps) {
+export function PersonaPicker({ options, value, language, t, onChange }: PersonaPickerProps) {
   return (
-    <div className="persona-panel" aria-label="Report lens">
+    <div className="persona-panel" aria-label={t("persona.title")}>
       <div className="persona-title">
-        <span>Persona lens</span>
-        <p className="helper">Select the briefing logic.</p>
+        <span>{t("persona.title")}</span>
+        <p className="helper">{t("persona.helper")}</p>
       </div>
       <div className="persona-grid">
         {options.map((option) => {
           const Icon = personaIcons[option.value] || FileSearch;
+          const localized = localizePersona(option, language);
           return (
             <button
               className={`persona-card ${value === option.value ? "is-selected" : ""}`}
@@ -45,8 +49,8 @@ export function PersonaPicker({ options, value, onChange }: PersonaPickerProps) 
                 <Icon size={17} />
               </span>
               <span className="persona-copy">
-                <strong>{option.label}</strong>
-                <small>{option.short}</small>
+                <strong>{localized.label}</strong>
+                <small>{localized.short}</small>
               </span>
             </button>
           );
