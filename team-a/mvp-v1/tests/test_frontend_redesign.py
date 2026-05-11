@@ -150,12 +150,28 @@ def test_frontend_supports_global_trusted_sources_settings() -> None:
     assert "TrustedSourceSettings" in types
     assert "/api/trusted-sources" in app
     assert "loadTrustedSources" in app
-    assert "saveTrustedSources" in app
+    assert "persistTrustedSources" in app
     assert "trustedSourcePayload" in app
     assert 'className="trusted-sources-page"' in trusted_sources
     assert "onToggleCatalogSource" in trusted_sources
     assert "onAddCustomSource" in trusted_sources
-    assert "onSave" in trusted_sources
+
+
+def test_trusted_sources_autosaves_without_save_button() -> None:
+    app = (FRONTEND_SRC / "App.tsx").read_text()
+    i18n = (FRONTEND_SRC / "i18n.ts").read_text(encoding="utf-8")
+    styles = (FRONTEND_SRC / "styles.css").read_text()
+    trusted_sources = (FRONTEND_SRC / "components" / "TrustedSourcesPage.tsx").read_text()
+
+    assert "persistTrustedSources(nextSettings" in app
+    assert 'method: "PUT"' in app
+    assert "saveTrustedSources" not in app
+    assert "onSave" not in trusted_sources
+    assert "source-save-button" not in styles
+    assert 'className="source-autosave-status"' in trusted_sources
+    assert 't("sources.autosaving")' in trusted_sources
+    assert 't("sources.autosaved")' in trusted_sources
+    assert "Save settings" not in i18n
 
 
 def test_brief_history_page_supports_dense_history_and_delete_controls() -> None:

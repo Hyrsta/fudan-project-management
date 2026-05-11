@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { fallbackConfig } from "./config";
 import { AppShell } from "./components/AppShell";
 import { BriefComposer } from "./components/BriefComposer";
@@ -59,6 +59,7 @@ export default function App() {
   const [trustedSourcesError, setTrustedSourcesError] = useState("");
   const [loginError, setLoginError] = useState("");
   const [toast, setToast] = useState("");
+  const trustedSourceSaveSequence = useRef(0);
   const t = useMemo(() => createTranslator(language), [language]);
 
   const activeRole = authSession?.role || config.rbac.default_role;
@@ -188,18 +189,17 @@ export default function App() {
   }
 
   function onToggleCatalogSource(sourceId: string) {
-    setTrustedSourceDraft((current) => {
-      const selected = new Set(current.selected_source_ids);
-      if (selected.has(sourceId)) {
-        selected.delete(sourceId);
-      } else {
-        selected.add(sourceId);
-      }
-      return {
-        ...current,
-        selected_source_ids: Array.from(selected),
-      };
-    });
+    const selected = new Set(trustedSourceDraft.selected_source_ids);
+    if (selected.has(sourceId)) {
+      selected.delete(sourceId);
+    } else {
+      selected.add(sourceId);
+    }
+    const nextSettings = {
+      ...trustedSourceDraft,
+      selected_source_ids: Array.from(selected),
+    };
+    commitTrustedSources(nextSettings);
   }
 
   function updateCustomSourceDraft(field: keyof CustomTrustedSource, value: string) {
@@ -226,25 +226,36 @@ export default function App() {
       feed_url: feedUrl,
       weight: 0.96,
     };
-    setTrustedSourceDraft((current) => ({
-      ...current,
+    const nextSettings = {
+      ...trustedSourceDraft,
       custom_sources: [
-        ...current.custom_sources.filter((item) => (item.id || item.name) !== source.id),
+        ...trustedSourceDraft.custom_sources.filter((item) => (item.id || item.name) !== source.id),
         source,
       ],
-    }));
+    };
+    commitTrustedSources(nextSettings);
     setCustomSourceDraft(emptyCustomSourceDraft);
     setTrustedSourcesError("");
   }
 
   function removeCustomSource(sourceId: string) {
-    setTrustedSourceDraft((current) => ({
-      ...current,
-      custom_sources: current.custom_sources.filter((item) => (item.id || item.name) !== sourceId),
-    }));
+    const nextSettings = {
+      ...trustedSourceDraft,
+      custom_sources: trustedSourceDraft.custom_sources.filter((item) => (item.id || item.name) !== sourceId),
+    };
+    commitTrustedSources(nextSettings);
   }
 
-  async function saveTrustedSources() {
+  function commitTrustedSources(nextSettings: TrustedSourceSettings) {
+    if (!canManageTrustedSources) return;
+    const previousSettings = trustedSourceDraft;
+    setTrustedSourceDraft(nextSettings);
+    void persistTrustedSources(nextSettings, previousSettings);
+  }
+
+  async function persistTrustedSources(nextSettings: TrustedSourceSettings, previousSettings: TrustedSourceSettings) {
+    const saveSequence = trustedSourceSaveSequence.current + 1;
+    trustedSourceSaveSequence.current = saveSequence;
     setTrustedSourcesError("");
     setIsSavingTrustedSources(true);
     try {
@@ -254,23 +265,27 @@ export default function App() {
           "Content-Type": "application/json",
           ...authHeaders(),
         },
-        body: JSON.stringify(trustedSourceDraft),
+        body: JSON.stringify(nextSettings),
       });
       if (!response.ok) {
         const payload = await safeJson(response);
         throw new Error(payload?.detail || t("error.requestFailed", { status: response.status }));
       }
       const settings = (await response.json()) as TrustedSourceSettings;
+      if (saveSequence !== trustedSourceSaveSequence.current) return;
       setTrustedSourceDraft(settings);
       setTrustedSourcePayload((current) => ({
         catalog: current?.catalog || [],
         settings,
       }));
-      setToast(t("toast.trustedSourcesSaved"));
     } catch (err) {
+      if (saveSequence !== trustedSourceSaveSequence.current) return;
+      setTrustedSourceDraft(previousSettings);
       setTrustedSourcesError(err instanceof Error ? err.message : t("error.trustedSourcesSave"));
     } finally {
-      setIsSavingTrustedSources(false);
+      if (saveSequence === trustedSourceSaveSequence.current) {
+        setIsSavingTrustedSources(false);
+      }
     }
   }
 
@@ -428,7 +443,6 @@ export default function App() {
             onCustomDraftChange={updateCustomSourceDraft}
             onAddCustomSource={onAddCustomSource}
             onRemoveCustomSource={removeCustomSource}
-            onSave={saveTrustedSources}
           />
         )}
       </AppShell>

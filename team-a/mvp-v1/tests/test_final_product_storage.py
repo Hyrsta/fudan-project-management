@@ -96,3 +96,12 @@ def test_artifact_store_deletes_brief_artifacts_and_manifest_entry(tmp_path) -> 
     assert not (store.root / response.brief_id).exists()
     assert store.list_briefs(limit=3) == []
 
+
+def test_artifact_store_uses_default_trusted_sources_when_settings_are_missing(tmp_path) -> None:
+    store = ArtifactStore(tmp_path / "artifacts")
+
+    settings = store.load_trusted_source_settings()
+
+    assert settings.selected_source_ids == ["reuters", "ap", "bbc-news"]
+    assert settings.custom_sources == []
+

@@ -1,4 +1,4 @@
-import { Plus, RadioTower, Rss, Save, ShieldCheck, Trash2 } from "lucide-react";
+import { Plus, RadioTower, Rss, ShieldCheck, Trash2 } from "lucide-react";
 import type { Language, TFunction } from "../i18n";
 import type { CustomTrustedSource, SourceCatalogItem, TrustedSourceSettings } from "../types";
 
@@ -15,7 +15,6 @@ type TrustedSourcesPageProps = {
   onCustomDraftChange: (field: keyof CustomTrustedSource, value: string) => void;
   onAddCustomSource: () => void;
   onRemoveCustomSource: (sourceId: string) => void;
-  onSave: () => void;
 };
 
 export function TrustedSourcesPage({
@@ -31,7 +30,6 @@ export function TrustedSourcesPage({
   onCustomDraftChange,
   onAddCustomSource,
   onRemoveCustomSource,
-  onSave,
 }: TrustedSourcesPageProps) {
   const selectedIds = new Set(settings.selected_source_ids);
   const selectedCount = settings.selected_source_ids.length + settings.custom_sources.length;
@@ -49,10 +47,12 @@ export function TrustedSourcesPage({
         </div>
         <div className="trusted-sources-actions">
           <span className="badge neutral">{t("sources.selectedCount", { count: selectedCount })}</span>
-          <button className="primary-button source-save-button" type="button" disabled={!canManage || isSaving} onClick={onSave}>
-            <Save size={16} />
-            {isSaving ? t("sources.saving") : t("sources.save")}
-          </button>
+          {canManage && (
+            <span className="source-autosave-status" data-state={isSaving ? "saving" : "saved"}>
+              <ShieldCheck size={15} />
+              {isSaving ? t("sources.autosaving") : t("sources.autosaved")}
+            </span>
+          )}
         </div>
       </div>
 

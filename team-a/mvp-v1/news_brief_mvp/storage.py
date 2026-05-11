@@ -7,6 +7,8 @@ from pathlib import Path
 
 from .models import BriefResponse, HandoffArtifact, TrustedSourceSettings
 
+DEFAULT_TRUSTED_SOURCE_IDS = ["reuters", "ap", "bbc-news"]
+
 
 class ArtifactStore:
     def __init__(self, root: Path):
@@ -67,11 +69,11 @@ class ArtifactStore:
     def load_trusted_source_settings(self) -> TrustedSourceSettings:
         path = self.trusted_sources_path()
         if not path.exists():
-            return TrustedSourceSettings()
+            return _default_trusted_source_settings()
         try:
             return TrustedSourceSettings.model_validate_json(path.read_text())
         except Exception:
-            return TrustedSourceSettings()
+            return _default_trusted_source_settings()
 
     def save_trusted_source_settings(self, settings: TrustedSourceSettings) -> None:
         self.trusted_sources_path().write_text(settings.model_dump_json(indent=2))
@@ -166,6 +168,10 @@ class ArtifactStore:
         if path == root or root not in path.parents:
             raise FileNotFoundError(brief_id)
         return path
+
+
+def _default_trusted_source_settings() -> TrustedSourceSettings:
+    return TrustedSourceSettings(selected_source_ids=DEFAULT_TRUSTED_SOURCE_IDS)
 
 
 def _render_export_html(response: BriefResponse) -> str:

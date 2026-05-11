@@ -63,7 +63,11 @@ def load_source_registry(path: Path) -> SourceRegistry:
                     weight=feed.weight,
                 )
             )
-    return SourceRegistry(weights=normalized_weights, direct_feeds=direct_feeds, catalog=catalog)
+    return SourceRegistry(
+        weights=normalized_weights,
+        direct_feeds=direct_feeds,
+        catalog=sorted(catalog, key=_source_catalog_sort_key),
+    )
 
 
 def source_weight_for(source_name: str, registry: Union[SourceRegistry, Dict[str, float]]) -> float:
@@ -71,6 +75,10 @@ def source_weight_for(source_name: str, registry: Union[SourceRegistry, Dict[str
     if isinstance(registry, SourceRegistry):
         return registry.weight_for(source_name)
     return registry.get(normalized, registry.get("default", 0.45))
+
+
+def _source_catalog_sort_key(source: SourceCatalogItem) -> tuple[int, float, str]:
+    return (0 if source.feed_url else 1, -source.weight, source.name.lower())
 
 
 def load_fallback_dataset(path: Path) -> FallbackDataset:
