@@ -177,14 +177,92 @@ def _render_export_html(response: BriefResponse) -> str:
     <meta charset="utf-8">
     <title>{html.escape(response.topic)} - News Intelligence Report</title>
     <style>
-      body {{ font-family: Georgia, serif; max-width: 960px; margin: 2rem auto; line-height: 1.6; color: #1f2937; }}
-      h1, h2 {{ color: #111827; }}
-      .meta {{ color: #4b5563; margin-bottom: 1.5rem; }}
-      .callout {{ background: #f3f4f6; padding: 1rem; border-radius: 12px; }}
-      ul {{ padding-left: 1.2rem; }}
+      :root {{
+        --paper: #f4efe4;
+        --surface: #fffaf0;
+        --surface-strong: #ffffff;
+        --ink: #18201c;
+        --ink-soft: #344139;
+        --muted: #6d746c;
+        --border: #d8cebb;
+        --signal-green: #116149;
+        --signal-green-soft: #dceee2;
+        --vermilion: #c1452c;
+        --vermilion-soft: #f8ded6;
+        --link-blue: #2f6683;
+        --radius: 8px;
+        --font-body: Aptos, Candara, "Trebuchet MS", sans-serif;
+        --font-display: Bahnschrift, "Aptos Display", "Trebuchet MS", sans-serif;
+      }}
+      * {{ box-sizing: border-box; }}
+      body.command-center-export {{
+        max-width: 1020px;
+        margin: 0 auto;
+        padding: 2rem;
+        background:
+          linear-gradient(90deg, rgba(17, 97, 73, 0.08) 1px, transparent 1px),
+          linear-gradient(180deg, rgba(17, 97, 73, 0.06) 1px, transparent 1px),
+          var(--paper);
+        background-size: 40px 40px, 40px 40px, auto;
+        color: var(--ink);
+        font-family: var(--font-body);
+        line-height: 1.6;
+      }}
+      h1, h2, .meta, .callout strong {{
+        font-family: var(--font-display);
+      }}
+      h1 {{
+        margin: 0 0 0.75rem;
+        font-size: clamp(2rem, 5vw, 3.5rem);
+        line-height: 0.98;
+      }}
+      h2 {{
+        margin: 1.6rem 0 0.6rem;
+        color: var(--ink);
+        font-size: 1.05rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }}
+      a {{ color: var(--link-blue); font-weight: 700; }}
+      .meta {{
+        color: var(--muted);
+        margin-bottom: 1.5rem;
+      }}
+      .callout {{
+        border: 1px solid var(--border);
+        border-left: 4px solid var(--signal-green);
+        border-radius: var(--radius);
+        background: rgba(255, 250, 240, 0.94);
+        box-shadow: 0 18px 42px rgba(42, 35, 24, 0.12);
+        padding: 1rem 1.1rem;
+      }}
+      .confidence-strip {{
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.6rem;
+        margin: 0.8rem 0;
+      }}
+      .confidence-strip span {{
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface-strong);
+        padding: 0.65rem;
+      }}
+      ol, ul {{ padding-left: 1.2rem; }}
+      li {{ margin: 0.45rem 0; }}
+      li strong {{ color: var(--ink); }}
+      .source-list li {{
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 0.7rem;
+      }}
+      .source-list li:last-child {{ border-bottom: 0; }}
+      @media (max-width: 720px) {{
+        body.command-center-export {{ padding: 1rem; }}
+        .confidence-strip {{ grid-template-columns: 1fr; }}
+      }}
     </style>
   </head>
-  <body>
+  <body class="command-center-export">
     <h1>{html.escape(response.topic)}</h1>
     <p class="meta">Lens: {html.escape(response.persona_label)} | Coverage: {html.escape(coverage_label)} | Analysis: {html.escape(section_label)} | Report ID: {html.escape(response.brief_id)}</p>
     <div class="callout">
@@ -193,7 +271,12 @@ def _render_export_html(response: BriefResponse) -> str:
       {goal_html}
     </div>
     <h2>Confidence</h2>
-    <p>{response.confidence.score}/100 - {html.escape(response.confidence.level)} confidence. Source diversity: {html.escape(response.confidence.source_diversity)}. Freshness: {html.escape(response.confidence.freshness)}. Topic fit: {html.escape(response.confidence.topic_fit)}.</p>
+    <p>{response.confidence.score}/100 - {html.escape(response.confidence.level)} confidence.</p>
+    <div class="confidence-strip">
+      <span><strong>{html.escape(response.confidence.source_diversity)}</strong><br>Sources</span>
+      <span><strong>{html.escape(response.confidence.freshness)}</strong><br>Freshness</span>
+      <span><strong>{html.escape(response.confidence.topic_fit)}</strong><br>Topic fit</span>
+    </div>
     <ul>{confidence_items}</ul>
     <h2>{html.escape(titles.get("takeaways", "Key takeaways"))}</h2>
     <ul>{takeaway_items}</ul>
@@ -208,7 +291,7 @@ def _render_export_html(response: BriefResponse) -> str:
     <h2>Source evidence</h2>
     <ol>{evidence_items}</ol>
     <h2>Selected sources</h2>
-    <ol>{"".join(article_items)}</ol>
+    <ol class="source-list">{"".join(article_items)}</ol>
   </body>
 </html>
 """
