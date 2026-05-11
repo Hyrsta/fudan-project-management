@@ -111,7 +111,8 @@ export function AppShell({ children, roleLabel, rbacEnabled, onHint, onLogout }:
                   onClick={() => setIsProfileOpen((current) => !current)}
                 >
                   <ShieldCheck size={16} />
-                  {roleLabel}
+                  <span className="profile-trigger-label">{roleLabel}</span>
+                  <span className="profile-trigger-avatar">{roleInitials}</span>
                 </button>
                 {isProfileOpen && (
                   <div className="profile-dropdown" id="profile-menu" role="menu">
@@ -135,7 +136,6 @@ export function AppShell({ children, roleLabel, rbacEnabled, onHint, onLogout }:
                   </div>
                 )}
               </div>
-              <span className="avatar-chip">{roleInitials}</span>
             </div>
           </header>
           {children}

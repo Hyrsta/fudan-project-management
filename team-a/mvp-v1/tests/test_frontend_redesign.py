@@ -58,6 +58,15 @@ def test_profile_chip_opens_menu_with_logout_action() -> None:
     assert ".profile-dropdown" in styles
 
 
+def test_profile_trigger_merges_role_and_initials() -> None:
+    app_shell = (FRONTEND_SRC / "components" / "AppShell.tsx").read_text()
+    styles = (FRONTEND_SRC / "styles.css").read_text()
+
+    assert "profile-trigger-avatar" in app_shell
+    assert app_shell.count('className="avatar-chip">{roleInitials}</span>') == 1
+    assert ".profile-trigger-avatar" in styles
+
+
 def test_coverage_select_label_stays_on_one_line() -> None:
     styles = (FRONTEND_SRC / "styles.css").read_text()
 

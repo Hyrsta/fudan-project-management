@@ -288,6 +288,9 @@ a:focus-visible {
 }
 
 .profile-trigger {
+  gap: 10px;
+  min-height: 46px;
+  padding: 0 8px 0 12px;
   cursor: pointer;
 }
 
@@ -295,6 +298,23 @@ a:focus-visible {
   border-color: var(--signal-green);
   background: var(--signal-green-soft);
   color: var(--ink);
+}
+
+.profile-trigger-label {
+  font-weight: 760;
+}
+
+.profile-trigger-avatar {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--surface);
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 760;
 }
 
 .profile-dropdown {
