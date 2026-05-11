@@ -1101,6 +1101,7 @@ select {
   display: grid;
   place-items: center;
   min-height: 100vh;
+  overflow-x: hidden;
   padding: 24px;
 }
 
@@ -1109,6 +1110,7 @@ select {
   grid-template-columns: minmax(260px, 430px) minmax(320px, 470px);
   gap: 26px;
   width: min(980px, 100%);
+  min-width: 0;
   align-items: stretch;
 }
 
@@ -1116,6 +1118,8 @@ select {
   display: grid;
   align-content: center;
   gap: 16px;
+  min-width: 0;
+  overflow: hidden;
   border: 1px solid rgba(184, 170, 145, 0.72);
   border-radius: var(--radius);
   background: var(--ink);
@@ -1131,10 +1135,12 @@ select {
 .login-intel h1 {
   font-size: clamp(2rem, 5vw, 3.6rem);
   line-height: 0.95;
+  text-wrap: balance;
 }
 
 .login-intel p {
   color: #d9d0bf;
+  overflow-wrap: break-word;
 }
 
 .login-logo {
@@ -1168,6 +1174,7 @@ select {
   display: grid;
   align-content: center;
   gap: 16px;
+  min-width: 0;
   padding: 22px;
 }
 
@@ -1176,82 +1183,30 @@ select {
   gap: 6px;
 }
 
-.login-tabs {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.login-tab,
-.login-role-card {
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface-strong);
-  color: var(--ink);
-}
-
-.login-tab {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-height: 42px;
-  font-family: var(--font-display);
-  font-weight: 760;
-}
-
-.login-tab:hover,
-.login-tab.is-selected {
-  border-color: var(--signal-green);
-  background: var(--signal-green-soft);
-}
-
-.login-tab:disabled {
-  opacity: 0.48;
-}
-
-.login-role-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.login-role-card {
-  display: grid;
-  gap: 7px;
-  min-height: 136px;
-  padding: 12px;
-  text-align: left;
-}
-
-.login-role-card:hover,
-.login-role-card.is-selected {
-  border-color: var(--signal-green);
-  background: var(--signal-green-soft);
-}
-
-.login-role-card span {
-  display: inline-grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface);
-  color: var(--vermilion);
-  font-family: var(--font-display);
-  font-size: 0.74rem;
-  font-weight: 780;
-}
-
-.login-role-card small {
-  color: var(--muted);
-  font-size: 0.76rem;
-}
-
+.login-entry-panel,
 .login-custom-grid {
   display: grid;
-  gap: 10px;
+  gap: 14px;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.58);
+  padding: 16px;
+}
+
+.login-entry-panel p {
+  max-width: 520px;
+  color: var(--muted);
+  overflow-wrap: break-word;
+}
+
+.login-entry-panel .primary-button {
+  width: 100%;
+}
+
+.login-switch {
+  width: fit-content;
+  justify-self: center;
 }
 
 .login-field {
@@ -1311,8 +1266,6 @@ select {
   .report-head,
   .source-row,
   .login-shell,
-  .login-role-grid,
-  .login-tabs,
   .empty-state {
     grid-template-columns: 1fr;
     flex-direction: column;
@@ -1321,6 +1274,12 @@ select {
 
   .persona-grid {
     grid-template-columns: 1fr;
+  }
+
+  .login-shell,
+  .login-intel,
+  .login-panel {
+    max-width: calc(100vw - 32px);
   }
 
   .quick-topics {
@@ -1338,6 +1297,17 @@ select {
     padding: 12px;
   }
 
+  .login-shell {
+    width: min(100%, 360px);
+    justify-self: start;
+  }
+
+  .login-intel,
+  .login-panel {
+    width: 100%;
+    max-width: 360px;
+  }
+
   .command-panel,
   .recent-panel,
   .report-card,
@@ -1345,6 +1315,12 @@ select {
   .login-panel,
   .login-intel {
     padding: 16px;
+  }
+
+  .login-intel h1 {
+    font-size: 1.85rem;
+    line-height: 1.04;
+    max-width: 12ch;
   }
 
   .report-actions,

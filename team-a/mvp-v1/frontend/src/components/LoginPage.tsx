@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useState } from "react";
-import { Activity, FileText, KeyRound, LogIn, ShieldCheck, UserRoundCheck } from "lucide-react";
+import { Activity, FileText, KeyRound, LogIn, ShieldCheck } from "lucide-react";
 import type { AuthSession, RbacConfig } from "../types";
 
 type LoginPageProps = {
@@ -12,21 +12,18 @@ type LoginPageProps = {
 export function LoginPage({ config, error, onError, onLogin }: LoginPageProps) {
   const hasDemoTokens = Object.keys(config.demo_tokens).length > 0;
   const [mode, setMode] = useState<"demo" | "custom">(hasDemoTokens ? "demo" : "custom");
-  const [selectedRole, setSelectedRole] = useState(config.default_role || config.roles[0]?.value || "viewer");
   const [apiKey, setApiKey] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const demoRole = resolveDemoRole(config);
 
   useEffect(() => {
     if (!hasDemoTokens) setMode("custom");
-    if (!config.roles.some((role) => role.value === selectedRole)) {
-      setSelectedRole(config.default_role || config.roles[0]?.value || "viewer");
-    }
-  }, [config.default_role, config.roles, hasDemoTokens, selectedRole]);
+  }, [hasDemoTokens]);
 
   async function submitLogin(event: FormEvent) {
     event.preventDefault();
     onError("");
-    const token = mode === "demo" ? config.demo_tokens[selectedRole] : apiKey.trim();
+    const token = mode === "demo" ? config.demo_tokens[demoRole] : apiKey.trim();
     if (!token) {
       onError(mode === "demo" ? "Demo access is not configured." : "Enter an API key.");
       return;
@@ -34,7 +31,7 @@ export function LoginPage({ config, error, onError, onLogin }: LoginPageProps) {
 
     setIsSubmitting(true);
     try {
-      await onLogin({ role: selectedRole, token, custom: mode === "custom" });
+      await onLogin({ role: mode === "demo" ? demoRole : config.default_role, token, custom: mode === "custom" });
     } catch (err) {
       onError(err instanceof Error ? err.message : "Could not sign in.");
     } finally {
@@ -72,45 +69,24 @@ export function LoginPage({ config, error, onError, onLogin }: LoginPageProps) {
           <div className="login-head">
             <span className="command-title">
               <ShieldCheck size={16} />
-              Access console
+              Secure local access
             </span>
-            <h2>Choose operating role</h2>
-          </div>
-
-          <div className="login-tabs" role="tablist" aria-label="Access method">
-            <button
-              className={`login-tab ${mode === "demo" ? "is-selected" : ""}`}
-              type="button"
-              disabled={!hasDemoTokens}
-              onClick={() => setMode("demo")}
-            >
-              <UserRoundCheck size={16} />
-              Demo account
-            </button>
-            <button
-              className={`login-tab ${mode === "custom" ? "is-selected" : ""}`}
-              type="button"
-              onClick={() => setMode("custom")}
-            >
-              <KeyRound size={16} />
-              API key
-            </button>
+            <h2>Enter workspace</h2>
           </div>
 
           {mode === "demo" ? (
-            <div className="login-role-grid">
-              {config.roles.map((role) => (
-                <button
-                  className={`login-role-card ${selectedRole === role.value ? "is-selected" : ""}`}
-                  type="button"
-                  key={role.value}
-                  onClick={() => setSelectedRole(role.value)}
-                >
-                  <span>{role.label.slice(0, 2).toUpperCase()}</span>
-                  <strong>{role.label}</strong>
-                  <small>{role.description}</small>
-                </button>
-              ))}
+            <div className="login-entry-panel">
+              <p>
+                Open the local demo with report generation, saved briefs, exports, and handoff access enabled.
+              </p>
+              <button className="primary-button" type="submit" disabled={isSubmitting || !hasDemoTokens}>
+                <LogIn size={18} />
+                {isSubmitting ? "Signing in" : "Enter demo workspace"}
+              </button>
+              <button className="text-link-button login-switch" type="button" onClick={() => setMode("custom")}>
+                <KeyRound size={16} />
+                Use API key
+              </button>
             </div>
           ) : (
             <div className="login-custom-grid">
@@ -127,19 +103,9 @@ export function LoginPage({ config, error, onError, onLogin }: LoginPageProps) {
                   autoFocus
                 />
               </label>
-              <label className="select-shell">
-                <span>
-                  <ShieldCheck size={16} />
-                  Role label
-                </span>
-                <select value={selectedRole} onChange={(event) => setSelectedRole(event.target.value)}>
-                  {config.roles.map((role) => (
-                    <option key={role.value} value={role.value}>
-                      {role.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <button className="secondary-button login-switch" type="button" disabled={!hasDemoTokens} onClick={() => setMode("demo")}>
+                Use demo workspace
+              </button>
             </div>
           )}
 
@@ -148,13 +114,20 @@ export function LoginPage({ config, error, onError, onLogin }: LoginPageProps) {
               {error}
             </div>
           )}
-
-          <button className="primary-button" type="submit" disabled={isSubmitting}>
-            <LogIn size={18} />
-            {isSubmitting ? "Signing in" : "Enter workspace"}
-          </button>
+          {mode === "custom" && (
+            <button className="primary-button" type="submit" disabled={isSubmitting}>
+              <LogIn size={18} />
+              {isSubmitting ? "Signing in" : "Enter workspace"}
+            </button>
+          )}
         </form>
       </section>
     </main>
   );
+}
+
+function resolveDemoRole(config: RbacConfig): string {
+  const preferredRoles = [config.default_role, "admin", "analyst", "viewer"];
+  const role = preferredRoles.find((item) => Boolean(config.demo_tokens[item]));
+  return role || Object.keys(config.demo_tokens)[0] || config.default_role;
 }

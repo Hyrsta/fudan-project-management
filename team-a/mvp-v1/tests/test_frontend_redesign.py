@@ -75,3 +75,14 @@ def test_coverage_select_label_stays_on_one_line() -> None:
     assert "display: inline-flex" in select_label_rule
     assert "align-items: center" in select_label_rule
     assert "white-space: nowrap" in select_label_rule
+
+
+def test_login_page_uses_single_demo_workspace_entry() -> None:
+    login_page = (FRONTEND_SRC / "components" / "LoginPage.tsx").read_text()
+
+    assert "Enter workspace" in login_page
+    assert "Enter demo workspace" in login_page
+    assert "Use API key" in login_page
+    assert "Choose operating role" not in login_page
+    assert "login-role-grid" not in login_page
+    assert "login-role-card" not in login_page
