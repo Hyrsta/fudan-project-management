@@ -19,6 +19,7 @@ def test_frontend_redesign_has_command_center_component_boundaries() -> None:
         "components/BriefReport.tsx",
         "components/EmptyState.tsx",
         "components/LanguageToggle.tsx",
+        "components/MarketingPages.tsx",
         "components/TrustedSourcesPage.tsx",
     ]
 
@@ -139,6 +140,23 @@ def test_app_splits_briefing_and_history_views() -> None:
     assert "<BriefHistory" in app
     assert "<TrustedSourcesPage" in app
     assert "<RecentBriefs" not in app
+
+
+def test_public_marketing_routes_point_to_login_and_existing_workspace() -> None:
+    app = (FRONTEND_SRC / "App.tsx").read_text()
+    marketing = (FRONTEND_SRC / "components" / "MarketingPages.tsx").read_text()
+    styles = (FRONTEND_SRC / "styles.css").read_text()
+
+    assert 'type AppRoute = "home" | "pricing" | "login" | "workspace"' in app
+    assert "getCurrentRoute" in app
+    assert 'navigateTo("/workspace")' in app
+    assert 'navigateTo("/login")' in app
+    assert "export function MarketingHomePage" in marketing
+    assert "export function PricingPage" in marketing
+    assert 'href="/login"' in marketing
+    assert 'href="/pricing"' in marketing
+    assert 'href="/workspace"' not in marketing
+    assert ".marketing-page" in styles
 
 
 def test_frontend_supports_global_trusted_sources_settings() -> None:

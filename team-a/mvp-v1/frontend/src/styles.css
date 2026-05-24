@@ -1617,12 +1617,305 @@ select {
   padding: 0 12px;
 }
 
+.marketing-page {
+  min-height: 100vh;
+  overflow-x: clip;
+  background:
+    linear-gradient(180deg, rgba(255, 250, 240, 0.86), rgba(244, 239, 228, 0.96)),
+    var(--paper);
+  padding: 18px 24px 44px;
+}
+
+.marketing-nav {
+  display: grid;
+  grid-template-columns: minmax(190px, 1fr) auto auto;
+  align-items: center;
+  gap: 16px;
+  width: min(1160px, 100%);
+  margin: 0 auto;
+  border-bottom: 1px solid rgba(184, 170, 145, 0.72);
+  padding-bottom: 14px;
+}
+
+.marketing-brand,
+.marketing-nav nav {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.marketing-brand {
+  gap: 10px;
+  color: var(--ink);
+  font-family: var(--font-display);
+}
+
+.marketing-brand strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.marketing-nav nav {
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: rgba(255, 250, 240, 0.76);
+  padding: 4px;
+}
+
+.marketing-nav nav a {
+  min-height: 34px;
+  border-radius: 6px;
+  padding: 7px 11px;
+  color: var(--ink-soft);
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  font-weight: 740;
+  white-space: nowrap;
+}
+
+.marketing-nav nav a:hover,
+.marketing-nav nav a[aria-current="page"] {
+  background: var(--signal-green-soft);
+  color: var(--ink);
+}
+
+.marketing-hero,
+.pricing-hero,
+.pricing-layout,
+.marketing-band {
+  width: min(1160px, 100%);
+  margin: 0 auto;
+}
+
+.marketing-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.02fr) minmax(330px, 0.78fr);
+  gap: 34px;
+  align-items: center;
+  min-height: 560px;
+  padding: 56px 0 36px;
+}
+
+.marketing-hero-copy {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+}
+
+.marketing-hero h1,
+.pricing-hero h1 {
+  max-width: 760px;
+  font-size: 3.8rem;
+  line-height: 0.96;
+  overflow-wrap: break-word;
+}
+
+.marketing-hero p,
+.pricing-hero p,
+.pricing-plan p,
+.pricing-note p,
+.marketing-step p {
+  color: var(--muted);
+  overflow-wrap: break-word;
+}
+
+.marketing-hero p,
+.pricing-hero p {
+  max-width: 680px;
+  font-size: 1.04rem;
+}
+
+.marketing-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.marketing-actions .primary-button,
+.marketing-actions .secondary-button,
+.pricing-plan .primary-button {
+  min-width: 172px;
+}
+
+.marketing-brief-preview,
+.pricing-plan,
+.pricing-note {
+  min-width: 0;
+  border: 1px solid rgba(184, 170, 145, 0.78);
+  border-radius: var(--radius);
+  background: rgba(255, 250, 240, 0.94);
+  box-shadow: var(--shadow);
+}
+
+.marketing-brief-preview {
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+}
+
+.marketing-preview-head,
+.pricing-plan-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  min-width: 0;
+}
+
+.marketing-preview-head span,
+.pricing-plan-head span,
+.pricing-plan li {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.marketing-preview-head span,
+.pricing-plan-head span {
+  color: var(--ink-soft);
+  font-family: var(--font-display);
+  font-weight: 760;
+}
+
+.marketing-preview-head strong,
+.pricing-plan-head strong {
+  border-radius: var(--radius);
+  background: var(--signal-green-soft);
+  color: var(--signal-green);
+  padding: 5px 8px;
+  font-family: var(--font-display);
+  font-size: 0.76rem;
+}
+
+.marketing-preview-topic {
+  border-left: 4px solid var(--vermilion);
+  background: rgba(235, 226, 209, 0.58);
+  padding: 16px;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 1.22rem;
+  font-weight: 760;
+}
+
+.marketing-preview-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.marketing-preview-grid span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink-soft);
+  font-weight: 720;
+}
+
+.marketing-preview-grid svg,
+.pricing-plan li svg {
+  flex: 0 0 auto;
+  color: var(--signal-green);
+}
+
+.marketing-band {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  padding-top: 8px;
+}
+
+.marketing-step {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  border-top: 3px solid var(--signal-green);
+  background: rgba(255, 250, 240, 0.56);
+  padding: 18px 0 0;
+}
+
+.marketing-step:nth-child(2) {
+  border-color: var(--link-blue);
+}
+
+.marketing-step:nth-child(3) {
+  border-color: var(--vermilion);
+}
+
+.marketing-step svg {
+  color: var(--signal-green);
+}
+
+.marketing-step:nth-child(2) svg {
+  color: var(--link-blue);
+}
+
+.marketing-step:nth-child(3) svg {
+  color: var(--vermilion);
+}
+
+.marketing-step h2 {
+  font-size: 1.18rem;
+}
+
+.pricing-hero {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  padding: 70px 0 28px;
+  text-align: center;
+}
+
+.pricing-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 18px;
+  align-items: start;
+}
+
+.pricing-plan {
+  display: grid;
+  gap: 18px;
+  padding: 22px;
+}
+
+.pricing-plan-head strong {
+  background: var(--vermilion-soft);
+  color: var(--vermilion);
+}
+
+.pricing-plan ul {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pricing-plan li {
+  color: var(--ink-soft);
+}
+
+.pricing-note {
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+}
+
 @media (max-width: 1120px) {
   .analyst-grid,
   .summary-row,
   .insight-grid,
-  .trusted-sources-layout {
+  .trusted-sources-layout,
+  .marketing-hero,
+  .pricing-layout {
     grid-template-columns: 1fr;
+  }
+
+  .marketing-hero {
+    min-height: 0;
   }
 
   .evidence-panel {
@@ -1654,10 +1947,22 @@ select {
   .source-row,
   .source-catalog-row,
   .login-shell,
-  .empty-state {
+  .empty-state,
+  .marketing-nav,
+  .marketing-band {
     grid-template-columns: 1fr;
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .marketing-nav nav {
+    justify-content: flex-start;
+    overflow-x: auto;
+  }
+
+  .marketing-hero h1,
+  .pricing-hero h1 {
+    font-size: 2.6rem;
   }
 
   .persona-grid {
@@ -1685,7 +1990,8 @@ select {
 
 @media (max-width: 520px) {
   .app-content,
-  .login-screen {
+  .login-screen,
+  .marketing-page {
     padding: 12px;
   }
 
@@ -1712,6 +2018,51 @@ select {
     font-size: 1.85rem;
     line-height: 1.04;
     max-width: 12ch;
+  }
+
+  .marketing-hero {
+    gap: 24px;
+    padding: 34px 0 24px;
+  }
+
+  .marketing-nav,
+  .marketing-hero,
+  .pricing-hero,
+  .pricing-layout,
+  .marketing-band {
+    width: min(100%, 366px);
+    margin-left: 0;
+    margin-right: auto;
+  }
+
+  .marketing-hero h1,
+  .pricing-hero h1 {
+    font-size: 1.92rem;
+    line-height: 1.02;
+  }
+
+  .pricing-hero h1 {
+    max-width: 13ch;
+  }
+
+  .marketing-brief-preview,
+  .pricing-plan,
+  .pricing-note {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .marketing-actions .primary-button,
+  .marketing-actions .secondary-button,
+  .pricing-plan .primary-button {
+    width: 100%;
+  }
+
+  .pricing-hero {
+    justify-items: start;
+    padding: 36px 0 24px;
+    text-align: left;
   }
 
   .report-actions,

@@ -6,6 +6,7 @@ import { BriefHistory } from "./components/BriefHistory";
 import { BriefReport } from "./components/BriefReport";
 import { EmptyState } from "./components/EmptyState";
 import { LoginPage } from "./components/LoginPage";
+import { MarketingHomePage, PricingPage } from "./components/MarketingPages";
 import { TrustedSourcesPage } from "./components/TrustedSourcesPage";
 import type {
   AppConfig,
@@ -27,6 +28,7 @@ import { loadStoredAuthSession, persistAuthSession } from "./utils/auth";
 import { safeJson } from "./utils/http";
 
 type AppView = "briefing" | "history" | "sources";
+type AppRoute = "home" | "pricing" | "login" | "workspace";
 
 const emptyTrustedSourceSettings: TrustedSourceSettings = {
   selected_source_ids: [],
@@ -52,6 +54,7 @@ export default function App() {
   const [mode, setMode] = useState("auto");
   const [persona, setPersona] = useState("research_analyst");
   const [language, setLanguage] = useState<Language>(() => loadStoredLanguage());
+  const [route, setRoute] = useState<AppRoute>(() => getCurrentRoute());
   const [activeView, setActiveView] = useState<AppView>("briefing");
   const [isLoading, setIsLoading] = useState(false);
   const [isSavingTrustedSources, setIsSavingTrustedSources] = useState(false);
@@ -113,10 +116,33 @@ export default function App() {
   }, [language]);
 
   useEffect(() => {
+    function syncRoute() {
+      setRoute(getCurrentRoute());
+    }
+
+    window.addEventListener("popstate", syncRoute);
+    return () => window.removeEventListener("popstate", syncRoute);
+  }, []);
+
+  useEffect(() => {
     if (!toast) return;
     const timer = window.setTimeout(() => setToast(""), 2400);
     return () => window.clearTimeout(timer);
   }, [toast]);
+
+  function navigateTo(path: string) {
+    if (window.location.pathname !== path) {
+      window.history.pushState({}, "", path);
+    }
+    setRoute(getCurrentRoute());
+    window.scrollTo({ top: 0, left: 0 });
+  }
+
+  useEffect(() => {
+    if (route === "login" && authSession) {
+      navigateTo("/workspace");
+    }
+  }, [authSession, route]);
 
   async function handleLogin(nextSession: AuthSession) {
     setLoginError("");
@@ -131,6 +157,7 @@ export default function App() {
     setAuthSession(nextSession);
     setBrief(null);
     setActiveView("briefing");
+    navigateTo("/workspace");
     setToast(t("toast.signedIn"));
   }
 
@@ -145,6 +172,7 @@ export default function App() {
     setError("");
     setTrustedSourcesError("");
     setLoginError("");
+    navigateTo("/login");
     setToast(t("toast.signedOut"));
   }
 
@@ -361,6 +389,14 @@ export default function App() {
     }
   }
 
+  if (route === "home") {
+    return <MarketingHomePage language={language} t={t} onLanguageChange={setLanguage} />;
+  }
+
+  if (route === "pricing") {
+    return <PricingPage language={language} t={t} onLanguageChange={setLanguage} />;
+  }
+
   if (config.rbac.enabled && !authSession) {
     return (
       <>
@@ -457,4 +493,12 @@ function slugify(value: string) {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
+}
+
+function getCurrentRoute(): AppRoute {
+  const pathname = window.location.pathname.replace(/\/+$/, "") || "/";
+  if (pathname === "/pricing") return "pricing";
+  if (pathname === "/login") return "login";
+  if (pathname === "/workspace") return "workspace";
+  return "home";
 }

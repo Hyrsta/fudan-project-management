@@ -259,6 +259,19 @@ def test_react_app_shell_is_served_from_root(tmp_path) -> None:
     assert "/static/react/assets/" in response.text
 
 
+def test_react_app_shell_is_served_for_client_side_routes(tmp_path) -> None:
+    export_path = tmp_path / "brief.html"
+    export_path.write_text("<html><body>Brief</body></html>")
+    client = TestClient(create_app(service=StubService(export_path), artifact_root=tmp_path))
+
+    for path in ["/login", "/workspace", "/pricing"]:
+        response = client.get(path)
+
+        assert response.status_code == 200
+        assert '<div id="root"></div>' in response.text
+        assert "/static/react/assets/" in response.text
+
+
 def test_config_api_returns_frontend_bootstrap_data(tmp_path) -> None:
     export_path = tmp_path / "brief.html"
     export_path.write_text("<html><body>Brief</body></html>")
