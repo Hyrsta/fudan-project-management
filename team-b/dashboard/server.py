@@ -49,8 +49,9 @@ def run_pipeline():
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
     print("=" * 50)
     print("  F.R.I.D.A.Y — Project Intelligence System")
-    print("  Starting server on http://localhost:5000")
+    print(f"  Starting server on http://localhost:{port}")
     print("=" * 50)
-    app.run(debug=False, port=5000)
+    app.run(debug=False, port=port)
