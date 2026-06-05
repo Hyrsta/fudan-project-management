@@ -19,8 +19,15 @@ def test_frontend_redesign_has_command_center_component_boundaries() -> None:
         "components/BriefReport.tsx",
         "components/EmptyState.tsx",
         "components/LanguageToggle.tsx",
-        "components/MarketingPages.tsx",
         "components/TrustedSourcesPage.tsx",
+        "components/marketing/MarketingHome.tsx",
+        "components/marketing/MarketingProduct.tsx",
+        "components/marketing/MarketingAccess.tsx",
+        "components/marketing/MarketingAbout.tsx",
+        "components/marketing/EditorialChrome.tsx",
+        "components/marketing/EditorialIcons.tsx",
+        "components/marketing/EditorialMocks.tsx",
+        "marketingData.ts",
     ]
 
     missing_files = [
@@ -144,19 +151,20 @@ def test_app_splits_briefing_and_history_views() -> None:
 
 def test_public_marketing_routes_point_to_login_and_existing_workspace() -> None:
     app = (FRONTEND_SRC / "App.tsx").read_text()
-    marketing = (FRONTEND_SRC / "components" / "MarketingPages.tsx").read_text()
+    marketing_dir = FRONTEND_SRC / "components" / "marketing"
+    home = (marketing_dir / "MarketingHome.tsx").read_text()
+    chrome = (marketing_dir / "EditorialChrome.tsx").read_text()
     styles = (FRONTEND_SRC / "styles.css").read_text()
 
-    assert 'type AppRoute = "home" | "pricing" | "login" | "workspace"' in app
+    assert 'type AppRoute = "home" | "product" | "access" | "about" | "login" | "workspace"' in app
     assert "getCurrentRoute" in app
     assert 'navigateTo("/workspace")' in app
     assert 'navigateTo("/login")' in app
-    assert "export function MarketingHomePage" in marketing
-    assert "export function PricingPage" in marketing
-    assert 'href="/login"' in marketing
-    assert 'href="/pricing"' in marketing
-    assert 'href="/workspace"' not in marketing
-    assert ".marketing-page" in styles
+    assert "export function MarketingHome" in home
+    assert 'href="/workspace"' in home
+    assert 'href="/login"' in chrome
+    assert ".a-root" in styles
+    assert ".marketing-page" not in styles
 
 
 def test_frontend_supports_global_trusted_sources_settings() -> None:

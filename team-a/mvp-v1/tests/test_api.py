@@ -264,7 +264,7 @@ def test_react_app_shell_is_served_for_client_side_routes(tmp_path) -> None:
     export_path.write_text("<html><body>Brief</body></html>")
     client = TestClient(create_app(service=StubService(export_path), artifact_root=tmp_path))
 
-    for path in ["/login", "/workspace", "/pricing"]:
+    for path in ["/login", "/workspace", "/product", "/access", "/about"]:
         response = client.get(path)
 
         assert response.status_code == 200

@@ -6,7 +6,10 @@ import { BriefHistory } from "./components/BriefHistory";
 import { BriefReport } from "./components/BriefReport";
 import { EmptyState } from "./components/EmptyState";
 import { LoginPage } from "./components/LoginPage";
-import { MarketingHomePage, PricingPage } from "./components/MarketingPages";
+import { MarketingHome } from "./components/marketing/MarketingHome";
+import { MarketingProduct } from "./components/marketing/MarketingProduct";
+import { MarketingAccess } from "./components/marketing/MarketingAccess";
+import { MarketingAbout } from "./components/marketing/MarketingAbout";
 import { TrustedSourcesPage } from "./components/TrustedSourcesPage";
 import type {
   AppConfig,
@@ -28,7 +31,7 @@ import { loadStoredAuthSession, persistAuthSession } from "./utils/auth";
 import { safeJson } from "./utils/http";
 
 type AppView = "briefing" | "history" | "sources";
-type AppRoute = "home" | "pricing" | "login" | "workspace";
+type AppRoute = "home" | "product" | "access" | "about" | "login" | "workspace";
 
 const emptyTrustedSourceSettings: TrustedSourceSettings = {
   selected_source_ids: [],
@@ -390,11 +393,16 @@ export default function App() {
   }
 
   if (route === "home") {
-    return <MarketingHomePage language={language} t={t} onLanguageChange={setLanguage} />;
+    return <MarketingHome language={language} t={t} onLanguageChange={setLanguage} />;
   }
-
-  if (route === "pricing") {
-    return <PricingPage language={language} t={t} onLanguageChange={setLanguage} />;
+  if (route === "product") {
+    return <MarketingProduct language={language} t={t} onLanguageChange={setLanguage} />;
+  }
+  if (route === "access") {
+    return <MarketingAccess language={language} t={t} onLanguageChange={setLanguage} />;
+  }
+  if (route === "about") {
+    return <MarketingAbout language={language} t={t} onLanguageChange={setLanguage} />;
   }
 
   if (config.rbac.enabled && !authSession) {
@@ -497,7 +505,9 @@ function slugify(value: string) {
 
 function getCurrentRoute(): AppRoute {
   const pathname = window.location.pathname.replace(/\/+$/, "") || "/";
-  if (pathname === "/pricing") return "pricing";
+  if (pathname === "/product") return "product";
+  if (pathname === "/access") return "access";
+  if (pathname === "/about") return "about";
   if (pathname === "/login") return "login";
   if (pathname === "/workspace") return "workspace";
   return "home";

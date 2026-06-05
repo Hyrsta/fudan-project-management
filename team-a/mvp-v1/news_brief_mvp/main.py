@@ -56,7 +56,9 @@ def create_app(
     @app.get("/", response_class=HTMLResponse)
     @app.get("/login", response_class=HTMLResponse)
     @app.get("/workspace", response_class=HTMLResponse)
-    @app.get("/pricing", response_class=HTMLResponse)
+    @app.get("/product", response_class=HTMLResponse)
+    @app.get("/access", response_class=HTMLResponse)
+    @app.get("/about", response_class=HTMLResponse)
     def index(request: Request):
         if react_index_path.exists():
             return FileResponse(react_index_path)
