@@ -1846,7 +1846,7 @@ select {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 22px 56px;
+  padding: 10px 56px;
   gap: 24px;
   white-space: nowrap;
   position: sticky;
@@ -1855,6 +1855,8 @@ select {
   background: var(--ab-paper);
   border-bottom: 1px solid var(--ab-rule);
 }
+.a-root .a-nav .a-btn { padding: 8px 14px; font-size: 13px; }
+.a-root .a-nav .a-link { font-size: 13px; }
 .a-root .a-nav-date {
   font-family: var(--ab-font-mono);
   font-size: 12px;
@@ -1939,7 +1941,7 @@ select {
 }
 @media (max-width: 980px) {
   .a-root .a-mast { display: none; }
-  .a-root .a-nav { padding: 18px 28px; gap: 16px; }
+  .a-root .a-nav { padding: 8px 28px; gap: 16px; }
   .a-root .a-container { padding-left: 28px; padding-right: 28px; }
   .a-root .a-hero { padding: 56px 28px 44px; }
   .a-root .a-hero h1 { font-size: 60px; }
