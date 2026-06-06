@@ -19,9 +19,6 @@ export function MarketingAbout({ language, t, onLanguageChange }: PageProps) {
       <ANav active="about" language={language} t={t} onLanguageChange={onLanguageChange} />
 
       <section className="a-hero" style={{ paddingBottom: 48 }}>
-        <div className="a-smallcaps" style={{ marginBottom: 22 }}>
-          {t("about.eyebrow")}
-        </div>
         <h1 style={{ fontSize: 80 }}>
           {t("about.title.a")}
           <br />
