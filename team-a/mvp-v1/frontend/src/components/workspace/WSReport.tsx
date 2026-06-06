@@ -198,8 +198,8 @@ export function WSReport({ brief, language, t, hasKey, canHandoff }: Props) {
                   <div style={{
                     position: "absolute", inset: 0,
                     width: `${a.total_score * 100}%`,
-                    background: i === 0 ? "var(--ab-green)" : "var(--ab-ink)",
-                    opacity: i === 0 ? 1 : 0.55, borderRadius: 2,
+                    background: "var(--ab-ink)",
+                    opacity: 0.7, borderRadius: 2,
                   }} />
                 </div>
                 <span className="a-mono" style={{ fontSize: 10.5, color: "var(--ab-ink-mute)", textAlign: "right" }}>
@@ -266,7 +266,7 @@ export function WSReport({ brief, language, t, hasKey, canHandoff }: Props) {
               <div key={a.id} style={{
                 display: "grid", gridTemplateColumns: "36px 1fr auto", gap: 14,
                 padding: "12px 14px", border: "1px solid var(--ab-rule)", borderRadius: 9,
-                background: i === 0 ? "var(--ab-paper-2)" : "var(--ab-paper)",
+                background: "var(--ab-paper)",
               }}>
                 <span className="a-mono" style={{
                   fontSize: 11, color: "var(--ab-ink-mute)", letterSpacing: "0.06em",
@@ -284,7 +284,7 @@ export function WSReport({ brief, language, t, hasKey, canHandoff }: Props) {
                     </p>
                   )}
                   <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
-                    <ScorePill label={t("report.rankLabel")} value={a.total_score} accent={i === 0} />
+                    <ScorePill label={t("report.rankLabel")} value={a.total_score} />
                     <ScorePill label={t("report.freshLabel")} value={a.freshness_score} />
                     <ScorePill label={t("report.fitLabel")} value={a.match_score} />
                   </div>
