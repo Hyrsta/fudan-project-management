@@ -220,12 +220,9 @@ export function WSComposer(p: Props) {
                   <div style={{ fontFamily: "var(--ab-font-display)", fontSize: 13.5, fontWeight: 600, marginBottom: 5 }}>
                     {p.t(`coverage.${cm.value}.label` as never)}
                   </div>
-                  <p style={{ fontSize: 12, lineHeight: 1.5, margin: "0 0 8px", color: "color-mix(in oklab, var(--ab-paper) 80%, transparent)" }}>
+                  <p style={{ fontSize: 12, lineHeight: 1.5, margin: 0, color: "color-mix(in oklab, var(--ab-paper) 80%, transparent)" }}>
                     {p.t(`coverage.${cm.value}.blurb` as never)}
                   </p>
-                  <div className="a-mono" style={{ fontSize: 9.5, letterSpacing: "0.06em", textTransform: "uppercase", color: "color-mix(in oklab, var(--ab-paper) 56%, transparent)" }}>
-                    {p.t(`coverage.${cm.value}.flow` as never)}
-                  </div>
                 </div>
               );
             })()}
