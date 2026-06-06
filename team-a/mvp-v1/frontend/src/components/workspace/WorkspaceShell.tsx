@@ -41,13 +41,14 @@ export function WorkspaceShell(p: Props) {
 
   return (
     <div className="a-root" style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-      {/* Thin top masthead band */}
+      {/* Top masthead band — height-matched to the marketing nav (.a-nav) */}
       <div className="ws-mast" style={{
         display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "6px 24px", borderBottom: "1px solid var(--ab-rule)",
+        padding: "10px 56px", gap: 24,
+        borderBottom: "1px solid var(--ab-rule)",
         background: "var(--ab-paper)",
-        fontFamily: "var(--ab-font-mono)", fontSize: 10.5, letterSpacing: "0.04em",
-        color: "var(--ab-ink-mute)",
+        fontFamily: "var(--ab-font-mono)", fontSize: 12, letterSpacing: "0.02em",
+        color: "var(--ab-ink-soft)",
       }}>
         <span>{today}</span>
         <div style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
