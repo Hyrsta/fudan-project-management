@@ -1961,3 +1961,18 @@ html { scroll-behavior: smooth; }
   .a-root .a-feat-grid,
   .a-root .a-steps { grid-template-columns: 1fr; }
 }
+
+/* === Editorial workspace polish (port from Website UIUX/prod/workspace.jsx) === */
+.a-root .ws-rail-button:hover {
+  background: color-mix(in oklab, var(--ab-paper) 12%, transparent);
+  color: #fff;
+}
+.a-root .ws-rail-button:focus-visible {
+  outline: 2px solid var(--ab-green);
+  outline-offset: -2px;
+}
+.a-root .ws-account-signout:hover {
+  background: var(--ab-paper-2);
+  color: var(--ab-accent);
+}
+.a-root .ws-topbar { backdrop-filter: blur(6px); }
