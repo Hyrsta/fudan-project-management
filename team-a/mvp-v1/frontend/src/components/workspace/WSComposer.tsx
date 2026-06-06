@@ -44,12 +44,16 @@ export function WSComposer(p: Props) {
   return (
     <form onSubmit={p.onSubmit} aria-busy={p.isLoading}>
       <section style={{
-        position: "relative", overflow: "hidden",
+        position: "relative",
         background: "color-mix(in oklab, var(--ab-paper) 94%, #fff)",
         border: "1px solid var(--ab-rule)", borderRadius: 10,
         padding: "24px 28px 26px 30px", marginBottom: 28,
       }}>
-        <span style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 4, background: STRIPE }} />
+        <span style={{
+          position: "absolute", left: 0, top: 0, bottom: 0, width: 4,
+          background: STRIPE,
+          borderTopLeftRadius: 10, borderBottomLeftRadius: 10,
+        }} />
 
         {/* Topic row */}
         <div style={{ marginBottom: 10 }}>
