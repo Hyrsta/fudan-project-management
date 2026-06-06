@@ -70,6 +70,23 @@ export function MarketingHome({ language, t, onLanguageChange }: PageProps) {
 
       <section style={{ padding: "96px 56px 0" }} className="a-container">
         <ASectionHead
+          eyebrow={t("home.steps.eyebrow")}
+          title={t("home.steps.title.a")}
+          italicTail={t("home.steps.title.b")}
+        />
+        <div className="a-steps">
+          {stepDefs.map(([n, hk, pk]) => (
+            <div key={n} className="a-step">
+              <div className="a-step-num">{n}</div>
+              <h3>{t(hk)}</h3>
+              <p>{t(pk as never)}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section style={{ padding: "96px 56px 0" }} className="a-container">
+        <ASectionHead
           eyebrow={t("home.personas.eyebrow")}
           title={t("home.personas.title.a")}
           italicTail={t("home.personas.title.b")}
@@ -177,23 +194,6 @@ export function MarketingHome({ language, t, onLanguageChange }: PageProps) {
             persona: captionPersona,
           })}
         </p>
-      </section>
-
-      <section style={{ padding: "0 56px 96px" }} className="a-container">
-        <ASectionHead
-          eyebrow={t("home.steps.eyebrow")}
-          title={t("home.steps.title.a")}
-          italicTail={t("home.steps.title.b")}
-        />
-        <div className="a-steps">
-          {stepDefs.map(([n, hk, pk]) => (
-            <div key={n} className="a-step">
-              <div className="a-step-num">{n}</div>
-              <h3>{t(hk)}</h3>
-              <p>{t(pk as never)}</p>
-            </div>
-          ))}
-        </div>
       </section>
 
       <section
