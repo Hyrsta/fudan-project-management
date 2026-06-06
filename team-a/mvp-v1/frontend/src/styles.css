@@ -1849,6 +1849,11 @@ select {
   padding: 22px 56px;
   gap: 24px;
   white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--ab-paper);
+  border-bottom: 1px solid var(--ab-rule);
 }
 .a-root .a-nav-date {
   font-family: var(--ab-font-mono);
