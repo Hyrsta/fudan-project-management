@@ -120,8 +120,13 @@ export function WSAccountMenu(p: Props) {
                   type="button"
                   onClick={onSaveKey}
                   disabled={!keyDraft.trim()}
-                  className="a-btn a-btn-primary"
-                  style={{ padding: "7px 13px", fontSize: 12.5, opacity: keyDraft.trim() ? 1 : 0.5, cursor: keyDraft.trim() ? "pointer" : "not-allowed" }}
+                  style={{
+                    padding: "7px 13px", fontSize: 12.5, borderRadius: 7,
+                    border: "1px solid var(--ab-ink)",
+                    background: "var(--ab-ink)", color: "var(--ab-paper)",
+                    opacity: keyDraft.trim() ? 1 : 0.45,
+                    cursor: keyDraft.trim() ? "pointer" : "not-allowed",
+                  }}
                 >
                   {keySaved ? t("model.saved") : t("model.save")}
                 </button>
