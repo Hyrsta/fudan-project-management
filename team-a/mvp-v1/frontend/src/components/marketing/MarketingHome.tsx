@@ -192,7 +192,6 @@ export function MarketingHome({ language, t, onLanguageChange }: PageProps) {
           {t("fig.caption", {
             topic: b.topic,
             persona: captionPersona,
-            id: b.brief_id,
           })}
         </p>
       </section>
