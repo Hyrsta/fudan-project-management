@@ -90,7 +90,7 @@ export function MarketingHome({ language, t, onLanguageChange }: PageProps) {
           eyebrow={t("home.personas.eyebrow")}
           title={t("home.personas.title.a")}
           italicTail={t("home.personas.title.b")}
-          aside={t("home.personas.aside")}
+          deck={t("home.personas.aside")}
         />
         <div
           style={{

@@ -120,16 +120,16 @@ export function ASectionHead({
   eyebrow,
   title,
   italicTail,
-  aside,
+  deck,
 }: {
   eyebrow: string;
   title: ReactNode;
   italicTail?: ReactNode;
-  aside?: string;
+  deck?: string;
 }) {
   return (
     <div className="a-sec-head">
-      <div>
+      <div className="a-sec-head-text">
         <div className="a-smallcaps" style={{ marginBottom: 16 }}>
           {eyebrow}
         </div>
@@ -142,12 +142,8 @@ export function ASectionHead({
             </>
           )}
         </h2>
+        {deck && <p className="a-sec-head-deck">{deck}</p>}
       </div>
-      {aside && (
-        <p style={{ fontSize: 14, color: "var(--ab-ink-soft)", maxWidth: 280, margin: 0 }}>
-          {aside}
-        </p>
-      )}
     </div>
   );
 }
