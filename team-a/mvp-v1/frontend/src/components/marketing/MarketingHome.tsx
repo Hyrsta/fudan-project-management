@@ -2,12 +2,7 @@ import type { Language, TFunction } from "../../i18n";
 import { localizePersonaById } from "../../i18n";
 import { DEMO_BRIEF, PERSONAS, PIPELINE } from "../../marketingData";
 import type { PersonaLensId } from "../../types";
-import {
-  AFooter,
-  AMasthead,
-  ANav,
-  ASectionHead,
-} from "./EditorialChrome";
+import { AFooter, ANav, ASectionHead } from "./EditorialChrome";
 import { PersonaGlyph } from "./EditorialIcons";
 import { EditorialAppMock, EditorialBriefMock } from "./EditorialMocks";
 
@@ -36,7 +31,6 @@ export function MarketingHome({ language, t, onLanguageChange }: PageProps) {
 
   return (
     <div className="a-root">
-      <AMasthead language={language} t={t} />
       <ANav active="home" language={language} t={t} onLanguageChange={onLanguageChange} />
 
       <section className="a-hero">

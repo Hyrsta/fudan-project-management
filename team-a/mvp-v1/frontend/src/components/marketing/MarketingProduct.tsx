@@ -1,11 +1,6 @@
 import type { Language, TFunction, TranslationKey } from "../../i18n";
 import { COVERAGE_MODES, DEMO_BRIEF, SIGNALS } from "../../marketingData";
-import {
-  AFooter,
-  AMasthead,
-  ANav,
-  ASectionHead,
-} from "./EditorialChrome";
+import { AFooter, ANav, ASectionHead } from "./EditorialChrome";
 import { EditorialAppMock } from "./EditorialMocks";
 
 type PageProps = {
@@ -70,7 +65,6 @@ export function MarketingProduct({ language, t, onLanguageChange }: PageProps) {
 
   return (
     <div className="a-root">
-      <AMasthead section={t("product.section")} language={language} t={t} />
       <ANav active="product" language={language} t={t} onLanguageChange={onLanguageChange} />
 
       <section className="a-hero" style={{ paddingBottom: 48 }}>

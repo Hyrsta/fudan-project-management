@@ -156,7 +156,6 @@ const english = {
   "nav.about": "About",
   "nav.signIn": "Sign in",
   "nav.openWorkspace": "Open the workspace",
-  "mast.localFirst": "Local-first by default",
   "foot.roles": "Roles",
   "foot.tagline": "A local-first analyst workspace for source-ranked, persona-aware briefings, with full evidence trails.",
   // === marketing home ===
@@ -482,7 +481,6 @@ const chinese: Record<TranslationKey, string> = {
   "nav.about": "关于",
   "nav.signIn": "登录",
   "nav.openWorkspace": "进入工作区",
-  "mast.localFirst": "默认本地优先",
   "foot.roles": "角色",
   "foot.tagline": "一个本地优先的分析师工作区,生成按来源排序、多视角的简报,并附完整证据链。",
   // === marketing home ===

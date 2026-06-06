@@ -1,10 +1,5 @@
 import type { Language, TFunction, TranslationKey } from "../../i18n";
-import {
-  AFooter,
-  AMasthead,
-  ANav,
-  ASectionHead,
-} from "./EditorialChrome";
+import { AFooter, ANav, ASectionHead } from "./EditorialChrome";
 
 type PageProps = {
   language: Language;
@@ -21,7 +16,6 @@ export function MarketingAbout({ language, t, onLanguageChange }: PageProps) {
 
   return (
     <div className="a-root">
-      <AMasthead section={t("nav.about")} language={language} t={t} />
       <ANav active="about" language={language} t={t} onLanguageChange={onLanguageChange} />
 
       <section className="a-hero" style={{ paddingBottom: 48 }}>

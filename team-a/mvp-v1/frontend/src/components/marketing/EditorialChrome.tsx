@@ -21,6 +21,15 @@ export function ALogo() {
   );
 }
 
+function formatNavDate(language: Language) {
+  return new Date().toLocaleDateString(language === "zh" ? "zh-CN" : "en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
+
 export function ALangToggle({
   language,
   onLanguageChange,
@@ -68,38 +77,6 @@ export function ALangToggle({
   );
 }
 
-export function AMasthead({
-  section,
-  language,
-  t,
-}: {
-  section?: string;
-  language: Language;
-  t: TFunction;
-}) {
-  const today = new Date().toLocaleDateString(language === "zh" ? "zh-CN" : "en-US", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-  return (
-    <div className="a-mast">
-      <span>{today}</span>
-      <div className="a-mast-mid">
-        {section && (
-          <>
-            <span>{section}</span>
-            <span>·</span>
-          </>
-        )}
-        <span>{t("mast.localFirst")}</span>
-      </div>
-      <span />
-    </div>
-  );
-}
-
 export function ANav({
   active,
   language,
@@ -114,9 +91,7 @@ export function ANav({
   ];
   return (
     <div className="a-nav">
-      <a href="/" style={{ display: "flex" }}>
-        <ALogo />
-      </a>
+      <span className="a-nav-date">{formatNavDate(language)}</span>
       <nav className="a-nav-links">
         {items.map(([key, label, href]) => (
           <a

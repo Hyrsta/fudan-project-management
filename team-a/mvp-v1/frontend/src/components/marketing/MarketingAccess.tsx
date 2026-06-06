@@ -1,7 +1,7 @@
 import type { Language, TFunction } from "../../i18n";
 import { localizeRole } from "../../i18n";
 import { ROLES } from "../../marketingData";
-import { AFooter, AMasthead, ANav } from "./EditorialChrome";
+import { AFooter, ANav } from "./EditorialChrome";
 
 type PageProps = {
   language: Language;
@@ -19,7 +19,6 @@ export function MarketingAccess({ language, t, onLanguageChange }: PageProps) {
 
   return (
     <div className="a-root">
-      <AMasthead section={t("nav.access")} language={language} t={t} />
       <ANav active="access" language={language} t={t} onLanguageChange={onLanguageChange} />
 
       <section className="a-hero" style={{ paddingBottom: 40 }}>
