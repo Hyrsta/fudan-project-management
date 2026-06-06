@@ -65,7 +65,7 @@ export function PersonaGlyph({ value, color }: GlyphProps) {
   return map[value] || map.research_analyst;
 }
 
-export type RailIconKind = "search" | "bookmark" | "radio";
+export type RailIconKind = "search" | "bookmark" | "radio" | "key";
 
 export function RailIcon({ kind }: { kind: RailIconKind }) {
   const c = "currentColor";
@@ -90,6 +90,12 @@ export function RailIcon({ kind }: { kind: RailIconKind }) {
           strokeWidth="1.2"
           strokeLinecap="round"
         />
+      </svg>
+    ),
+    key: (
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <circle cx="4.5" cy="7" r="2.4" stroke={c} strokeWidth="1.3" />
+        <path d="M6.9 7H12M10.5 7v2M12 7v2" stroke={c} strokeWidth="1.3" strokeLinecap="round" />
       </svg>
     ),
   };

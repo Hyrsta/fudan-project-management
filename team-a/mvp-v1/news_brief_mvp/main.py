@@ -94,6 +94,15 @@ def create_app(
             ]
         )
 
+    @app.get("/api/news-providers")
+    def news_providers(
+        _principal=Depends(require_permissions(PERMISSION_SOURCES_READ)),
+    ):
+        """Catalog of external news-API providers. Keys are BYO,
+        not stored server-side, supplied per request as X-Provider-<id>-Key."""
+        from .news_providers import provider_catalog
+        return JSONResponse(content={"catalog": provider_catalog()})
+
     @app.get("/api/trusted-sources")
     def trusted_sources(
         _principal=Depends(require_permissions(PERMISSION_SOURCES_READ)),
@@ -132,9 +141,21 @@ def create_app(
         )
         request_model = BriefRequest.model_validate(payload)
         summariser_key = request.headers.get("X-Summariser-Key") or None
+        # Provider keys arrive as X-Provider-<id>-Key headers, one per
+        # registered news-API provider (see news_providers.PROVIDER_REGISTRY).
+        from .news_providers import PROVIDER_REGISTRY
+        provider_keys = {}
+        for slug in PROVIDER_REGISTRY.keys():
+            key = request.headers.get(f"X-Provider-{slug.capitalize()}-Key") or None
+            if key:
+                provider_keys[slug] = key
 
         try:
-            brief = app.state.service.generate_brief(request_model, summariser_key=summariser_key)
+            brief = app.state.service.generate_brief(
+                request_model,
+                summariser_key=summariser_key,
+                provider_keys=provider_keys,
+            )
         except LiveRunFailed as exc:
             if request.headers.get("HX-Request") == "true":
                 return templates.TemplateResponse(

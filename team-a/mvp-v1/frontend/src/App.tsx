@@ -11,6 +11,7 @@ import { WSEmpty } from "./components/workspace/WSEmpty";
 import { WSHistory } from "./components/workspace/WSHistory";
 import { WSReport } from "./components/workspace/WSReport";
 import { WSSources } from "./components/workspace/WSSources";
+import { WSProviders, type NewsProviderSpec } from "./components/workspace/WSProviders";
 import { PRODUCT } from "./marketingData";
 import type {
   AppConfig,
@@ -31,7 +32,7 @@ import {
 import { loadStoredAuthSession, persistAuthSession } from "./utils/auth";
 import { safeJson } from "./utils/http";
 
-type AppView = "briefing" | "history" | "sources";
+type AppView = "briefing" | "history" | "sources" | "providers";
 type AppRoute = "home" | "product" | "access" | "about" | "login" | "workspace";
 
 const emptyTrustedSourceSettings: TrustedSourceSettings = {
@@ -94,6 +95,55 @@ export default function App() {
     try { localStorage.removeItem("studio-model-key"); } catch {}
   }
 
+  // ----- News-API provider keys (BYO, per-browser localStorage) -----
+  const PROVIDER_KEY_STORAGE_PREFIX = "studio-provider-key-";
+  const [providerCatalog, setProviderCatalog] = useState<NewsProviderSpec[]>([]);
+  const [providerKeys, setProviderKeys] = useState<Record<string, string>>({});
+  const [providerDrafts, setProviderDrafts] = useState<Record<string, string>>({});
+  const [providerSavedFlash, setProviderSavedFlash] = useState<Record<string, boolean>>({});
+
+  function loadProviderKeysFromStorage(catalog: NewsProviderSpec[]): Record<string, string> {
+    const out: Record<string, string> = {};
+    for (const spec of catalog) {
+      try {
+        const v = localStorage.getItem(PROVIDER_KEY_STORAGE_PREFIX + spec.id) || "";
+        if (v) out[spec.id] = v;
+      } catch {}
+    }
+    return out;
+  }
+  function saveProviderKey(id: string) {
+    const v = (providerDrafts[id] || "").trim();
+    if (!v) return;
+    setProviderKeys((prev) => ({ ...prev, [id]: v }));
+    try { localStorage.setItem(PROVIDER_KEY_STORAGE_PREFIX + id, v); } catch {}
+    setProviderDrafts((prev) => ({ ...prev, [id]: "" }));
+    setProviderSavedFlash((prev) => ({ ...prev, [id]: true }));
+    window.setTimeout(() => {
+      setProviderSavedFlash((prev) => ({ ...prev, [id]: false }));
+    }, 1400);
+  }
+  function removeProviderKey(id: string) {
+    setProviderKeys((prev) => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+    try { localStorage.removeItem(PROVIDER_KEY_STORAGE_PREFIX + id); } catch {}
+  }
+  function setProviderDraft(id: string, value: string) {
+    setProviderDrafts((prev) => ({ ...prev, [id]: value }));
+  }
+  function providerHeaderEntries(): Record<string, string> {
+    const h: Record<string, string> = {};
+    for (const [id, key] of Object.entries(providerKeys)) {
+      if (!key) continue;
+      const cap = id.charAt(0).toUpperCase() + id.slice(1);
+      h[`X-Provider-${cap}-Key`] = key;
+    }
+    return h;
+  }
+
   const activeRole = authSession?.role || config.rbac.default_role;
   const activeToken = config.rbac.enabled ? authSession?.token || "" : "";
   const roleMeta = useMemo(
@@ -131,10 +181,13 @@ export default function App() {
     if (!config.rbac.enabled || activeToken) {
       loadRecentBriefs(activeToken);
       loadTrustedSources(activeToken);
+      loadNewsProviders(activeToken);
     } else {
       setRecentBriefs([]);
       setTrustedSourcePayload(null);
       setTrustedSourceDraft(emptyTrustedSourceSettings);
+      setProviderCatalog([]);
+      setProviderKeys({});
     }
   }, [activeToken, config.rbac.enabled]);
 
@@ -377,7 +430,23 @@ export default function App() {
   function briefHeaders(token = activeToken): HeadersInit {
     const h: Record<string, string> = { ...(authHeaders(token) as Record<string, string>) };
     if (modelKey) h["X-Summariser-Key"] = modelKey;
+    Object.assign(h, providerHeaderEntries());
     return h;
+  }
+
+  async function loadNewsProviders(token = activeToken) {
+    if (config.rbac.enabled && !token) return;
+    try {
+      const response = await fetch("/api/news-providers", {
+        headers: authHeaders(token),
+      });
+      if (!response.ok) return;
+      const payload = (await response.json()) as { catalog: NewsProviderSpec[] };
+      setProviderCatalog(payload.catalog);
+      setProviderKeys(loadProviderKeysFromStorage(payload.catalog));
+    } catch {
+      // non-fatal — providers panel will be empty
+    }
   }
 
   async function submitBrief(event: FormEvent) {
@@ -533,6 +602,20 @@ export default function App() {
             onCustomDraftChange={updateCustomSourceDraft}
             onAddCustomSource={onAddCustomSource}
             onRemoveCustomSource={removeCustomSource}
+          />
+        )}
+
+        {activeView === "providers" && (
+          <WSProviders
+            catalog={providerCatalog}
+            keys={providerKeys}
+            drafts={providerDrafts}
+            flashSaved={providerSavedFlash}
+            canManage={canManageTrustedSources}
+            t={t}
+            onDraftChange={setProviderDraft}
+            onSaveKey={saveProviderKey}
+            onRemoveKey={removeProviderKey}
           />
         )}
       </WorkspaceShell>

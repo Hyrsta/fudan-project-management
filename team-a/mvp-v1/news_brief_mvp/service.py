@@ -10,6 +10,7 @@ from .data_loader import SourceFeed, SourceRegistry, load_fallback_dataset, load
 from .live_retriever import GoogleNewsRSSRetriever
 from .llm import OpenAICompatibleLLMClient
 from .local_sections import build_heuristic_sections
+from .news_providers import build_providers
 from .models import (
     ArticleCitation,
     ArticleRecord,
@@ -57,6 +58,7 @@ class BriefService:
         request_model: BriefRequest,
         *,
         summariser_key: str | None = None,
+        provider_keys: dict | None = None,
     ) -> BriefResponse:
         mode_used = "live"
         warnings: List[str] = []
@@ -76,6 +78,23 @@ class BriefService:
                     limit=self.retrieval_limit,
                     timeout_seconds=self.timeout_seconds,
                 )
+                # External news-API providers: each gets its key from the
+                # request headers (via provider_keys dict). Unconfigured
+                # providers return [] cheaply.
+                for provider in build_providers(provider_keys or {}):
+                    if not provider.is_configured:
+                        continue
+                    try:
+                        live_articles.extend(
+                            provider.fetch(
+                                topic=request_model.topic,
+                                limit=self.retrieval_limit,
+                                timeout_seconds=self.timeout_seconds,
+                            )
+                        )
+                    except Exception:
+                        # one bad provider shouldn't kill the brief
+                        warnings.append(f"provider_{provider.spec.id}_failed")
             except Exception as exc:
                 if request_model.mode == "live":
                     raise LiveRunFailed("Live retrieval failed. Please retry the request.") from exc
