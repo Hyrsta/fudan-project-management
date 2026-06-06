@@ -1,16 +1,17 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { fallbackConfig } from "./config";
-import { AppShell } from "./components/AppShell";
-import { BriefComposer } from "./components/BriefComposer";
-import { BriefHistory } from "./components/BriefHistory";
-import { BriefReport } from "./components/BriefReport";
-import { EmptyState } from "./components/EmptyState";
 import { LoginPage } from "./components/LoginPage";
 import { MarketingHome } from "./components/marketing/MarketingHome";
 import { MarketingProduct } from "./components/marketing/MarketingProduct";
 import { MarketingAccess } from "./components/marketing/MarketingAccess";
 import { MarketingAbout } from "./components/marketing/MarketingAbout";
-import { TrustedSourcesPage } from "./components/TrustedSourcesPage";
+import { WorkspaceShell } from "./components/workspace/WorkspaceShell";
+import { WSComposer } from "./components/workspace/WSComposer";
+import { WSEmpty } from "./components/workspace/WSEmpty";
+import { WSHistory } from "./components/workspace/WSHistory";
+import { WSReport } from "./components/workspace/WSReport";
+import { WSSources } from "./components/workspace/WSSources";
+import { PRODUCT } from "./marketingData";
 import type {
   AppConfig,
   AuthSession,
@@ -68,6 +69,31 @@ export default function App() {
   const trustedSourceSaveSequence = useRef(0);
   const t = useMemo(() => createTranslator(language), [language]);
 
+  const [modelKey, setModelKey] = useState<string>(
+    () => {
+      try { return localStorage.getItem("studio-model-key") || ""; }
+      catch { return ""; }
+    },
+  );
+  const [keyDraft, setKeyDraft] = useState("");
+  const [keySaved, setKeySaved] = useState(false);
+  const hasKey = Boolean(modelKey);
+
+  function saveKey() {
+    const v = keyDraft.trim();
+    if (!v) return;
+    setModelKey(v);
+    try { localStorage.setItem("studio-model-key", v); } catch {}
+    setKeyDraft("");
+    setKeySaved(true);
+    window.setTimeout(() => setKeySaved(false), 1400);
+  }
+
+  function removeKey() {
+    setModelKey("");
+    try { localStorage.removeItem("studio-model-key"); } catch {}
+  }
+
   const activeRole = authSession?.role || config.rbac.default_role;
   const activeToken = config.rbac.enabled ? authSession?.token || "" : "";
   const roleMeta = useMemo(
@@ -75,6 +101,9 @@ export default function App() {
     [activeRole, config.rbac.roles],
   );
   const roleLabel = localizeRole(activeRole, language, roleMeta?.label || activeRole);
+  const accountName = authSession?.email
+    ? authSession.email.split("@")[0]
+    : roleLabel;
   const canDeleteBriefs = !config.rbac.enabled || activeRole === "admin";
   const canManageTrustedSources = !config.rbac.enabled || activeRole === "admin" || activeRole === "analyst";
 
@@ -345,6 +374,12 @@ export default function App() {
     return { [config.rbac.header_name || "X-API-Key"]: token };
   }
 
+  function briefHeaders(token = activeToken): HeadersInit {
+    const h: Record<string, string> = { ...(authHeaders(token) as Record<string, string>) };
+    if (modelKey) h["X-Summariser-Key"] = modelKey;
+    return h;
+  }
+
   async function submitBrief(event: FormEvent) {
     event.preventDefault();
     setError("");
@@ -354,7 +389,7 @@ export default function App() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...authHeaders(),
+          ...briefHeaders(),
         },
         body: JSON.stringify({ topic, mode, persona, goal }),
       });
@@ -378,7 +413,7 @@ export default function App() {
     setError("");
     try {
       const response = await fetch(`/api/briefs/${encodeURIComponent(briefId)}`, {
-        headers: authHeaders(),
+        headers: briefHeaders(),
       });
       if (!response.ok) {
         const payload = await safeJson(response);
@@ -424,46 +459,58 @@ export default function App() {
 
   return (
     <>
-      <AppShell
+      <WorkspaceShell
         activeView={activeView}
-        roleLabel={roleLabel}
-        rbacEnabled={config.rbac.enabled}
         language={language}
         t={t}
-        onHint={setToast}
+        roleLabel={roleLabel}
+        accountName={accountName}
+        productName={PRODUCT.name}
+        hasKey={hasKey}
+        keyDraft={keyDraft}
+        keySaved={keySaved}
+        rbacEnabled={config.rbac.enabled}
         onViewChange={setActiveView}
         onLanguageChange={setLanguage}
-        onLogout={handleLogout}
+        onKeyDraftChange={setKeyDraft}
+        onSaveKey={saveKey}
+        onRemoveKey={removeKey}
+        onSignOut={handleLogout}
       >
         {activeView === "briefing" && (
-          <>
-            <section className="briefing-view">
-              <BriefComposer
-                topic={topic}
-                goal={goal}
-                mode={mode}
-                persona={persona}
-                personaOptions={config.persona_options}
+          <div style={{ padding: "40px 56px 80px" }}>
+            <WSComposer
+              topic={topic}
+              goal={goal}
+              mode={mode}
+              persona={persona}
+              language={language}
+              t={t}
+              isLoading={isLoading}
+              canGenerate={!config.rbac.enabled || activeRole !== "viewer"}
+              error={error}
+              onTopicChange={setTopic}
+              onGoalChange={setGoal}
+              onModeChange={setMode}
+              onPersonaChange={setPersona}
+              onSubmit={submitBrief}
+            />
+            {brief ? (
+              <WSReport
+                brief={brief}
                 language={language}
                 t={t}
-                isLoading={isLoading}
-                error={error}
-                onTopicChange={setTopic}
-                onGoalChange={setGoal}
-                onModeChange={setMode}
-                onPersonaChange={setPersona}
-                onSubmit={submitBrief}
+                hasKey={hasKey}
+                canHandoff={!config.rbac.enabled || activeRole === "admin"}
               />
-            </section>
-
-            <section id="result-panel" className="result-panel">
-              {brief ? <BriefReport brief={brief} language={language} t={t} /> : <EmptyState t={t} />}
-            </section>
-          </>
+            ) : (
+              <WSEmpty t={t} />
+            )}
+          </div>
         )}
 
         {activeView === "history" && (
-          <BriefHistory
+          <WSHistory
             briefs={recentBriefs}
             canDelete={canDeleteBriefs}
             language={language}
@@ -474,14 +521,13 @@ export default function App() {
         )}
 
         {activeView === "sources" && (
-          <TrustedSourcesPage
+          <WSSources
             catalog={trustedSourcePayload?.catalog || []}
             settings={trustedSourceDraft}
             customDraft={customSourceDraft}
             canManage={canManageTrustedSources}
             isSaving={isSavingTrustedSources}
             error={trustedSourcesError}
-            language={language}
             t={t}
             onToggleCatalogSource={onToggleCatalogSource}
             onCustomDraftChange={updateCustomSourceDraft}
@@ -489,7 +535,7 @@ export default function App() {
             onRemoveCustomSource={removeCustomSource}
           />
         )}
-      </AppShell>
+      </WorkspaceShell>
       {toast && <div className="toast-message">{toast}</div>}
     </>
   );
