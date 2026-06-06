@@ -68,24 +68,6 @@ export function MarketingProduct({ language, t, onLanguageChange }: PageProps) {
     [t("product.arch.row4.h"), t("product.arch.row4.p")],
   ];
 
-  const archBoxes = [
-    t("product.arch.box.composer"),
-    t("product.arch.box.pipeline"),
-    t("product.arch.box.registry"),
-    t("product.arch.box.personas"),
-    t("product.arch.box.store"),
-    t("product.arch.box.exports"),
-    t("product.arch.box.handoff"),
-    t("product.arch.box.rbac"),
-  ];
-
-  const archOut = [
-    t("product.arch.out.rss"),
-    t("product.arch.out.gnews"),
-    t("product.arch.out.byok"),
-    t("product.arch.out.sso"),
-  ];
-
   return (
     <div className="a-root">
       <AMasthead section={t("product.section")} language={language} t={t} />
@@ -425,19 +407,6 @@ export function MarketingProduct({ language, t, onLanguageChange }: PageProps) {
                 </span>
               </div>
             ))}
-            <p
-              className="a-mono"
-              style={{
-                marginTop: 12,
-                fontSize: 11,
-                color: "var(--ab-ink-mute)",
-                letterSpacing: "0.04em",
-              }}
-            >
-              · artifacts/{b.brief_id}/brief.json · {zh ? "模式" : "mode"} · {b.mode_used}
-              {" · "}
-              {zh ? "章节" : "sections"} · {b.section_generation_mode}
-            </p>
           </div>
         </div>
       </section>
@@ -520,136 +489,34 @@ export function MarketingProduct({ language, t, onLanguageChange }: PageProps) {
           title={t("product.arch.title.a")}
           italicTail={t("product.arch.title.b")}
         />
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1.1fr 1fr",
-            gap: 48,
-            alignItems: "start",
-          }}
-        >
-          <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
-            {archRows.map(([h, p], i) => (
-              <li
-                key={i}
-                style={{
-                  padding: "18px 0",
-                  borderTop: "1px solid var(--ab-rule)",
-                  borderBottom: i === 3 ? "1px solid var(--ab-rule)" : 0,
-                  display: "grid",
-                  gridTemplateColumns: "180px 1fr",
-                  gap: 20,
-                }}
-              >
-                <span className="a-serif" style={{ fontSize: 17, fontWeight: 600 }}>
-                  {h}
-                </span>
-                <span
-                  style={{
-                    fontSize: 14,
-                    color: "var(--ab-ink-soft)",
-                    lineHeight: 1.55,
-                  }}
-                >
-                  {p}
-                </span>
-              </li>
-            ))}
-          </ul>
-          <div
-            style={{
-              border: "1px solid var(--ab-ink)",
-              padding: "24px 22px 28px",
-              background: "var(--ab-paper-2)",
-            }}
-          >
-            <div className="a-smallcaps" style={{ marginBottom: 20 }}>
-              {t("product.arch.boundary")}
-            </div>
-            <div
+        <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+          {archRows.map(([h, p], i) => (
+            <li
+              key={i}
               style={{
-                border: "2px dashed var(--ab-ink)",
-                padding: "18px 16px 16px",
-                marginBottom: 14,
-                position: "relative",
-              }}
-            >
-              <span
-                className="a-mono"
-                style={{
-                  position: "absolute",
-                  top: -10,
-                  left: 14,
-                  background: "var(--ab-paper-2)",
-                  padding: "0 8px",
-                  fontSize: 10,
-                  letterSpacing: "0.14em",
-                }}
-              >
-                {t("product.arch.workstation")}
-              </span>
-              <div
-                style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8 }}
-              >
-                {archBoxes.map((n) => (
-                  <span
-                    key={n}
-                    className="a-mono"
-                    style={{
-                      padding: "8px 10px",
-                      border: "1px solid var(--ab-rule)",
-                      background: "var(--ab-paper)",
-                      fontSize: 11,
-                      letterSpacing: "0.04em",
-                    }}
-                  >
-                    {n}
-                  </span>
-                ))}
-              </div>
-            </div>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                fontFamily: "var(--ab-font-mono)",
-                fontSize: 10.5,
-                color: "var(--ab-ink-mute)",
-                letterSpacing: "0.06em",
-                padding: "8px 0 4px",
-              }}
-            >
-              <span style={{ color: "var(--ab-accent)" }}>{t("product.arch.outbound")}</span>
-              <span style={{ flex: 1, height: 1, background: "var(--ab-rule)" }} />
-              <span>{t("product.arch.balancedOnly")}</span>
-            </div>
-            <div
-              style={{
+                padding: "20px 0",
+                borderTop: "1px solid var(--ab-rule)",
+                borderBottom: i === 3 ? "1px solid var(--ab-rule)" : 0,
                 display: "grid",
-                gridTemplateColumns: "repeat(2, 1fr)",
-                gap: 8,
-                marginTop: 8,
+                gridTemplateColumns: "220px 1fr",
+                gap: 28,
               }}
             >
-              {archOut.map((n, i) => (
-                <span
-                  key={i}
-                  className="a-mono"
-                  style={{
-                    padding: "8px 10px",
-                    border: "1px dashed var(--ab-rule)",
-                    fontSize: 11,
-                    color: "var(--ab-ink-soft)",
-                    letterSpacing: "0.04em",
-                  }}
-                >
-                  {n}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
+              <span className="a-serif" style={{ fontSize: 19, fontWeight: 600 }}>
+                {h}
+              </span>
+              <span
+                style={{
+                  fontSize: 15,
+                  color: "var(--ab-ink-soft)",
+                  lineHeight: 1.55,
+                }}
+              >
+                {p}
+              </span>
+            </li>
+          ))}
+        </ul>
       </section>
       <AFooter language={language} t={t} />
     </div>

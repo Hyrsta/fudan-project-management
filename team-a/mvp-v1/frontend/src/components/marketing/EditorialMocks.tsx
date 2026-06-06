@@ -507,19 +507,6 @@ export function EditorialAppMock({ language }: MockProps) {
                   >
                     {zh ? "模式 · 实时" : "MODE · LIVE"}
                   </span>
-                  <span
-                    style={{
-                      padding: "2px 9px",
-                      borderRadius: 999,
-                      border: "1px solid var(--ab-rule)",
-                      fontFamily: "var(--ab-font-mono)",
-                      fontSize: 10,
-                      color: "var(--ab-ink-soft)",
-                      letterSpacing: "0.04em",
-                    }}
-                  >
-                    {zh ? "章节 · 启发式" : "SECTIONS · HEURISTIC"}
-                  </span>
                 </div>
                 <h3
                   className="a-serif"

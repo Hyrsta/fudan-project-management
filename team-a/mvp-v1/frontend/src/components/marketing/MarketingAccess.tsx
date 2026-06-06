@@ -157,57 +157,30 @@ export function MarketingAccess({ language, t, onLanguageChange }: PageProps) {
                 <div
                   key={r.value}
                   style={{
-                    padding: "18px 0",
+                    padding: "20px 0",
                     borderBottom: "1px solid var(--ab-rule-soft)",
                     display: "grid",
                     gridTemplateColumns: "150px 1fr",
-                    gap: 20,
-                    alignItems: "start",
+                    gap: 24,
+                    alignItems: "baseline",
                   }}
                 >
-                  <div>
-                    <div
-                      className="a-serif"
-                      style={{ fontSize: 20, fontWeight: 600 }}
-                    >
-                      {localizeRole(r.value, language, r.label)}
-                    </div>
-                    <code
-                      className="a-mono"
-                      style={{ fontSize: 10.5, color: "var(--ab-ink-mute)" }}
-                    >
-                      {r.token}
-                    </code>
+                  <div
+                    className="a-serif"
+                    style={{ fontSize: 22, fontWeight: 600 }}
+                  >
+                    {localizeRole(r.value, language, r.label)}
                   </div>
-                  <div>
-                    <p
-                      style={{
-                        fontSize: 14,
-                        color: "var(--ab-ink-soft)",
-                        lineHeight: 1.55,
-                        margin: "0 0 10px",
-                      }}
-                    >
-                      {r.blurb}
-                    </p>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
-                      {r.perms.map((p) => (
-                        <span
-                          key={p}
-                          className="a-mono"
-                          style={{
-                            fontSize: 9.5,
-                            letterSpacing: "0.04em",
-                            padding: "2px 6px",
-                            border: "1px solid var(--ab-rule)",
-                            color: "var(--ab-ink-soft)",
-                          }}
-                        >
-                          {p}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
+                  <p
+                    style={{
+                      fontSize: 15,
+                      color: "var(--ab-ink-soft)",
+                      lineHeight: 1.55,
+                      margin: 0,
+                    }}
+                  >
+                    {r.blurb}
+                  </p>
                 </div>
               ))}
             </div>

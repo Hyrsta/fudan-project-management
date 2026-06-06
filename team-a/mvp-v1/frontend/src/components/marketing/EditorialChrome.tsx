@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import type { Language, TFunction } from "../../i18n";
+import { localizeRole } from "../../i18n";
 import { ROLES } from "../../marketingData";
 
 type LangProps = {
@@ -94,7 +95,7 @@ export function AMasthead({
         )}
         <span>{t("mast.localFirst")}</span>
       </div>
-      <span>{t("mast.edition")}</span>
+      <span />
     </div>
   );
 }
@@ -177,7 +178,6 @@ export function ASectionHead({
 }
 
 export function AFooter({ language, t }: Omit<LangProps, "onLanguageChange">) {
-  void language;
   return (
     <div className="a-foot">
       <div className="a-foot-cols">
@@ -194,17 +194,6 @@ export function AFooter({ language, t }: Omit<LangProps, "onLanguageChange">) {
             }}
           >
             {t("foot.tagline")}
-          </p>
-          <p
-            className="a-mono"
-            style={{
-              marginTop: 22,
-              fontSize: 11,
-              color: "var(--ab-ink-mute)",
-              letterSpacing: "0.06em",
-            }}
-          >
-            {t("foot.builtAs")}
           </p>
         </div>
         <div>
@@ -242,11 +231,11 @@ export function AFooter({ language, t }: Omit<LangProps, "onLanguageChange">) {
           </ul>
         </div>
         <div>
-          <h4>RBAC</h4>
+          <h4>{t("foot.roles")}</h4>
           <ul>
             {ROLES.map((r) => (
               <li key={r.value}>
-                <a href="/access">{r.label}</a>
+                <a href="/access">{localizeRole(r.value, language, r.label)}</a>
               </li>
             ))}
           </ul>

@@ -41,7 +41,6 @@ export function BriefHistory({ briefs, canDelete, language, t, onOpenBrief, onDe
               <article className="history-row" role="row" key={item.brief_id}>
                 <button className="history-topic-button" type="button" onClick={() => onOpenBrief(item.brief_id)}>
                   <strong>{item.topic}</strong>
-                  <small>{item.brief_id}</small>
                 </button>
                 <span className="history-cell">
                   <UserRoundCheck size={14} />
