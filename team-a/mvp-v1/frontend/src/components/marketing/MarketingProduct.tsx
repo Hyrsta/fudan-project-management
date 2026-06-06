@@ -20,10 +20,10 @@ export function MarketingProduct({ language, t, onLanguageChange }: PageProps) {
   const b = DEMO_BRIEF;
   const zh = language === "zh";
 
-  const features: Feature[] = (["1", "2", "3", "4", "5"] as const).map((n, idx) => {
-    const roman = ["I", "II", "III", "IV", "V"][idx];
+  const features: Feature[] = (["1", "2", "3", "4"] as const).map((n, idx) => {
+    const roman = ["I", "II", "III", "IV"][idx];
     const base = `product.f${n}` as const;
-    const bulletCount = n === "1" || n === "2" ? 4 : 3;
+    const bulletCount = n === "3" ? 3 : 4;
     const bullets: Array<[string, string]> = [];
     for (let i = 1; i <= bulletCount; i++) {
       const hKey = `${base}.b${i}.h` as TranslationKey;

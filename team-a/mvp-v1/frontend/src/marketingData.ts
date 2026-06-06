@@ -1,5 +1,5 @@
 // marketingData.ts: typed constants for the public marketing site.
-// Ported verbatim from 项目管理/Website UIUX/prod/data.js — every value
+// Ported verbatim from 项目管理/Website UIUX/prod/data.js: every value
 // traces to team-a/mvp-v1 source (ranking.py, personas.py, auth.py,
 // data/source_registry.json, artifacts/brief-a017839f67/brief.json).
 // Update DEMO_BRIEF if artifacts/brief-a017839f67/brief.json changes.
