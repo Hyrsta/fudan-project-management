@@ -166,9 +166,6 @@ const english = {
   "home.cta.workspace": "Open the workspace",
   "home.cta.sample": "Read the example brief →",
   "home.byline": "⧸ Files stay on your machine. Models and exports are all local.",
-  "home.pipeline.eyebrow": "The pipeline · Six agents",
-  "home.pipeline.title.a": "Six small agents,",
-  "home.pipeline.title.b": "one circulated brief.",
   "home.personas.eyebrow": "The lens · Six personas",
   "home.personas.title.a": "One topic, briefed six ways:",
   "home.personas.title.b": "each with its own section titles.",
@@ -319,12 +316,6 @@ const english = {
   "coverage.fallback.label": "Saved",
   "coverage.fallback.flow": "curated dataset, offline",
   "coverage.fallback.blurb": "Force the curated dataset: for offline demos and reproducible briefs.",
-  "pipeline.01.name": "Collector",
-  "pipeline.02.name": "Filter & rank",
-  "pipeline.03.name": "Summariser",
-  "pipeline.04.name": "Comparison",
-  "pipeline.05.name": "Insight",
-  "pipeline.06.name": "Report",
 } as const;
 
 export type TranslationKey = keyof typeof english;
@@ -491,9 +482,6 @@ const chinese: Record<TranslationKey, string> = {
   "home.cta.workspace": "进入工作区",
   "home.cta.sample": "阅读示例简报 →",
   "home.byline": "⧸ 文件留在你的机器上。模型和导出均为本地。",
-  "home.pipeline.eyebrow": "流水线 · 六个代理",
-  "home.pipeline.title.a": "六个小代理,",
-  "home.pipeline.title.b": "一份可传阅的简报。",
   "home.personas.eyebrow": "视角 · 六种人设",
   "home.personas.title.a": "一个主题,六种简报方式——",
   "home.personas.title.b": "各自拥有不同的章节标题。",
@@ -644,12 +632,6 @@ const chinese: Record<TranslationKey, string> = {
   "coverage.fallback.label": "已保存",
   "coverage.fallback.flow": "精选数据集,离线",
   "coverage.fallback.blurb": "强制使用精选数据集——用于离线演示和可复现的简报。",
-  "pipeline.01.name": "收集器",
-  "pipeline.02.name": "筛选与排序",
-  "pipeline.03.name": "摘要生成",
-  "pipeline.04.name": "对比",
-  "pipeline.05.name": "洞察",
-  "pipeline.06.name": "报告",
 };
 
 const personaLabels: Record<Language, Record<string, { label: string; short: string }>> = {

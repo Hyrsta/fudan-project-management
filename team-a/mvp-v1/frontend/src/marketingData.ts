@@ -8,7 +8,6 @@ import type {
   CoverageModeSpec,
   DemoBrief,
   PersonaLens,
-  PipelineAgent,
   RankingSignal,
   RoleSpec,
 } from "./types";
@@ -59,16 +58,6 @@ export const PERSONAS: PersonaLens[] = [
     short: "Downside scenarios and weak signals.",
     focus: ["Downside scenarios", "Early warnings", "Mitigations"],
   },
-];
-
-// final-product/README.md: six agents.
-export const PIPELINE: PipelineAgent[] = [
-  { n: "01", name: "Collector", blurb: "Trusted RSS first. Google News RSS fallback. Curated dataset when live coverage is weak." },
-  { n: "02", name: "Filter & rank", blurb: "Credibility weight, freshness decay, and topic fit blended into a single source score. Duplicates removed." },
-  { n: "03", name: "Summariser", blurb: "OpenAI-compatible model when an API key is present; deterministic local builder when it is not. Same brief schema either way." },
-  { n: "04", name: "Comparison", blurb: "Outlet-by-outlet framing diff along the persona's comparison axes; conflicts are surfaced, not flattened." },
-  { n: "05", name: "Insight", blurb: "Signals and points to watch, sized to the persona lens." },
-  { n: "06", name: "Report", blurb: "HTML for circulation, Markdown for git, JSON for the Team B handoff. Citations and source weights survive every transit." },
 ];
 
 // ranking.score_articles: three signals, exact weights.

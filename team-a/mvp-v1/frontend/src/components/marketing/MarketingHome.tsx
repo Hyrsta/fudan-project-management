@@ -1,6 +1,6 @@
 import type { Language, TFunction } from "../../i18n";
 import { localizePersonaById } from "../../i18n";
-import { DEMO_BRIEF, PERSONAS, PIPELINE } from "../../marketingData";
+import { DEMO_BRIEF, PERSONAS } from "../../marketingData";
 import type { PersonaLensId } from "../../types";
 import { AFooter, ANav, ASectionHead } from "./EditorialChrome";
 import { PersonaGlyph } from "./EditorialIcons";
@@ -65,23 +65,6 @@ export function MarketingHome({ language, t, onLanguageChange }: PageProps) {
             </div>
           </div>
           <EditorialBriefMock language={language} t={t} />
-        </div>
-      </section>
-
-      <section style={{ padding: "88px 56px 0" }} className="a-container">
-        <ASectionHead
-          eyebrow={t("home.pipeline.eyebrow")}
-          title={t("home.pipeline.title.a")}
-          italicTail={t("home.pipeline.title.b")}
-        />
-        <div className="a-feat-grid">
-          {PIPELINE.map((f) => (
-            <div key={f.n} className="a-feat">
-              <div className="a-feat-num">AGENT · {f.n}</div>
-              <h3>{f.name}</h3>
-              <p>{f.blurb}</p>
-            </div>
-          ))}
         </div>
       </section>
 

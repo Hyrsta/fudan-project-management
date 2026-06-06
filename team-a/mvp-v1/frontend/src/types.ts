@@ -115,12 +115,6 @@ export type BriefResponse = {
 // Marketing site (public landing pages: Home / Product / Access / About).
 // ---------------------------------------------------------------------------
 
-export type PipelineAgent = {
-  n: string;
-  name: string;
-  blurb: string;
-};
-
 export type PersonaLensId =
   | "research_analyst"
   | "financial_analyst"

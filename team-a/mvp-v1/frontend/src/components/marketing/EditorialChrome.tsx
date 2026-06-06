@@ -174,9 +174,6 @@ export function AFooter({ language, t }: Omit<LangProps, "onLanguageChange">) {
               <a href="/product">{t("home.tour.eyebrow")}</a>
             </li>
             <li>
-              <a href="/product">{t("home.pipeline.eyebrow")}</a>
-            </li>
-            <li>
               <a href="/product">{t("home.personas.eyebrow")}</a>
             </li>
             <li>
