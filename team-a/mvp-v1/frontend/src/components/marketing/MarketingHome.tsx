@@ -85,7 +85,7 @@ export function MarketingHome({ language, t, onLanguageChange }: PageProps) {
         </div>
       </section>
 
-      <section style={{ padding: "96px 56px 0" }} className="a-container">
+      <section id="personas" style={{ padding: "96px 56px 0" }} className="a-container">
         <ASectionHead
           eyebrow={t("home.personas.eyebrow")}
           title={t("home.personas.title.a")}
@@ -172,7 +172,7 @@ export function MarketingHome({ language, t, onLanguageChange }: PageProps) {
         </div>
       </section>
 
-      <section style={{ padding: "96px 56px 88px" }} className="a-container">
+      <section id="tour" style={{ padding: "96px 56px 88px" }} className="a-container">
         <ASectionHead
           eyebrow={t("home.tour.eyebrow")}
           title={t("home.tour.title.a")}

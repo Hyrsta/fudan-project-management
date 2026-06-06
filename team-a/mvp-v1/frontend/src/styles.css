@@ -1864,6 +1864,8 @@ select {
   letter-spacing: 0.02em;
   flex: 0 0 auto;
 }
+.a-root section[id] { scroll-margin-top: 56px; }
+html { scroll-behavior: smooth; }
 .a-root .a-nav-logo {
   font-family: var(--ab-font-display);
   font-size: 22px;
