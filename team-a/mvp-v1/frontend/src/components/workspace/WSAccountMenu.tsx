@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { TFunction } from "../../i18n";
 
 type Props = {
@@ -23,6 +23,15 @@ export function WSAccountMenu(p: Props) {
   } = p;
   const [open, setOpen] = useState(false);
   const initial = accountName.slice(0, 1).toUpperCase();
+
+  useEffect(() => {
+    if (!open) return;
+    function onEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("keydown", onEscape);
+    return () => document.removeEventListener("keydown", onEscape);
+  }, [open]);
 
   return (
     <div style={{ position: "relative" }}>
@@ -97,6 +106,8 @@ export function WSAccountMenu(p: Props) {
                 onChange={(e) => onKeyDraftChange(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") onSaveKey(); }}
                 placeholder={hasKey ? "••••••••••••" : t("model.placeholder")}
+                autoComplete="off"
+                spellCheck={false}
                 className="a-input a-mono"
                 style={{
                   padding: "9px 11px", fontSize: 13, borderRadius: 7,
