@@ -23,12 +23,12 @@ class FakeLiveRetriever:
 
 
 class FailingLLM:
-    def generate_sections(self, topic: str, persona: str, articles, goal: str = ""):
+    def generate_sections(self, topic: str, persona: str, articles, goal: str = "", api_key=None):
         raise RuntimeError("LLM unavailable")
 
 
 class WorkingLLM:
-    def generate_sections(self, topic: str, persona: str, articles, goal: str = ""):
+    def generate_sections(self, topic: str, persona: str, articles, goal: str = "", api_key=None):
         return BriefSections(
             overview=f"Overview for {topic}",
             key_takeaways=[
