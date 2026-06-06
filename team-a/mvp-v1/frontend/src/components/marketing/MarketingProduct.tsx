@@ -1,7 +1,6 @@
 import type { Language, TFunction, TranslationKey } from "../../i18n";
 import { COVERAGE_MODES, DEMO_BRIEF, SIGNALS } from "../../marketingData";
 import { AFooter, ANav, ASectionHead } from "./EditorialChrome";
-import { EditorialAppMock } from "./EditorialMocks";
 
 type PageProps = {
   language: Language;
@@ -162,22 +161,6 @@ export function MarketingProduct({ language, t, onLanguageChange }: PageProps) {
             </ol>
           </div>
         </div>
-      </section>
-
-      <section style={{ padding: "64px 56px 16px" }} className="a-container">
-        <div className="a-sec-head">
-          <div>
-            <div className="a-smallcaps" style={{ marginBottom: 16 }}>
-              {t("product.fig1.eyebrow")}
-            </div>
-            <h2>
-              {t("product.fig1.title.a")}
-              <br />
-              <em>{t("product.fig1.title.b")}</em>
-            </h2>
-          </div>
-        </div>
-        <EditorialAppMock language={language} t={t} />
       </section>
 
       {features.map((f, idx) => (
