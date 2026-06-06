@@ -33,9 +33,9 @@ export function WorkspaceShell(p: Props) {
   );
 
   const navItems: Array<[WorkspaceView, RailIconKind, string]> = [
-    ["briefing", "search", p.t("ws.section.briefing")],
-    ["history", "bookmark", p.t("ws.section.history")],
-    ["sources", "radio", p.t("ws.section.sources")],
+    ["briefing", "search", p.t("ws.sectionBriefing")],
+    ["history", "bookmark", p.t("ws.sectionHistory")],
+    ["sources", "radio", p.t("ws.sectionSources")],
   ];
   const sectionLabel = (navItems.find((n) => n[0] === p.activeView) || navItems[0])[2];
 
