@@ -55,7 +55,7 @@ export function WorkspaceShell(p: Props) {
           <span>·</span>
           <span>{p.t("ws.localFirst")}</span>
         </div>
-        <span>{p.t("ws.edition")}</span>
+        <span aria-hidden="true" />
       </div>
 
       <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
