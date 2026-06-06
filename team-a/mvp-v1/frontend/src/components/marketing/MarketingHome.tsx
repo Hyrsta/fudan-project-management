@@ -1,10 +1,10 @@
 import type { Language, TFunction } from "../../i18n";
 import { localizePersonaById } from "../../i18n";
-import { DEMO_BRIEF, PERSONAS } from "../../marketingData";
+import { PERSONAS } from "../../marketingData";
 import type { PersonaLensId } from "../../types";
 import { AFooter, ANav, ASectionHead } from "./EditorialChrome";
 import { PersonaGlyph } from "./EditorialIcons";
-import { EditorialAppMock, EditorialBriefMock } from "./EditorialMocks";
+import { EditorialBriefMock } from "./EditorialMocks";
 
 type PageProps = {
   language: Language;
@@ -13,7 +13,6 @@ type PageProps = {
 };
 
 export function MarketingHome({ language, t, onLanguageChange }: PageProps) {
-  const b = DEMO_BRIEF;
   const stepDefs: Array<[string, "step.compose" | "step.collect" | "step.reason" | "step.export", string]> = [
     ["I", "step.compose", "step.composeCopy"],
     ["II", "step.collect", "step.collectCopy"],
@@ -23,11 +22,6 @@ export function MarketingHome({ language, t, onLanguageChange }: PageProps) {
 
   const personaCopy = (id: PersonaLensId, fb: { label: string; short: string }) =>
     localizePersonaById(id, language, fb);
-
-  const captionPersona = personaCopy(b.persona, {
-    label: b.persona_label,
-    short: "",
-  }).label.toLowerCase();
 
   return (
     <div className="a-root">
@@ -170,30 +164,6 @@ export function MarketingHome({ language, t, onLanguageChange }: PageProps) {
             );
           })}
         </div>
-      </section>
-
-      <section id="tour" style={{ padding: "96px 56px 88px" }} className="a-container">
-        <ASectionHead
-          eyebrow={t("home.tour.eyebrow")}
-          title={t("home.tour.title.a")}
-          italicTail={t("home.tour.title.b")}
-        />
-        <EditorialAppMock language={language} t={t} />
-        <p
-          style={{
-            textAlign: "center",
-            marginTop: 18,
-            fontSize: 13,
-            fontFamily: "var(--ab-font-italic)",
-            fontStyle: "italic",
-            color: "var(--ab-ink-mute)",
-          }}
-        >
-          {t("fig.caption", {
-            topic: b.topic,
-            persona: captionPersona,
-          })}
-        </p>
       </section>
 
       <section

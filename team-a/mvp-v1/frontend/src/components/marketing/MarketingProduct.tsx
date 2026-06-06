@@ -1,6 +1,8 @@
 import type { Language, TFunction, TranslationKey } from "../../i18n";
+import { localizePersonaById } from "../../i18n";
 import { COVERAGE_MODES, DEMO_BRIEF, SIGNALS } from "../../marketingData";
 import { AFooter, ANav, ASectionHead } from "./EditorialChrome";
+import { EditorialAppMock } from "./EditorialMocks";
 
 type PageProps = {
   language: Language;
@@ -19,6 +21,11 @@ type Feature = {
 export function MarketingProduct({ language, t, onLanguageChange }: PageProps) {
   const b = DEMO_BRIEF;
   const zh = language === "zh";
+
+  const captionPersona = localizePersonaById(b.persona, language, {
+    label: b.persona_label,
+    short: "",
+  }).label.toLowerCase();
 
   const features: Feature[] = (["1", "2", "3", "4"] as const).map((n, idx) => {
     const roman = ["I", "II", "III", "IV"][idx];
@@ -84,9 +91,6 @@ export function MarketingProduct({ language, t, onLanguageChange }: PageProps) {
               <br />
               <em>{t("product.title.b")}</em>
             </h1>
-            <p className="deck" style={{ maxWidth: 560 }}>
-              {t("product.deck")}
-            </p>
             <div className="ctas">
               <a href="/workspace" className="a-btn a-btn-primary">
                 {t("nav.openWorkspace")}
@@ -161,6 +165,30 @@ export function MarketingProduct({ language, t, onLanguageChange }: PageProps) {
             </ol>
           </div>
         </div>
+      </section>
+
+      <section id="tour" style={{ padding: "96px 56px 88px" }} className="a-container">
+        <ASectionHead
+          eyebrow={t("home.tour.eyebrow")}
+          title={t("home.tour.title.a")}
+          italicTail={t("home.tour.title.b")}
+        />
+        <EditorialAppMock language={language} t={t} />
+        <p
+          style={{
+            textAlign: "center",
+            marginTop: 18,
+            fontSize: 13,
+            fontFamily: "var(--ab-font-italic)",
+            fontStyle: "italic",
+            color: "var(--ab-ink-mute)",
+          }}
+        >
+          {t("fig.caption", {
+            topic: b.topic,
+            persona: captionPersona,
+          })}
+        </p>
       </section>
 
       {features.map((f, idx) => (
