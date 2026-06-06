@@ -52,7 +52,12 @@ class BriefService:
         self.timeout_seconds = timeout_seconds
         self.source_registry = source_registry or getattr(live_retriever, "source_registry", SourceRegistry({}, []))
 
-    def generate_brief(self, request_model: BriefRequest) -> BriefResponse:
+    def generate_brief(
+        self,
+        request_model: BriefRequest,
+        *,
+        summariser_key: str | None = None,
+    ) -> BriefResponse:
         mode_used = "live"
         warnings: List[str] = []
         persona_definition = get_persona_definition(request_model.persona)
@@ -96,6 +101,7 @@ class BriefService:
             articles=selected_articles,
             mode_used=mode_used,
             warnings=warnings,
+            summariser_key=summariser_key,
         )
 
         brief_id = f"brief-{uuid4().hex[:10]}"
@@ -256,6 +262,7 @@ class BriefService:
         articles: Sequence[ArticleRecord],
         mode_used: str,
         warnings: List[str],
+        summariser_key: str | None = None,
     ) -> tuple[BriefSections, SectionGenerationMode]:
         try:
             sections = self.llm_client.generate_sections(
@@ -263,6 +270,7 @@ class BriefService:
                 persona=persona,
                 goal=goal,
                 articles=articles,
+                api_key=summariser_key,
             )
             return sections, "llm"
         except Exception:

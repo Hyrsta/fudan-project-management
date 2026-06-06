@@ -131,9 +131,10 @@ def create_app(
             else {"topic": topic or "", "mode": mode, "persona": persona, "goal": goal}
         )
         request_model = BriefRequest.model_validate(payload)
+        summariser_key = request.headers.get("X-Summariser-Key") or None
 
         try:
-            brief = app.state.service.generate_brief(request_model)
+            brief = app.state.service.generate_brief(request_model, summariser_key=summariser_key)
         except LiveRunFailed as exc:
             if request.headers.get("HX-Request") == "true":
                 return templates.TemplateResponse(

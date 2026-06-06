@@ -25,10 +25,11 @@ class OpenAICompatibleLLMClient:
         persona: str,
         articles: Iterable[ArticleRecord],
         goal: str = "",
+        api_key: str | None = None,
     ) -> BriefSections:
-        api_key = os.getenv("OPENAI_API_KEY")
-        if not api_key:
-            raise RuntimeError("OPENAI_API_KEY is not set.")
+        resolved_key = api_key or os.getenv("OPENAI_API_KEY")
+        if not resolved_key:
+            raise RuntimeError("Summariser model key not provided.")
 
         base_url = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1").rstrip("/")
         model_name = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
@@ -65,7 +66,7 @@ class OpenAICompatibleLLMClient:
             f"{base_url}/chat/completions",
             timeout=30.0,
             headers={
-                "Authorization": f"Bearer {api_key}",
+                "Authorization": f"Bearer {resolved_key}",
                 "Content-Type": "application/json",
             },
             json={
