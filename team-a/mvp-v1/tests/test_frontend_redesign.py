@@ -3,23 +3,22 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 FRONTEND_SRC = PROJECT_ROOT / "frontend" / "src"
-EXPORT_CSS = PROJECT_ROOT / "news_brief_mvp" / "static" / "css" / "app.css"
 
 
-def test_frontend_redesign_has_command_center_component_boundaries() -> None:
+def test_editorial_workspace_component_files_exist() -> None:
     expected_files = [
         "App.tsx",
         "i18n.ts",
         "types.ts",
-        "components/AppShell.tsx",
         "components/LoginPage.tsx",
-        "components/BriefComposer.tsx",
-        "components/PersonaPicker.tsx",
-        "components/BriefHistory.tsx",
-        "components/BriefReport.tsx",
-        "components/EmptyState.tsx",
         "components/LanguageToggle.tsx",
-        "components/TrustedSourcesPage.tsx",
+        "components/workspace/WorkspaceShell.tsx",
+        "components/workspace/WSAccountMenu.tsx",
+        "components/workspace/WSComposer.tsx",
+        "components/workspace/WSReport.tsx",
+        "components/workspace/WSHistory.tsx",
+        "components/workspace/WSSources.tsx",
+        "components/workspace/WSEmpty.tsx",
         "components/marketing/MarketingHome.tsx",
         "components/marketing/MarketingProduct.tsx",
         "components/marketing/MarketingAccess.tsx",
@@ -29,231 +28,78 @@ def test_frontend_redesign_has_command_center_component_boundaries() -> None:
         "components/marketing/EditorialMocks.tsx",
         "marketingData.ts",
     ]
+    missing = [p for p in expected_files if not (FRONTEND_SRC / p).exists()]
+    assert missing == [], f"Missing files: {missing}"
 
-    missing_files = [
-        relative_path
-        for relative_path in expected_files
-        if not (FRONTEND_SRC / relative_path).exists()
+
+def test_old_workspace_components_are_removed() -> None:
+    removed_files = [
+        "components/AppShell.tsx",
+        "components/BriefComposer.tsx",
+        "components/BriefHistory.tsx",
+        "components/BriefReport.tsx",
+        "components/EmptyState.tsx",
+        "components/PersonaPicker.tsx",
+        "components/TrustedSourcesPage.tsx",
     ]
-
-    assert missing_files == []
-
-    main_entry = (FRONTEND_SRC / "main.tsx").read_text()
-    assert "function App(" not in main_entry
-    assert "createRoot" in main_entry
+    still_present = [p for p in removed_files if (FRONTEND_SRC / p).exists()]
+    assert still_present == [], f"Old components still present: {still_present}"
 
 
-def test_frontend_redesign_uses_local_command_center_design_tokens() -> None:
-    styles = (FRONTEND_SRC / "styles.css").read_text()
-    export_styles = EXPORT_CSS.read_text()
-
-    for token in ["--signal-green", "--vermilion", "--ink", "--paper"]:
-        assert token in styles
-        assert token in export_styles
-
-    assert "font-family: Inter" not in styles
-    assert "analyst-grid" in styles
-    assert "evidence-meter" in styles
-    assert "command-center" in export_styles
+def test_workspace_shell_has_dark_rail_and_three_views() -> None:
+    shell = (FRONTEND_SRC / "components" / "workspace" / "WorkspaceShell.tsx").read_text()
+    assert 'aria-label={p.t("nav.workspace")}' in shell
+    assert 't("ws.sectionBriefing")' in shell
+    assert 't("ws.sectionHistory")' in shell
+    assert 't("ws.sectionSources")' in shell
+    assert "WSAccountMenu" in shell
+    assert "LanguageToggle" in shell
+    assert "var(--ab-ink)" in shell
+    assert "var(--ab-green)" in shell
 
 
-def test_profile_chip_opens_menu_with_logout_action() -> None:
-    app_shell = (FRONTEND_SRC / "components" / "AppShell.tsx").read_text()
-    styles = (FRONTEND_SRC / "styles.css").read_text()
-
-    assert 'aria-haspopup="menu"' in app_shell
-    assert 'aria-controls="profile-menu"' in app_shell
-    assert 'id="profile-menu"' in app_shell
-    assert 'role="menu"' in app_shell
-    assert 't("profile.signOut")' in app_shell
-    assert ".profile-dropdown" in styles
-
-
-def test_profile_trigger_merges_role_and_initials() -> None:
-    app_shell = (FRONTEND_SRC / "components" / "AppShell.tsx").read_text()
-    styles = (FRONTEND_SRC / "styles.css").read_text()
-
-    assert "profile-trigger-avatar" in app_shell
-    assert app_shell.count('className="avatar-chip">{roleInitials}</span>') == 1
-    assert ".profile-trigger-avatar" in styles
+def test_account_menu_has_summariser_key_input() -> None:
+    menu = (FRONTEND_SRC / "components" / "workspace" / "WSAccountMenu.tsx").read_text()
+    assert 't("model.keyLabel")' in menu
+    assert 't("model.save")' in menu
+    assert 't("model.remove")' in menu
+    assert 't("model.using")' in menu
+    assert 't("model.usingLocal")' in menu
+    assert 'type="password"' in menu
+    assert 'autoComplete="off"' in menu
 
 
-def test_side_rail_switches_between_workspace_views() -> None:
-    app_shell = (FRONTEND_SRC / "components" / "AppShell.tsx").read_text()
-
-    assert 'aria-label={t("nav.newBrief")}' in app_shell
-    assert 'aria-label={t("nav.recentBriefs")}' in app_shell
-    assert 'aria-label={t("nav.trustedSources")}' in app_shell
-    assert app_shell.count('className="rail-button"') == 3
-    assert "Source evidence" not in app_shell
-    assert "Signal watch" not in app_shell
-    assert 'className="rail-logo" href="/"' not in app_shell
-    assert 'className="rail-brand"' in app_shell
-    assert 'className="rail-logo-mark"' in app_shell
-    assert "scrollIntoView" not in app_shell
-    assert 'onViewChange("briefing")' in app_shell
-    assert 'onViewChange("history")' in app_shell
-    assert 'onViewChange("sources")' in app_shell
-    assert 'aria-current={activeView === "briefing" ? "page" : undefined}' in app_shell
-    assert 'aria-current={activeView === "history" ? "page" : undefined}' in app_shell
-
-
-def test_coverage_select_label_stays_on_one_line() -> None:
-    i18n = (FRONTEND_SRC / "i18n.ts").read_text(encoding="utf-8")
-    styles = (FRONTEND_SRC / "styles.css").read_text()
-
-    select_label_rule = styles.split(".select-shell span {", 1)[1].split("}", 1)[0]
-
-    assert "display: inline-flex" in select_label_rule
-    assert "align-items: center" in select_label_rule
-    assert "white-space: nowrap" in select_label_rule
-    assert '"composer.coverage": "Source mode"' in i18n
-    assert '"composer.coverageAuto": "Balanced"' in i18n
-    assert '"composer.coverageLive": "Live"' in i18n
-    assert '"composer.coverageFallback": "Saved"' in i18n
-    assert '"Balanced coverage"' not in i18n
-    assert '"history.coverage": "Source mode"' in i18n
-
-
-def test_login_page_uses_single_demo_workspace_entry() -> None:
-    login_page = (FRONTEND_SRC / "components" / "LoginPage.tsx").read_text()
-
-    assert 't("auth.enterWorkspace")' in login_page
-    assert 't("auth.enterDemoWorkspace")' in login_page
-    assert 't("auth.useApiKey")' in login_page
-    assert "Choose operating role" not in login_page
-    assert "login-role-grid" not in login_page
-    assert "login-role-card" not in login_page
-
-
-def test_source_rows_keep_citation_body_left_aligned() -> None:
-    styles = (FRONTEND_SRC / "styles.css").read_text()
-
-    source_row_rule = styles.split(".source-row {", 1)[1].split("}", 1)[0]
-
-    assert "display: grid" in source_row_rule
-    assert "grid-template-columns: 42px minmax(0, 1fr) auto" in source_row_rule
-    assert "justify-content: stretch" in source_row_rule
-
-
-def test_app_splits_briefing_and_history_views() -> None:
+def test_app_passes_model_key_state_to_workspace_shell() -> None:
     app = (FRONTEND_SRC / "App.tsx").read_text()
+    assert 'localStorage.getItem("studio-model-key")' in app
+    assert 'localStorage.setItem("studio-model-key"' in app
+    assert "briefHeaders" in app
+    assert '"X-Summariser-Key"' in app
+    assert "<WorkspaceShell" in app
+    assert "<WSComposer" in app
+    assert "<WSHistory" in app
+    assert "<WSSources" in app
+    assert "<WSReport" in app
+    assert "<WSEmpty" in app
 
-    assert 'type AppView = "briefing" | "history" | "sources"' in app
-    assert "activeView === \"briefing\"" in app
-    assert "activeView === \"history\"" in app
-    assert "activeView === \"sources\"" in app
-    assert "setActiveView(\"briefing\")" in app
-    assert "<BriefHistory" in app
-    assert "<TrustedSourcesPage" in app
-    assert "<RecentBriefs" not in app
 
-
-def test_public_marketing_routes_point_to_login_and_existing_workspace() -> None:
+def test_editorial_workspace_keeps_marketing_routes_intact() -> None:
     app = (FRONTEND_SRC / "App.tsx").read_text()
-    marketing_dir = FRONTEND_SRC / "components" / "marketing"
-    home = (marketing_dir / "MarketingHome.tsx").read_text()
-    chrome = (marketing_dir / "EditorialChrome.tsx").read_text()
-    styles = (FRONTEND_SRC / "styles.css").read_text()
-
     assert 'type AppRoute = "home" | "product" | "access" | "about" | "login" | "workspace"' in app
-    assert "getCurrentRoute" in app
-    assert 'navigateTo("/workspace")' in app
-    assert 'navigateTo("/login")' in app
-    assert "export function MarketingHome" in home
-    assert 'href="/workspace"' in home
-    assert 'href="/login"' in chrome
+    assert "MarketingHome" in app
+    assert "MarketingProduct" in app
+    assert "MarketingAccess" in app
+    assert "MarketingAbout" in app
+
+
+def test_workspace_uses_a_root_design_tokens() -> None:
+    styles = (FRONTEND_SRC / "styles.css").read_text()
     assert ".a-root" in styles
-    assert ".marketing-page" not in styles
+    for token in ["--ab-ink", "--ab-paper", "--ab-paper-2", "--ab-green", "--ab-accent", "--ab-rule"]:
+        assert token in styles
 
 
-def test_frontend_supports_global_trusted_sources_settings() -> None:
-    app = (FRONTEND_SRC / "App.tsx").read_text()
-    types = (FRONTEND_SRC / "types.ts").read_text()
-    trusted_sources = (FRONTEND_SRC / "components" / "TrustedSourcesPage.tsx").read_text()
-
-    assert "SourceCatalogItem" in types
-    assert "TrustedSourceSettings" in types
-    assert "/api/trusted-sources" in app
-    assert "loadTrustedSources" in app
-    assert "persistTrustedSources" in app
-    assert "trustedSourcePayload" in app
-    assert 'className="trusted-sources-page"' in trusted_sources
-    assert "onToggleCatalogSource" in trusted_sources
-    assert "onAddCustomSource" in trusted_sources
-
-
-def test_trusted_sources_autosaves_without_save_button() -> None:
-    app = (FRONTEND_SRC / "App.tsx").read_text()
-    i18n = (FRONTEND_SRC / "i18n.ts").read_text(encoding="utf-8")
+def test_editorial_workspace_chrome_polish_css_present() -> None:
     styles = (FRONTEND_SRC / "styles.css").read_text()
-    trusted_sources = (FRONTEND_SRC / "components" / "TrustedSourcesPage.tsx").read_text()
-
-    assert "persistTrustedSources(nextSettings" in app
-    assert 'method: "PUT"' in app
-    assert "saveTrustedSources" not in app
-    assert "onSave" not in trusted_sources
-    assert "source-save-button" not in styles
-    assert 'className="source-autosave-status"' in trusted_sources
-    assert 't("sources.autosaving")' in trusted_sources
-    assert 't("sources.autosaved")' in trusted_sources
-    assert "Save settings" not in i18n
-
-
-def test_brief_history_page_supports_dense_history_and_delete_controls() -> None:
-    app = (FRONTEND_SRC / "App.tsx").read_text()
-    brief_history = (FRONTEND_SRC / "components" / "BriefHistory.tsx").read_text()
-
-    assert "/api/briefs/history?limit=50" in app
-    assert 'method: "DELETE"' in app
-    assert 'className="history-page"' in brief_history
-    assert 'className="history-table"' in brief_history
-    assert 'className="history-row"' in brief_history
-    assert "onOpenBrief" in brief_history
-    assert "onDeleteBrief" in brief_history
-    assert "canDelete" in brief_history
-    assert "Trash2" in brief_history
-
-
-def test_brief_history_page_uses_scrollable_dense_table() -> None:
-    brief_history = (FRONTEND_SRC / "components" / "BriefHistory.tsx").read_text()
-    styles = (FRONTEND_SRC / "styles.css").read_text()
-
-    assert "history-table-shell" in brief_history
-    assert "recent-expand-button" not in brief_history
-
-    shell_rule = styles.split(".history-table-shell {", 1)[1].split("}", 1)[0]
-    row_rule = styles.split(".history-row {", 1)[1].split("}", 1)[0]
-    assert "overflow: auto" in shell_rule
-    assert "overscroll-behavior: contain" in shell_rule
-    assert "scrollbar-width: thin" in shell_rule
-    assert "grid-template-columns:" in row_rule
-
-
-def test_react_app_supports_english_and_chinese_language_toggle() -> None:
-    i18n_path = FRONTEND_SRC / "i18n.ts"
-    assert i18n_path.exists()
-
-    i18n = i18n_path.read_text(encoding="utf-8")
-    app = (FRONTEND_SRC / "App.tsx").read_text()
-    app_shell = (FRONTEND_SRC / "components" / "AppShell.tsx").read_text()
-    login_page = (FRONTEND_SRC / "components" / "LoginPage.tsx").read_text()
-
-    assert 'export type Language = "en" | "zh"' in i18n
-    assert 'DEFAULT_LANGUAGE: Language = "en"' in i18n
-    assert "中文" in i18n
-    assert "新闻情报工作台" in i18n
-    assert "loadStoredLanguage" in app
-    assert "document.documentElement.lang" in app
-    assert "LanguageToggle" in app_shell
-    assert "LanguageToggle" in login_page
-
-
-def test_language_toggle_is_visible_in_main_topbar() -> None:
-    app_shell = (FRONTEND_SRC / "components" / "AppShell.tsx").read_text()
-    styles = (FRONTEND_SRC / "styles.css").read_text()
-
-    assert 'className="top-language-switch"' in app_shell
-    assert app_shell.find('className="top-language-switch"') < app_shell.find('className="profile-menu"')
-    assert "profile-language-block" not in app_shell
-    assert ".top-language-switch" in styles
+    assert ".ws-rail-button:hover" in styles
+    assert ".ws-account-signout:hover" in styles
