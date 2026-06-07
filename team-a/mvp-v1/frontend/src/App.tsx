@@ -370,8 +370,15 @@ export default function App() {
       feed_url: feedUrl,
       weight: 0.96,
     };
+    // Newly-added custom outlet starts in the "on" state, mirroring how
+    // catalog outlets get their selection tracked in selected_source_ids.
+    // The same ID is the toggle key — see onToggleCatalogSource.
+    const nextSelected = trustedSourceDraft.selected_source_ids.includes(source.id)
+      ? trustedSourceDraft.selected_source_ids
+      : [...trustedSourceDraft.selected_source_ids, source.id];
     const nextSettings = {
       ...trustedSourceDraft,
+      selected_source_ids: nextSelected,
       custom_sources: [
         ...trustedSourceDraft.custom_sources.filter((item) => (item.id || item.name) !== source.id),
         source,
@@ -385,6 +392,9 @@ export default function App() {
   function removeCustomSource(sourceId: string) {
     const nextSettings = {
       ...trustedSourceDraft,
+      // Strip the same ID from selected_source_ids so the toggle book-keeping
+      // doesn't leak orphan IDs after a remove.
+      selected_source_ids: trustedSourceDraft.selected_source_ids.filter((id) => id !== sourceId),
       custom_sources: trustedSourceDraft.custom_sources.filter((item) => (item.id || item.name) !== sourceId),
     };
     commitTrustedSources(nextSettings);

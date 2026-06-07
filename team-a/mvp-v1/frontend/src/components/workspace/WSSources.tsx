@@ -63,9 +63,12 @@ export function WSSources(p: Props) {
   }
 
   // Two separate tallies — one per table.
+  // selected_source_ids now holds the on-state for BOTH catalog and custom
+  // outlets (one unified key set). Count rows that resolve to either, so
+  // unselected customs are still in the "total" denominator but not in "on".
   const outletsOn =
-    p.settings.selected_source_ids.length
-    + p.settings.custom_sources.length;
+    queryableCatalog.filter((c) => selectedIds.has(c.id)).length
+    + p.settings.custom_sources.filter((s) => selectedIds.has(s.id || s.name)).length;
   const outletsTotal =
     queryableCatalog.length + p.settings.custom_sources.length;
   const aggregatorsOn =
@@ -141,22 +144,25 @@ export function WSSources(p: Props) {
           );
         })}
 
-        {p.settings.custom_sources.map((src) => (
-          <OutletRow
-            key={src.id || src.name}
-            first={false}
-            t={p.t}
-            on={true}
-            canManage={p.canManage}
-            name={src.name}
-            tagline={src.domain || src.feed_url}
-            meta={"CUSTOM"}
-            weight={0.96}
-            customTint
-            onToggle={() => {}}
-            onRemove={() => p.onRemoveCustomSource(src.id || src.name)}
-          />
-        ))}
+        {p.settings.custom_sources.map((src) => {
+          const key = src.id || src.name;
+          return (
+            <OutletRow
+              key={key}
+              first={false}
+              t={p.t}
+              on={selectedIds.has(key)}
+              canManage={p.canManage}
+              name={src.name}
+              tagline={src.domain || src.feed_url}
+              meta={"CUSTOM"}
+              weight={0.96}
+              customTint
+              onToggle={() => p.onToggleCatalogSource(key)}
+              onRemove={() => p.onRemoveCustomSource(key)}
+            />
+          );
+        })}
       </div>
 
       {/* ====== Add custom outlet form (only adds outlets, not aggregators) */}

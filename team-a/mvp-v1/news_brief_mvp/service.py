@@ -64,7 +64,10 @@ class BriefService:
         warnings: List[str] = []
         persona_definition = get_persona_definition(request_model.persona)
         trusted_settings = self.get_trusted_source_settings()
-        trusted_source_ids = trusted_settings.selected_source_ids + [source.id for source in trusted_settings.custom_sources]
+        # A custom outlet is "on" iff its id is in selected_source_ids — the
+        # frontend pushes the id there on add and strips it on remove or
+        # toggle-off. Storage layer migrates legacy persisted data.
+        trusted_source_ids = list(trusted_settings.selected_source_ids)
 
         if request_model.mode == "fallback":
             mode_used = "fallback"
@@ -238,7 +241,13 @@ class BriefService:
             return
         direct_feeds = list(self.source_registry.direct_feeds)
         weights = dict(self.source_registry.weights)
+        selected = set(settings.selected_source_ids)
+        # Only push a custom feed into the retriever's effective registry
+        # when its id is selected. An unticked custom outlet stays in the
+        # catalog but does not contribute to article fetches or weighting.
         for source in settings.custom_sources:
+            if source.id not in selected:
+                continue
             weights[source.name.lower()] = source.weight
             if source.feed_url:
                 direct_feeds.append(
@@ -338,7 +347,12 @@ def _trusted_source_matchers(
         if not source:
             continue
         matchers.append({"name": source.name.lower(), "domain": _normalize_domain(source.domain)})
+    # Custom outlets contribute matchers iff their id is selected — the
+    # same gate that controls whether their feed is fetched at all.
+    selected = set(settings.selected_source_ids)
     for source in settings.custom_sources:
+        if source.id not in selected:
+            continue
         matchers.append({"name": source.name.lower(), "domain": _normalize_domain(source.domain)})
     return matchers
 
