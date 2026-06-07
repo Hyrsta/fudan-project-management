@@ -18,7 +18,7 @@ class FakeLiveRetriever:
     def __init__(self, articles):
         self.articles = articles
 
-    def fetch(self, topic: str, limit: int, timeout_seconds: float):
+    def fetch(self, topic: str, limit: int, timeout_seconds: float, *, include_google_news: bool = True):
         return list(self.articles)[:limit]
 
 

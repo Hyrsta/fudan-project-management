@@ -10,8 +10,7 @@ import { WSComposer } from "./components/workspace/WSComposer";
 import { WSEmpty } from "./components/workspace/WSEmpty";
 import { WSHistory } from "./components/workspace/WSHistory";
 import { WSReport } from "./components/workspace/WSReport";
-import { WSSources } from "./components/workspace/WSSources";
-import { WSProviders, type NewsProviderSpec } from "./components/workspace/WSProviders";
+import { WSSources, type NewsProviderSpec } from "./components/workspace/WSSources";
 import { PRODUCT } from "./marketingData";
 import type {
   AppConfig,
@@ -32,12 +31,13 @@ import {
 import { loadStoredAuthSession, persistAuthSession } from "./utils/auth";
 import { safeJson } from "./utils/http";
 
-type AppView = "briefing" | "history" | "sources" | "providers";
+type AppView = "briefing" | "history" | "sources";
 type AppRoute = "home" | "product" | "access" | "about" | "login" | "workspace" | "briefDetail";
 
 const emptyTrustedSourceSettings: TrustedSourceSettings = {
   selected_source_ids: [],
   custom_sources: [],
+  google_news_enabled: true,
 };
 
 const emptyCustomSourceDraft: CustomTrustedSource = {
@@ -311,6 +311,14 @@ export default function App() {
     } catch (err) {
       setTrustedSourcesError(err instanceof Error ? err.message : t("error.trustedSourcesLoad"));
     }
+  }
+
+  function onToggleGoogleNews() {
+    const nextSettings: TrustedSourceSettings = {
+      ...trustedSourceDraft,
+      google_news_enabled: !trustedSourceDraft.google_news_enabled,
+    };
+    commitTrustedSources(nextSettings);
   }
 
   function onToggleCatalogSource(sourceId: string) {
@@ -642,20 +650,14 @@ export default function App() {
             onCustomDraftChange={updateCustomSourceDraft}
             onAddCustomSource={onAddCustomSource}
             onRemoveCustomSource={removeCustomSource}
-          />
-        )}
-
-        {activeView === "providers" && (
-          <WSProviders
-            catalog={providerCatalog}
-            keys={providerKeys}
-            drafts={providerDrafts}
-            flashSaved={providerSavedFlash}
-            canManage={canManageTrustedSources}
-            t={t}
-            onDraftChange={setProviderDraft}
-            onSaveKey={saveProviderKey}
-            onRemoveKey={removeProviderKey}
+            onToggleGoogleNews={onToggleGoogleNews}
+            providerCatalog={providerCatalog}
+            providerKeys={providerKeys}
+            providerDrafts={providerDrafts}
+            providerFlashSaved={providerSavedFlash}
+            onProviderDraftChange={setProviderDraft}
+            onSaveProviderKey={saveProviderKey}
+            onRemoveProviderKey={removeProviderKey}
           />
         )}
       </WorkspaceShell>

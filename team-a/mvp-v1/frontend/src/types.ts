@@ -54,6 +54,7 @@ export type CustomTrustedSource = {
 export type TrustedSourceSettings = {
   selected_source_ids: string[];
   custom_sources: CustomTrustedSource[];
+  google_news_enabled: boolean;
 };
 
 export type TrustedSourcePayload = {

@@ -77,6 +77,7 @@ class BriefService:
                     request_model.topic,
                     limit=self.retrieval_limit,
                     timeout_seconds=self.timeout_seconds,
+                    include_google_news=trusted_settings.google_news_enabled,
                 )
                 # External news-API providers: each gets its key from the
                 # request headers (via provider_keys dict). Unconfigured

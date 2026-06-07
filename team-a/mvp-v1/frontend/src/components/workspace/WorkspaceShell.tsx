@@ -4,7 +4,7 @@ import { LanguageToggle } from "../LanguageToggle";
 import { RailIcon, type RailIconKind } from "../marketing/EditorialIcons";
 import { WSAccountMenu } from "./WSAccountMenu";
 
-export type WorkspaceView = "briefing" | "history" | "sources" | "providers";
+export type WorkspaceView = "briefing" | "history" | "sources";
 
 type Props = {
   activeView: WorkspaceView;
@@ -31,7 +31,6 @@ export function WorkspaceShell(p: Props) {
     ["briefing", "search", p.t("ws.sectionBriefing")],
     ["history", "bookmark", p.t("ws.sectionHistory")],
     ["sources", "radio", p.t("ws.sectionSources")],
-    ["providers", "key", p.t("ws.sectionProviders")],
   ];
   const sectionLabel = (navItems.find((n) => n[0] === p.activeView) || navItems[0])[2];
 

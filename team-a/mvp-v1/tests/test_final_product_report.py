@@ -6,7 +6,7 @@ from news_brief_mvp.storage import ArtifactStore
 
 
 class EmptyLiveRetriever:
-    def fetch(self, topic: str, limit: int, timeout_seconds: float):
+    def fetch(self, topic: str, limit: int, timeout_seconds: float, *, include_google_news: bool = True):
         return []
 
 
