@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import { formatDate, type Language, type TFunction, type TranslationKey } from "../../i18n";
-import type { BriefResponse } from "../../types";
+import { formatDate, localizePersonaById, type Language, type TFunction, type TranslationKey } from "../../i18n";
+import type { BriefResponse, PersonaLensId } from "../../types";
 import { PersonaGlyph, RailIcon } from "../marketing/EditorialIcons";
 
 type Props = {
@@ -81,7 +81,7 @@ export function WSReport({ brief, language, t, hasKey, canHandoff }: Props) {
             lineHeight: 1.1, margin: 0,
           }}>{brief.topic}</h2>
           <div style={{ display: "flex", gap: 16, marginTop: 12, flexWrap: "wrap" }}>
-            <MetaPill><PersonaGlyph value={brief.persona} /> {brief.persona_label}</MetaPill>
+            <MetaPill><PersonaGlyph value={brief.persona} /> {localizePersonaById(brief.persona as PersonaLensId, language, { label: brief.persona_label, short: "" }).label}</MetaPill>
             <MetaPill>{t("report.sources", { count: articles.length })}</MetaPill>
             <MetaPill><RailIcon kind="radio" /> {modeLabel}</MetaPill>
             <MetaPill>
