@@ -546,6 +546,20 @@ function ProviderRow({
             >
               {t("sources.replaceKey").toUpperCase()}
             </button>
+            <button
+              type="button"
+              onClick={onRemove}
+              disabled={!canManage}
+              className="a-mono"
+              style={{
+                padding: "3px 8px", fontSize: 10, letterSpacing: "0.04em",
+                border: "1px solid var(--ab-rule)", background: "transparent",
+                cursor: canManage ? "pointer" : "not-allowed",
+                color: "var(--ab-accent)", borderRadius: 4,
+              }}
+            >
+              {t("model.remove").toUpperCase()}
+            </button>
           </>
         ) : (
           // ----- No key yet -----
