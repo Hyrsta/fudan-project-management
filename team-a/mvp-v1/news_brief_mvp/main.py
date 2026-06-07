@@ -56,6 +56,8 @@ def create_app(
     @app.get("/", response_class=HTMLResponse)
     @app.get("/login", response_class=HTMLResponse)
     @app.get("/workspace", response_class=HTMLResponse)
+    @app.get("/workspace/history", response_class=HTMLResponse)
+    @app.get("/workspace/sources", response_class=HTMLResponse)
     @app.get("/workspace/brief/{brief_id}", response_class=HTMLResponse)
     @app.get("/product", response_class=HTMLResponse)
     @app.get("/access", response_class=HTMLResponse)

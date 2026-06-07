@@ -85,7 +85,21 @@ def test_app_passes_model_key_state_to_workspace_shell() -> None:
 
 def test_editorial_workspace_keeps_marketing_routes_intact() -> None:
     app = (FRONTEND_SRC / "App.tsx").read_text()
-    assert 'type AppRoute = "home" | "product" | "access" | "about" | "login" | "workspace"' in app
+    # AppRoute union covers marketing pages, login, workspace views, and brief detail.
+    # Asserted variant-by-variant so cosmetic reformatting of the union doesn't
+    # flake this test.
+    for variant in (
+        '"home"',
+        '"product"',
+        '"access"',
+        '"about"',
+        '"login"',
+        '"workspace"',
+        '"workspaceHistory"',
+        '"workspaceSources"',
+        '"briefDetail"',
+    ):
+        assert variant in app, f"AppRoute missing {variant} variant"
     assert "MarketingHome" in app
     assert "MarketingProduct" in app
     assert "MarketingAccess" in app

@@ -32,7 +32,16 @@ import { loadStoredAuthSession, persistAuthSession } from "./utils/auth";
 import { safeJson } from "./utils/http";
 
 type AppView = "briefing" | "history" | "sources";
-type AppRoute = "home" | "product" | "access" | "about" | "login" | "workspace" | "briefDetail";
+type AppRoute =
+  | "home"
+  | "product"
+  | "access"
+  | "about"
+  | "login"
+  | "workspace"
+  | "workspaceHistory"
+  | "workspaceSources"
+  | "briefDetail";
 
 const emptyTrustedSourceSettings: TrustedSourceSettings = {
   selected_source_ids: [],
@@ -60,7 +69,11 @@ export default function App() {
   const [persona, setPersona] = useState("research_analyst");
   const [language, setLanguage] = useState<Language>(() => loadStoredLanguage());
   const [route, setRoute] = useState<AppRoute>(() => getCurrentRoute());
-  const [activeView, setActiveView] = useState<AppView>("briefing");
+  // activeView is purely derived from the URL — survives refresh and back/forward.
+  const activeView: AppView =
+    route === "workspaceHistory" ? "history"
+    : route === "workspaceSources" ? "sources"
+    : "briefing";
   const [isLoading, setIsLoading] = useState(false);
   const [isSavingTrustedSources, setIsSavingTrustedSources] = useState(false);
   const [error, setError] = useState("");
@@ -253,7 +266,6 @@ export default function App() {
     setRecentBriefs((await response.json()) as BriefResponse[]);
     setAuthSession(nextSession);
     setBrief(null);
-    setActiveView("briefing");
     navigateTo("/workspace");
     setToast(t("toast.signedIn"));
   }
@@ -265,7 +277,6 @@ export default function App() {
     setTrustedSourcePayload(null);
     setTrustedSourceDraft(emptyTrustedSourceSettings);
     setCustomSourceDraft(emptyCustomSourceDraft);
-    setActiveView("briefing");
     setError("");
     setTrustedSourcesError("");
     setLoginError("");
@@ -563,8 +574,9 @@ export default function App() {
         keySaved={keySaved}
         rbacEnabled={config.rbac.enabled}
         onViewChange={(v) => {
-          setActiveView(v);
-          if (route === "briefDetail") navigateTo("/workspace");
+          if (v === "history") navigateTo("/workspace/history");
+          else if (v === "sources") navigateTo("/workspace/sources");
+          else navigateTo("/workspace");
         }}
         onLanguageChange={setLanguage}
         onKeyDraftChange={setKeyDraft}
@@ -681,6 +693,8 @@ function getCurrentRoute(): AppRoute {
   if (pathname === "/about") return "about";
   if (pathname === "/login") return "login";
   if (pathname === "/workspace") return "workspace";
+  if (pathname === "/workspace/history") return "workspaceHistory";
+  if (pathname === "/workspace/sources") return "workspaceSources";
   if (pathname.startsWith("/workspace/brief/")) return "briefDetail";
   return "home";
 }
