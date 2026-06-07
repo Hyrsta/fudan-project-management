@@ -41,11 +41,10 @@ export function WSComposer(p: Props) {
 
   return (
     <form onSubmit={p.onSubmit} aria-busy={p.isLoading}>
-      <section style={{
-        background: "var(--ab-paper)",
-        border: "1px solid var(--ab-rule)", borderRadius: 10,
-        padding: "24px 28px", marginBottom: 28,
-      }}>
+      {/* No card chrome — the composer sits directly on the page like the
+          History and Sources views; its inner controls carry their own
+          borders, so an outer panel border is redundant. */}
+      <section style={{ marginBottom: 28 }}>
         {/* Topic row */}
         <div style={{ marginBottom: 10 }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 12, alignItems: "stretch" }}>
