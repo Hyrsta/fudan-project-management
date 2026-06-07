@@ -12,6 +12,19 @@ type Props = {
 
 const COLS = "1.7fr 1fr 96px 150px 78px 110px";
 
+// One shared shape for the row's action buttons so Open + Delete cannot
+// drift apart visually. whiteSpace:nowrap stops the trailing "→" on the
+// Open label from wrapping to a second line in narrow rows.
+const historyRowButtonStyle: React.CSSProperties = {
+  padding: "4px 8px",
+  fontSize: 11,
+  lineHeight: 1.2,
+  border: "1px solid var(--ab-rule)",
+  background: "transparent",
+  cursor: "pointer",
+  whiteSpace: "nowrap",
+};
+
 export function WSHistory({ briefs, canDelete, language, t, onOpenBrief, onDeleteBrief }: Props) {
   const fmt = (iso: string) =>
     formatDate(iso, language, { month: "short", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false });
@@ -94,11 +107,7 @@ export function WSHistory({ briefs, canDelete, language, t, onOpenBrief, onDelet
                 <button
                   type="button"
                   onClick={() => onOpenBrief(b.brief_id)}
-                  style={{
-                    padding: "4px 8px", fontSize: 11,
-                    border: "1px solid var(--ab-rule)", background: "transparent",
-                    cursor: "pointer", color: "var(--ab-ink-soft)",
-                  }}
+                  style={{ ...historyRowButtonStyle, color: "var(--ab-ink-soft)" }}
                 >
                   {t("history.open")} →
                 </button>
@@ -108,8 +117,7 @@ export function WSHistory({ briefs, canDelete, language, t, onOpenBrief, onDelet
                   onClick={() => canDelete && onDeleteBrief(b.brief_id)}
                   title={!canDelete ? t("history.deleteGated") : t("history.delete")}
                   style={{
-                    padding: "4px 8px", fontSize: 11,
-                    border: "1px solid var(--ab-rule)", background: "transparent",
+                    ...historyRowButtonStyle,
                     cursor: canDelete ? "pointer" : "not-allowed",
                     color: canDelete ? "var(--ab-accent)" : "var(--ab-ink-mute)",
                     opacity: canDelete ? 1 : 0.6,
