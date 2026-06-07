@@ -31,21 +31,17 @@ export function WSHistory({ briefs, canDelete, language, t, onOpenBrief, onDelet
 
   return (
     <div style={{ padding: "40px 56px 80px" }}>
-      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 6 }}>
-        <div>
-          <div className="a-smallcaps">{t("history.title")}</div>
-          <h2 className="a-serif" style={{ fontSize: 28, fontWeight: 600, letterSpacing: "-0.02em", marginTop: 6 }}>
-            {t("history.heading")}
-          </h2>
-        </div>
+      {/* No page title — the topbar already shows the "Brief history" section label. */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, marginBottom: 16 }}>
+        <p style={{ fontSize: 13, color: "var(--ab-ink-soft)", margin: 0 }}>{t("history.copy")}</p>
         <span className="a-mono" style={{
+          flexShrink: 0,
           padding: "2px 9px", borderRadius: 999, fontSize: 10,
           letterSpacing: "0.04em", fontWeight: 600,
           background: "transparent", color: "var(--ab-ink-soft)",
           border: "1px solid var(--ab-rule)",
         }}>{t("history.count", { count: briefs.length }).toUpperCase()}</span>
       </div>
-      <p style={{ fontSize: 13, color: "var(--ab-ink-soft)", marginBottom: 16 }}>{t("history.copy")}</p>
 
       <div style={{ border: "1px solid var(--ab-rule)", borderRadius: 10, overflow: "hidden" }}>
         <div style={{

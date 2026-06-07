@@ -86,15 +86,12 @@ export function WSSources(p: Props) {
 
   return (
     <div style={{ padding: "40px 56px 80px" }}>
-      {/* Page header */}
-      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 6 }}>
-        <div>
-          <div className="a-smallcaps">{p.t("sources.title")}</div>
-          <h2 className="a-serif" style={{ fontSize: 28, fontWeight: 600, letterSpacing: "-0.02em", marginTop: 6 }}>
-            {p.t("sources.heading")}
-          </h2>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      {/* Page header — no title; the topbar already shows the "Sources" section label. */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, marginBottom: 18 }}>
+        <p style={{ fontSize: 13, color: "var(--ab-ink-soft)", margin: 0, maxWidth: 720 }}>
+          {p.t("sources.copy")}
+        </p>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
           <span className="a-mono" style={{
             padding: "2px 9px", borderRadius: 999, fontSize: 10, letterSpacing: "0.04em", fontWeight: 600,
             background: "transparent", color: "var(--ab-ink-soft)",
@@ -118,9 +115,6 @@ export function WSSources(p: Props) {
           </span>
         </div>
       </div>
-      <p style={{ fontSize: 13, color: "var(--ab-ink-soft)", marginBottom: 18, maxWidth: 720 }}>
-        {p.t("sources.copy")}
-      </p>
       {!p.canManage && <p style={{ marginBottom: 14, fontSize: 12.5, color: "var(--ab-accent)" }}>{p.t("sources.viewerNotice")}</p>}
       {p.error && <p style={{ marginBottom: 14, fontSize: 12.5, color: "var(--ab-accent)" }}>{p.error}</p>}
 
