@@ -62,14 +62,17 @@ export function WSSources(p: Props) {
     p.onAddCustomSource();
   }
 
-  const totalOn =
+  // Two separate tallies — one per table.
+  const outletsOn =
     p.settings.selected_source_ids.length
-    + p.settings.custom_sources.length
-    + (p.settings.google_news_enabled ? 1 : 0)
+    + p.settings.custom_sources.length;
+  const outletsTotal =
+    queryableCatalog.length + p.settings.custom_sources.length;
+  const aggregatorsOn =
+    (p.settings.google_news_enabled ? 1 : 0)
     + p.providerCatalog.filter((c) => Boolean(p.providerKeys[c.id])).length;
-  const totalAvailable =
-    queryableCatalog.length + p.settings.custom_sources.length
-    + 1 /* Google News */ + p.providerCatalog.length;
+  const aggregatorsTotal =
+    1 /* Google News */ + p.providerCatalog.length;
 
   return (
     <div style={{ padding: "40px 56px 80px" }}>
@@ -87,7 +90,14 @@ export function WSSources(p: Props) {
             background: "transparent", color: "var(--ab-ink-soft)",
             border: "1px solid var(--ab-rule)",
           }}>
-            {p.t("sources.onOfTotal", { on: totalOn, total: totalAvailable }).toUpperCase()}
+            {p.t("sources.outletsOn", { on: outletsOn, total: outletsTotal }).toUpperCase()}
+          </span>
+          <span className="a-mono" style={{
+            padding: "2px 9px", borderRadius: 999, fontSize: 10, letterSpacing: "0.04em", fontWeight: 600,
+            background: "transparent", color: "var(--ab-ink-soft)",
+            border: "1px solid var(--ab-rule)",
+          }}>
+            {p.t("sources.aggregatorsOn", { on: aggregatorsOn, total: aggregatorsTotal }).toUpperCase()}
           </span>
           <span className="a-mono" style={{
             padding: "2px 9px", borderRadius: 999, fontSize: 10, letterSpacing: "0.04em", fontWeight: 600,
