@@ -48,19 +48,30 @@
       "id": "financial-times",
       "name": "Financial Times",
       "domain": "ft.com",
+      "feed_url": "https://www.ft.com/?format=rss",
       "category": "business",
       "region": "global",
       "weight": 0.92,
-      "subscription_note": "Subscription integrations should use official or user-authorized paths."
+      "subscription_note": "Public homepage feed; full article bodies are subject to FT subscription."
     },
     {
       "id": "wall-street-journal",
       "name": "Wall Street Journal",
       "domain": "wsj.com",
+      "feed_url": "https://feeds.a.dj.com/rss/RSSWorldNews.xml",
       "category": "business",
       "region": "us",
       "weight": 0.9,
-      "subscription_note": "Subscription integrations should use official or user-authorized paths."
+      "subscription_note": "Public world-news feed; full article bodies are subject to WSJ subscription."
+    },
+    {
+      "id": "cnbc",
+      "name": "CNBC",
+      "domain": "cnbc.com",
+      "feed_url": "https://www.cnbc.com/id/100003114/device/rss/rss.html",
+      "category": "business",
+      "region": "us",
+      "weight": 0.82
     },
     {
       "id": "bloomberg",
