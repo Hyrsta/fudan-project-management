@@ -56,10 +56,14 @@ def create_app(
     @app.get("/", response_class=HTMLResponse)
     @app.get("/login", response_class=HTMLResponse)
     @app.get("/workspace", response_class=HTMLResponse)
+    @app.get("/workspace/brief/{brief_id}", response_class=HTMLResponse)
     @app.get("/product", response_class=HTMLResponse)
     @app.get("/access", response_class=HTMLResponse)
     @app.get("/about", response_class=HTMLResponse)
-    def index(request: Request):
+    def index(request: Request, brief_id: Optional[str] = None):
+        # brief_id is captured from /workspace/brief/{brief_id}; the React
+        # shell handles routing client-side, so the param is accepted but
+        # not used here.
         if react_index_path.exists():
             return FileResponse(react_index_path)
         return templates.TemplateResponse(request, "index.html", page_context(request))

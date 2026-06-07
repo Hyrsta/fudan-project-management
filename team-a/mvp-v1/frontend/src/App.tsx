@@ -33,7 +33,7 @@ import { loadStoredAuthSession, persistAuthSession } from "./utils/auth";
 import { safeJson } from "./utils/http";
 
 type AppView = "briefing" | "history" | "sources" | "providers";
-type AppRoute = "home" | "product" | "access" | "about" | "login" | "workspace";
+type AppRoute = "home" | "product" | "access" | "about" | "login" | "workspace" | "briefDetail";
 
 const emptyTrustedSourceSettings: TrustedSourceSettings = {
   selected_source_ids: [],
@@ -222,6 +222,18 @@ export default function App() {
     setRoute(getCurrentRoute());
     window.scrollTo({ top: 0, left: 0 });
   }
+
+  // On briefDetail route: ensure the loaded brief matches the URL's brief_id.
+  // Triggers a fetch when arriving via direct link, history "Open", or popstate.
+  useEffect(() => {
+    if (route !== "briefDetail") return;
+    if (config.rbac.enabled && !activeToken) return;
+    const urlBriefId = getCurrentBriefIdFromPath();
+    if (!urlBriefId) return;
+    if (brief && brief.brief_id === urlBriefId) return;
+    void fetchBriefById(urlBriefId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [route, activeToken, config.rbac.enabled]);
 
   useEffect(() => {
     if (route === "login" && authSession) {
@@ -468,9 +480,9 @@ export default function App() {
       }
       const payload = (await response.json()) as BriefResponse;
       setBrief(payload);
-      setActiveView("briefing");
       setToast(t("toast.briefGenerated"));
       loadRecentBriefs();
+      navigateTo(`/workspace/brief/${encodeURIComponent(payload.brief_id)}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : t("error.generateFailed"));
     } finally {
@@ -479,6 +491,11 @@ export default function App() {
   }
 
   async function openBrief(briefId: string) {
+    setError("");
+    navigateTo(`/workspace/brief/${encodeURIComponent(briefId)}`);
+  }
+
+  async function fetchBriefById(briefId: string) {
     setError("");
     try {
       const response = await fetch(`/api/briefs/${encodeURIComponent(briefId)}`, {
@@ -489,8 +506,6 @@ export default function App() {
         throw new Error(payload?.detail || t("error.requestFailed", { status: response.status }));
       }
       setBrief((await response.json()) as BriefResponse);
-      setActiveView("briefing");
-      setToast(t("toast.briefLoaded"));
     } catch (err) {
       setError(err instanceof Error ? err.message : t("error.openFailed"));
     }
@@ -539,14 +554,17 @@ export default function App() {
         keyDraft={keyDraft}
         keySaved={keySaved}
         rbacEnabled={config.rbac.enabled}
-        onViewChange={setActiveView}
+        onViewChange={(v) => {
+          setActiveView(v);
+          if (route === "briefDetail") navigateTo("/workspace");
+        }}
         onLanguageChange={setLanguage}
         onKeyDraftChange={setKeyDraft}
         onSaveKey={saveKey}
         onRemoveKey={removeKey}
         onSignOut={handleLogout}
       >
-        {activeView === "briefing" && (
+        {activeView === "briefing" && route !== "briefDetail" && (
           <div style={{ padding: "40px 56px 80px" }}>
             <WSComposer
               topic={topic}
@@ -564,6 +582,28 @@ export default function App() {
               onPersonaChange={setPersona}
               onSubmit={submitBrief}
             />
+          </div>
+        )}
+
+        {route === "briefDetail" && (
+          <div style={{ padding: "40px 56px 80px" }}>
+            <div style={{ marginBottom: 18, display: "flex", alignItems: "center", gap: 10 }}>
+              <button
+                type="button"
+                onClick={() => navigateTo("/workspace")}
+                className="a-mono"
+                style={{
+                  padding: "5px 11px", fontSize: 11, letterSpacing: "0.06em",
+                  textTransform: "uppercase", borderRadius: 6, cursor: "pointer",
+                  border: "1px solid var(--ab-rule)", background: "transparent",
+                  color: "var(--ab-ink-soft)",
+                }}
+              >
+                ← {t("briefDetail.backToCompose")}
+              </button>
+              <span style={{ flex: 1 }} />
+              {error && <span style={{ fontSize: 12.5, color: "var(--ab-accent)" }}>{error}</span>}
+            </div>
             {brief ? (
               <WSReport
                 brief={brief}
@@ -639,5 +679,12 @@ function getCurrentRoute(): AppRoute {
   if (pathname === "/about") return "about";
   if (pathname === "/login") return "login";
   if (pathname === "/workspace") return "workspace";
+  if (pathname.startsWith("/workspace/brief/")) return "briefDetail";
   return "home";
+}
+
+function getCurrentBriefIdFromPath(): string | null {
+  const pathname = window.location.pathname.replace(/\/+$/, "") || "/";
+  const match = pathname.match(/^\/workspace\/brief\/([^/]+)$/);
+  return match ? decodeURIComponent(match[1]) : null;
 }
