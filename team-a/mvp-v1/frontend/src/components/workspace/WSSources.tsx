@@ -543,30 +543,10 @@ function ProviderRow({
           </>
         ) : hasKey ? (
           // ----- Compact saved view (no input field) -----
-          //   chip colour mirrors the enabled state:
-          //     enabled  → green "● SAVED"
-          //     paused   → grey  "○ PAUSED"
-          // both states are followed by REPLACE + REMOVE.
+          // No SAVED/PAUSED chip — the on/off toggle pill on the far right
+          // already conveys the active state, and a second indicator just
+          // adds redundant visual weight.
           <>
-            {enabled ? (
-              <span className="a-mono" style={{
-                padding: "2px 9px", borderRadius: 999, fontSize: 10,
-                letterSpacing: "0.04em", fontWeight: 600,
-                background: "var(--ab-green-soft)", color: "var(--ab-green-deep)",
-                border: "1px solid color-mix(in oklab, var(--ab-green) 30%, transparent)",
-              }}>
-                ● {t("model.saved").toUpperCase()}
-              </span>
-            ) : (
-              <span className="a-mono" style={{
-                padding: "2px 9px", borderRadius: 999, fontSize: 10,
-                letterSpacing: "0.04em", fontWeight: 600,
-                background: "transparent", color: "var(--ab-ink-soft)",
-                border: "1px solid var(--ab-rule)",
-              }}>
-                ○ {t("sources.paused").toUpperCase()}
-              </span>
-            )}
             <button
               type="button"
               onClick={() => setOpen(true)}
