@@ -171,11 +171,184 @@ class NYTProvider(NewsProvider):
         return results
 
 
+# ----- NewsAPI.org ----------------------------------------------------------
+# Free developer key; returns headlines + descriptions + a short content blob.
+# Docs: https://newsapi.org/docs/endpoints/everything
+
+class NewsAPIOrgProvider(NewsProvider):
+    spec = ProviderSpec(
+        id="newsapiorg",
+        name="NewsAPI.org",
+        blurb="Self-serve free developer key. Headlines and short descriptions across thousands of sources.",
+        signup_url="https://newsapi.org/register",
+        body_access="snippet",
+    )
+
+    BASE_URL = "https://newsapi.org/v2/everything"
+
+    def fetch(self, topic: str, limit: int, timeout_seconds: float) -> List[ArticleRecord]:
+        if not self.is_configured:
+            return []
+        try:
+            response = httpx.get(
+                self.BASE_URL,
+                timeout=timeout_seconds,
+                params={
+                    "q": topic,
+                    "pageSize": min(limit, 100),
+                    "sortBy": "publishedAt",
+                    "language": "en",
+                    "apiKey": self.api_key,
+                },
+                headers={"User-Agent": "team-a-final-news-brief/1.0"},
+            )
+            response.raise_for_status()
+            payload = response.json()
+        except Exception:
+            return []
+
+        results: List[ArticleRecord] = []
+        for entry in payload.get("articles", []):
+            try:
+                src_name = (entry.get("source") or {}).get("name") or ""
+                results.append(
+                    ArticleRecord(
+                        id=f"newsapiorg-{entry.get('url', '')[:64]}",
+                        title=entry.get("title", "") or "",
+                        source=src_name or "NewsAPI.org",
+                        url=entry.get("url", ""),
+                        published_at=_parse_iso(entry.get("publishedAt", "")),
+                        snippet=entry.get("description", "") or "",
+                        summary=entry.get("content") or None,
+                        source_weight=0.55,
+                    )
+                )
+            except Exception:
+                continue
+        return results[:limit]
+
+
+# ----- GNews ----------------------------------------------------------------
+# Free tier (100 req/day) at https://gnews.io. Headlines + descriptions + a
+# short content excerpt. Docs: https://gnews.io/docs
+
+class GNewsProvider(NewsProvider):
+    spec = ProviderSpec(
+        id="gnews",
+        name="GNews",
+        blurb="Self-serve free key (100 requests / day). Headlines and short descriptions.",
+        signup_url="https://gnews.io/register",
+        body_access="snippet",
+    )
+
+    BASE_URL = "https://gnews.io/api/v4/search"
+
+    def fetch(self, topic: str, limit: int, timeout_seconds: float) -> List[ArticleRecord]:
+        if not self.is_configured:
+            return []
+        try:
+            response = httpx.get(
+                self.BASE_URL,
+                timeout=timeout_seconds,
+                params={
+                    "q": topic,
+                    "max": min(limit, 25),
+                    "lang": "en",
+                    "sortby": "publishedAt",
+                    "token": self.api_key,
+                },
+                headers={"User-Agent": "team-a-final-news-brief/1.0"},
+            )
+            response.raise_for_status()
+            payload = response.json()
+        except Exception:
+            return []
+
+        results: List[ArticleRecord] = []
+        for entry in payload.get("articles", []):
+            try:
+                src_name = (entry.get("source") or {}).get("name") or ""
+                results.append(
+                    ArticleRecord(
+                        id=f"gnews-{entry.get('url', '')[:64]}",
+                        title=entry.get("title", "") or "",
+                        source=src_name or "GNews",
+                        url=entry.get("url", ""),
+                        published_at=_parse_iso(entry.get("publishedAt", "")),
+                        snippet=entry.get("description", "") or "",
+                        summary=entry.get("content") or None,
+                        source_weight=0.55,
+                    )
+                )
+            except Exception:
+                continue
+        return results[:limit]
+
+
+# ----- mediastack -----------------------------------------------------------
+# Free tier (500 req/month) at https://mediastack.com. Headlines + descriptions.
+# Docs: https://mediastack.com/documentation
+
+class MediastackProvider(NewsProvider):
+    spec = ProviderSpec(
+        id="mediastack",
+        name="mediastack",
+        blurb="Self-serve free tier (500 requests / month). Headlines and short descriptions across 7,500+ sources.",
+        signup_url="https://mediastack.com/signup/free",
+        body_access="snippet",
+    )
+
+    BASE_URL = "https://api.mediastack.com/v1/news"
+
+    def fetch(self, topic: str, limit: int, timeout_seconds: float) -> List[ArticleRecord]:
+        if not self.is_configured:
+            return []
+        try:
+            response = httpx.get(
+                self.BASE_URL,
+                timeout=timeout_seconds,
+                params={
+                    "keywords": topic,
+                    "limit": min(limit, 100),
+                    "languages": "en",
+                    "sort": "published_desc",
+                    "access_key": self.api_key,
+                },
+                headers={"User-Agent": "team-a-final-news-brief/1.0"},
+            )
+            response.raise_for_status()
+            payload = response.json()
+        except Exception:
+            return []
+
+        results: List[ArticleRecord] = []
+        for entry in payload.get("data", []):
+            try:
+                src_name = entry.get("source") or ""
+                results.append(
+                    ArticleRecord(
+                        id=f"mediastack-{entry.get('url', '')[:64]}",
+                        title=entry.get("title", "") or "",
+                        source=src_name or "mediastack",
+                        url=entry.get("url", ""),
+                        published_at=_parse_iso(entry.get("published_at", "")),
+                        snippet=entry.get("description", "") or "",
+                        source_weight=0.50,
+                    )
+                )
+            except Exception:
+                continue
+        return results[:limit]
+
+
 # ----- Registry --------------------------------------------------------------
 
 PROVIDER_REGISTRY = {
     GuardianProvider.spec.id: GuardianProvider,
     NYTProvider.spec.id: NYTProvider,
+    NewsAPIOrgProvider.spec.id: NewsAPIOrgProvider,
+    GNewsProvider.spec.id: GNewsProvider,
+    MediastackProvider.spec.id: MediastackProvider,
 }
 
 

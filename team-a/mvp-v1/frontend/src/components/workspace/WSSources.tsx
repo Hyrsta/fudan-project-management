@@ -83,12 +83,17 @@ export function WSSources(p: Props) {
           <span style={{ textAlign: "right" }}>{p.t("sources.col.state")}</span>
         </div>
 
-        {p.catalog.map((src, i) => {
+        {(() => {
+          // Outlets without a feed_url can't be queried directly; they only
+          // contribute a credibility weight to Google-News-discovered articles.
+          // Hiding them from the picker so the list only shows actionable rows.
+          const queryable = p.catalog.filter((src) => Boolean(src.feed_url));
+          return queryable.map((src, i) => {
           const on = selectedIds.has(src.id);
           return (
             <div key={src.id} style={{
               display: "grid", gridTemplateColumns: COLS, padding: "12px 16px", alignItems: "center", gap: 12,
-              borderBottom: i < p.catalog.length - 1 ? "1px solid var(--ab-rule-soft)" : 0,
+              borderBottom: i < queryable.length - 1 ? "1px solid var(--ab-rule-soft)" : 0,
             }}>
               <button
                 type="button"
@@ -151,7 +156,8 @@ export function WSSources(p: Props) {
               </span>
             </div>
           );
-        })}
+        });
+        })()}
 
         {p.settings.custom_sources.map((src, i) => (
           <div key={src.id || src.name} style={{
