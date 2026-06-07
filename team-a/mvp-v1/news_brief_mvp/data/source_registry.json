@@ -24,7 +24,7 @@
       "category": "wire",
       "region": "global",
       "weight": 0.98,
-      "subscription_note": "Public article pages and feeds where available."
+      "subscription_note": "No public RSS since June 2020; Reuters Connect / LSEG APIs are enterprise-only. Currently does not contribute articles — kept as a domain-trust signal for matchers."
     },
     {
       "id": "ap",
@@ -33,7 +33,7 @@
       "category": "wire",
       "region": "global",
       "weight": 0.95,
-      "subscription_note": "Public article pages and feeds where available."
+      "subscription_note": "AP does not publish official RSS and the Content API is enterprise-sales only. Currently does not contribute articles — kept as a domain-trust signal for matchers."
     },
     {
       "id": "bbc-news",

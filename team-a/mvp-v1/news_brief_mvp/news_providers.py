@@ -179,7 +179,7 @@ class NewsAPIOrgProvider(NewsProvider):
     spec = ProviderSpec(
         id="newsapiorg",
         name="NewsAPI.org",
-        blurb="Self-serve free developer key. Headlines and short descriptions across thousands of sources.",
+        blurb="Self-serve free developer key (dev/testing only, 100 req/day, 24h article delay, ~1-month lookback). Headlines and short descriptions across thousands of sources.",
         signup_url="https://newsapi.org/register",
         body_access="snippet",
     )
@@ -295,7 +295,7 @@ class MediastackProvider(NewsProvider):
     spec = ProviderSpec(
         id="mediastack",
         name="mediastack",
-        blurb="Self-serve free tier (500 requests / month). Headlines and short descriptions across 7,500+ sources.",
+        blurb="Self-serve free tier (100 requests / month, 30-min delayed, HTTP-only). Headlines and short descriptions across 7,500+ sources.",
         signup_url="https://mediastack.com/signup/free",
         body_access="snippet",
     )
