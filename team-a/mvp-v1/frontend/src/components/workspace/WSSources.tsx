@@ -344,13 +344,8 @@ function GoogleNewsRow({
       alignItems: "center",
       background: "var(--ab-paper-2)",
     }}>
-      <span style={{
-        width: 18, height: 18, borderRadius: 4,
-        background: on ? "var(--ab-green)" : "transparent",
-        border: `1.5px solid ${on ? "var(--ab-green)" : "var(--ab-ink-mute)"}`,
-        display: "inline-flex", alignItems: "center", justifyContent: "center",
-        color: "#fff", fontSize: 11, fontWeight: 700,
-      }}>{on && "✓"}</span>
+      {/* leftmost cell intentionally empty — aggregators use the right-side toggle */}
+      <span aria-hidden="true" />
       <div>
         <div style={{ fontSize: 14, fontWeight: 600 }}>{t("sources.webSearch.googleNews")}</div>
         <span style={{ fontSize: 11.5, color: "var(--ab-ink-mute)" }}>{t("sources.webSearch.googleNewsBlurb")}</span>
@@ -360,42 +355,58 @@ function GoogleNewsRow({
       </span>
       <span className="a-mono" style={{ fontSize: 11, color: "var(--ab-ink-mute)" }}>—</span>
       <div style={{ justifySelf: "flex-end" }}>
-        <button
-          type="button"
-          onClick={onToggle}
-          disabled={disabled}
-          aria-pressed={on}
-          style={{
-            display: "inline-flex", alignItems: "center", gap: 8,
-            padding: "4px 4px 4px 11px", borderRadius: 999,
-            border: `1px solid ${on ? "var(--ab-green)" : "var(--ab-rule)"}`,
-            background: on ? "color-mix(in oklab, var(--ab-green) 12%, transparent)" : "transparent",
-            cursor: disabled ? "not-allowed" : "pointer",
-            opacity: disabled ? 0.5 : 1,
-          }}
-        >
-          <span className="a-mono" style={{
-            fontSize: 10, letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 600,
-            color: on ? "var(--ab-green-deep)" : "var(--ab-ink-mute)",
-          }}>
-            {on ? t("sources.webSearch.on") : t("sources.webSearch.off")}
-          </span>
-          <span style={{
-            width: 24, height: 14, borderRadius: 999,
-            background: on ? "var(--ab-green)" : "var(--ab-rule)",
-            position: "relative", transition: "background .15s",
-          }}>
-            <span style={{
-              position: "absolute", top: 2, left: on ? 12 : 2,
-              width: 10, height: 10, borderRadius: "50%",
-              background: "var(--ab-paper)",
-              boxShadow: "0 1px 2px rgba(0,0,0,0.25)",
-              transition: "left .15s",
-            }} />
-          </span>
-        </button>
+        <TogglePill t={t} on={on} disabled={disabled} onClick={onToggle} />
       </div>
     </div>
+  );
+}
+
+function TogglePill({
+  t,
+  on,
+  disabled,
+  onClick,
+}: {
+  t: TFunction;
+  on: boolean;
+  disabled: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-pressed={on}
+      style={{
+        display: "inline-flex", alignItems: "center", gap: 8,
+        padding: "4px 4px 4px 11px", borderRadius: 999,
+        border: `1px solid ${on ? "var(--ab-green)" : "var(--ab-rule)"}`,
+        background: on ? "color-mix(in oklab, var(--ab-green) 12%, transparent)" : "transparent",
+        cursor: disabled ? "not-allowed" : "pointer",
+        opacity: disabled ? 0.5 : 1,
+      }}
+    >
+      <span className="a-mono" style={{
+        fontSize: 10, letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 600,
+        color: on ? "var(--ab-green-deep)" : "var(--ab-ink-mute)",
+      }}>
+        {on ? t("sources.webSearch.on") : t("sources.webSearch.off")}
+      </span>
+      <span style={{
+        width: 24, height: 14, borderRadius: 999,
+        background: on ? "var(--ab-green)" : "var(--ab-rule)",
+        position: "relative", transition: "background .15s",
+      }}>
+        <span style={{
+          position: "absolute", top: 2, left: on ? 12 : 2,
+          width: 10, height: 10, borderRadius: "50%",
+          background: "var(--ab-paper)",
+          boxShadow: "0 1px 2px rgba(0,0,0,0.25)",
+          transition: "left .15s",
+        }} />
+      </span>
+    </button>
   );
 }
 
@@ -427,13 +438,8 @@ function ProviderRow({
       gap: 12,
       alignItems: "center",
     }}>
-      <span style={{
-        width: 18, height: 18, borderRadius: 4,
-        background: hasKey ? "var(--ab-green)" : "transparent",
-        border: `1.5px solid ${hasKey ? "var(--ab-green)" : "var(--ab-ink-mute)"}`,
-        display: "inline-flex", alignItems: "center", justifyContent: "center",
-        color: "#fff", fontSize: 11, fontWeight: 700,
-      }}>{hasKey && "✓"}</span>
+      {/* leftmost cell intentionally empty — aggregators use the right-side toggle */}
+      <span aria-hidden="true" />
       <div>
         <div style={{ fontSize: 14, fontWeight: 600 }}>{spec.name}</div>
         <span style={{ fontSize: 11.5, color: "var(--ab-ink-mute)" }}>{spec.blurb}</span>
@@ -525,7 +531,18 @@ function ProviderRow({
         >
           {t("providers.getKey")}
         </a>
-        <TagPill on={hasKey} text={hasKey ? t("providers.statusActive") : t("providers.statusInactive")} />
+        <TogglePill
+          t={t}
+          on={hasKey}
+          disabled={!canManage}
+          onClick={() => {
+            if (hasKey) {
+              onRemove();
+            } else {
+              setOpen(true);
+            }
+          }}
+        />
       </div>
     </div>
   );
