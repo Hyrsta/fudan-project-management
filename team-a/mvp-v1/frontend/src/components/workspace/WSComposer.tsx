@@ -85,6 +85,9 @@ export function WSComposer(p: Props) {
               type="submit"
               disabled={p.isLoading || !p.canGenerate}
               title={!p.canGenerate ? p.t("sources.viewerNotice") : ""}
+              aria-busy={p.isLoading}
+              aria-live="polite"
+              className={p.isLoading ? "ws-generate-busy" : undefined}
               style={{
                 display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
                 padding: "14px 24px", borderRadius: 9, border: 0,
@@ -95,10 +98,26 @@ export function WSComposer(p: Props) {
                 boxShadow: "0 12px 22px -10px color-mix(in oklab, var(--ab-green) 75%, transparent)",
               }}
             >
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                <path d="M7 1.5l1.4 3.2 3.1 1.4-3.1 1.4L7 10.7l-1.4-3.2-3.1-1.4 3.1-1.4z" fill="currentColor"/>
-              </svg>
-              {p.isLoading ? p.t("composer.generating") : p.t("composer.generate")}
+              {p.isLoading ? (
+                // Spinning ring: clear "work in progress" semaphore.
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"
+                     className="ws-generate-spin">
+                  <circle cx="7" cy="7" r="5.2" stroke="currentColor" strokeWidth="1.8"
+                          strokeOpacity="0.35" />
+                  <path d="M12.2 7a5.2 5.2 0 0 0-5.2-5.2" stroke="currentColor" strokeWidth="1.8"
+                        strokeLinecap="round" />
+                </svg>
+              ) : (
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                  <path d="M7 1.5l1.4 3.2 3.1 1.4-3.1 1.4L7 10.7l-1.4-3.2-3.1-1.4 3.1-1.4z" fill="currentColor"/>
+                </svg>
+              )}
+              {p.isLoading ? (
+                // Inline animated ellipsis after the localized verb.
+                <span className="ws-generate-dots">{p.t("composer.generating")}</span>
+              ) : (
+                p.t("composer.generate")
+              )}
             </button>
           </div>
         </div>

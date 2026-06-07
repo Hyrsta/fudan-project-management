@@ -1976,3 +1976,47 @@ html { scroll-behavior: smooth; }
   color: var(--ab-accent);
 }
 .a-root .ws-topbar { backdrop-filter: blur(6px); }
+
+/* === Generate button busy state ============================================ */
+/* Visible cues that the brief is being generated:
+   - .ws-generate-spin: spinner icon rotates                                    */
+@keyframes ws-generate-rotate {
+  to { transform: rotate(360deg); }
+}
+.a-root .ws-generate-spin {
+  animation: ws-generate-rotate 0.9s linear infinite;
+  transform-origin: 50% 50%;
+}
+/*   - .ws-generate-pulse: button background breathes via shadow halo            */
+@keyframes ws-generate-pulse {
+  0%   { box-shadow: 0 12px 22px -10px color-mix(in oklab, var(--ab-green) 75%, transparent),
+                     0 0 0 0    color-mix(in oklab, var(--ab-green) 60%, transparent); }
+  60%  { box-shadow: 0 12px 22px -10px color-mix(in oklab, var(--ab-green) 75%, transparent),
+                     0 0 0 10px color-mix(in oklab, var(--ab-green)  0%, transparent); }
+  100% { box-shadow: 0 12px 22px -10px color-mix(in oklab, var(--ab-green) 75%, transparent),
+                     0 0 0 0    color-mix(in oklab, var(--ab-green)  0%, transparent); }
+}
+.a-root .ws-generate-busy {
+  animation: ws-generate-pulse 1.6s ease-out infinite;
+  /* keep the cursor as wait so users feel the difference too */
+  cursor: progress !important;
+}
+/*   - .ws-generate-dots: three dots animate after the "Generating" word         */
+@keyframes ws-generate-dots {
+  0%, 20%   { content: ""; }
+  40%       { content: "."; }
+  60%       { content: ".."; }
+  80%, 100% { content: "..."; }
+}
+.a-root .ws-generate-dots::after {
+  content: "";
+  display: inline-block;
+  width: 1.4em;            /* reserve room so the label doesn't reflow         */
+  text-align: left;
+  animation: ws-generate-dots 1.4s steps(4, end) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .a-root .ws-generate-spin,
+  .a-root .ws-generate-busy { animation: none; }
+  .a-root .ws-generate-dots::after { content: "…"; animation: none; }
+}
