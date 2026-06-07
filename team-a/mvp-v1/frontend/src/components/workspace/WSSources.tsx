@@ -353,7 +353,6 @@ function GoogleNewsRow({
       gridTemplateColumns: "24px 1.6fr 150px 1fr 110px",
       gap: 12,
       alignItems: "center",
-      background: "var(--ab-paper-2)",
     }}>
       {/* leftmost cell intentionally empty — aggregators use the right-side toggle */}
       <span aria-hidden="true" />
