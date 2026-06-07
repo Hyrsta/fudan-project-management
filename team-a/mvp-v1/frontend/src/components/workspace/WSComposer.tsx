@@ -22,8 +22,6 @@ type Props = {
   onSubmit: (e: FormEvent) => void;
 };
 
-const STRIPE = "linear-gradient(var(--ab-green), var(--ab-accent))";
-
 const QUICK_EN = [
   "AI chip export controls",
   "US inflation outlook",
@@ -44,17 +42,10 @@ export function WSComposer(p: Props) {
   return (
     <form onSubmit={p.onSubmit} aria-busy={p.isLoading}>
       <section style={{
-        position: "relative",
-        background: "color-mix(in oklab, var(--ab-paper) 94%, #fff)",
+        background: "var(--ab-paper)",
         border: "1px solid var(--ab-rule)", borderRadius: 10,
-        padding: "24px 28px 26px 30px", marginBottom: 28,
+        padding: "24px 28px", marginBottom: 28,
       }}>
-        <span style={{
-          position: "absolute", left: 0, top: 0, bottom: 0, width: 4,
-          background: STRIPE,
-          borderTopLeftRadius: 10, borderBottomLeftRadius: 10,
-        }} />
-
         {/* Topic row */}
         <div style={{ marginBottom: 10 }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 12, alignItems: "stretch" }}>
