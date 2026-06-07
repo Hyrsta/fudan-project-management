@@ -314,22 +314,26 @@ function OutletRow(r: OutletRowProps) {
         </span>
       </div>
       <div style={{ justifySelf: "flex-end", display: "flex", gap: 8, alignItems: "center" }}>
-        {r.onRemove && r.canManage && (
+        {r.onRemove && r.canManage ? (
+          // Custom outlets show only REMOVE — the green tint already conveys
+          // "trusted" and adding a TRUSTED pill next to REMOVE both crowds the
+          // 110px column and is redundant info.
           <button
             type="button"
             onClick={r.onRemove}
             className="a-mono"
             style={{
-              fontSize: 10, letterSpacing: "0.04em",
+              padding: "3px 8px", fontSize: 10, letterSpacing: "0.04em",
               border: "1px solid var(--ab-rule)", background: "transparent",
-              padding: "2px 7px", cursor: "pointer", color: "var(--ab-ink-soft)",
-              borderRadius: 4,
+              cursor: "pointer", color: "var(--ab-accent)", borderRadius: 4,
+              whiteSpace: "nowrap",
             }}
           >
-            {r.t("sources.removeCustom")}
+            {r.t("sources.removeCustom").toUpperCase()}
           </button>
+        ) : (
+          <TagPill on={r.on} text={r.on ? r.t("sources.trusted") : r.t("sources.available")} />
         )}
-        <TagPill on={r.on} text={r.on ? r.t("sources.trusted") : r.t("sources.available")} />
       </div>
     </div>
   );
