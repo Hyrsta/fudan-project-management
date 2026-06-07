@@ -174,16 +174,26 @@ export function WSComposer(p: Props) {
           <span className="a-mono" style={{ fontSize: 10.5, color: "var(--ab-ink-mute)", letterSpacing: "0.08em" }}>
             {p.t("composer.coverage").toUpperCase()}
           </span>
-          <div style={{ position: "relative" }} onMouseLeave={() => setHoverMode(null)}>
-            <div style={{
+          <div
+            style={{
               display: "inline-flex", border: "1px solid var(--ab-rule)",
-              borderRadius: 7, overflow: "hidden",
-            }}>
-              {COVERAGE_MODES.map((cm) => {
-                const sel = p.mode === cm.value;
-                return (
+              borderRadius: 7, overflow: "visible",
+            }}
+            onMouseLeave={() => setHoverMode(null)}
+          >
+            {COVERAGE_MODES.map((cm, idx) => {
+              const sel = p.mode === cm.value;
+              const hovered = hoverMode === cm.value;
+              return (
+                <div
+                  key={cm.value}
+                  style={{
+                    position: "relative",
+                    display: "inline-flex",
+                    borderLeft: idx > 0 ? "1px solid var(--ab-rule)" : 0,
+                  }}
+                >
                   <button
-                    key={cm.value}
                     type="button"
                     onClick={() => p.onModeChange(cm.value)}
                     onMouseEnter={() => setHoverMode(cm.value)}
@@ -199,33 +209,70 @@ export function WSComposer(p: Props) {
                   >
                     {p.t(`coverage.${cm.value}.label` as never)}
                   </button>
-                );
-              })}
-            </div>
-            {hoverMode && (() => {
-              const cm = COVERAGE_MODES.find((m) => m.value === hoverMode);
-              if (!cm) return null;
-              return (
-                <div role="tooltip" style={{
-                  position: "absolute", top: "calc(100% + 9px)", left: 0, zIndex: 30,
-                  width: 264, padding: "12px 14px",
-                  background: "var(--ab-ink)", color: "var(--ab-paper)",
-                  borderRadius: 8, boxShadow: "0 18px 38px -16px rgba(0,0,0,0.55)",
-                  pointerEvents: "none",
-                }}>
-                  <span style={{
-                    position: "absolute", top: -5, left: 20, width: 10, height: 10,
-                    background: "var(--ab-ink)", transform: "rotate(45deg)",
-                  }} />
-                  <div style={{ fontFamily: "var(--ab-font-display)", fontSize: 13.5, fontWeight: 600, marginBottom: 5 }}>
-                    {p.t(`coverage.${cm.value}.label` as never)}
-                  </div>
-                  <p style={{ fontSize: 12, lineHeight: 1.5, margin: 0, color: "color-mix(in oklab, var(--ab-paper) 80%, transparent)" }}>
-                    {p.t(`coverage.${cm.value}.blurb` as never)}
-                  </p>
+                  {hovered && (
+                    <div
+                      role="tooltip"
+                      style={{
+                        position: "absolute",
+                        top: "calc(100% + 10px)",
+                        left: "50%",
+                        transform: "translateX(-50%)",
+                        minWidth: 240,
+                        maxWidth: 300,
+                        padding: "11px 14px 12px",
+                        background: "var(--ab-paper)",
+                        color: "var(--ab-ink)",
+                        border: "1px solid var(--ab-ink)",
+                        borderRadius: 8,
+                        boxShadow: "0 18px 38px -18px rgba(0,0,0,0.22)",
+                        zIndex: 30,
+                        pointerEvents: "none",
+                      }}
+                    >
+                      {/* arrow — paper square clipped by ink borders so it reads as part of the card */}
+                      <span
+                        aria-hidden="true"
+                        style={{
+                          position: "absolute",
+                          top: -6,
+                          left: "50%",
+                          transform: "translateX(-50%) rotate(45deg)",
+                          width: 10,
+                          height: 10,
+                          background: "var(--ab-paper)",
+                          borderTop: "1px solid var(--ab-ink)",
+                          borderLeft: "1px solid var(--ab-ink)",
+                        }}
+                      />
+                      <div
+                        className="a-mono"
+                        style={{
+                          fontSize: 9.5, letterSpacing: "0.08em",
+                          textTransform: "uppercase", color: "var(--ab-ink-mute)",
+                          marginBottom: 4,
+                        }}
+                      >
+                        {p.t("composer.coverage")}
+                      </div>
+                      <div
+                        className="a-serif"
+                        style={{ fontSize: 14, fontWeight: 600, marginBottom: 4, lineHeight: 1.3 }}
+                      >
+                        {p.t(`coverage.${cm.value}.label` as never)}
+                      </div>
+                      <p
+                        style={{
+                          fontSize: 12, lineHeight: 1.55, margin: 0,
+                          color: "var(--ab-ink-soft)",
+                        }}
+                      >
+                        {p.t(`coverage.${cm.value}.blurb` as never)}
+                      </p>
+                    </div>
+                  )}
                 </div>
               );
-            })()}
+            })}
           </div>
           <span style={{ flex: 1 }} />
           <span className="a-mono" style={{ fontSize: 10.5, color: "var(--ab-ink-mute)", letterSpacing: "0.06em" }}>
