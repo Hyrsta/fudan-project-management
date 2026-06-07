@@ -39,12 +39,18 @@ export function WorkspaceShell(p: Props) {
 
 
       <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
-        {/* Dark left rail */}
+        {/* Dark left rail — sticky so it stays in view regardless of which
+            scrollbar (page or content) is active. height: 100vh keeps it
+            anchored to the viewport rather than stretching with its flex
+            sibling; top: 0 + alignSelf: flex-start pins it at the top. */}
         <aside aria-label={p.t("nav.workspace")} className="ws-rail" style={{
           width: 84, flex: "0 0 84px",
           background: "var(--ab-ink)",
           display: "flex", flexDirection: "column", alignItems: "center",
           padding: "18px 0", gap: 4,
+          position: "sticky", top: 0, height: "100vh",
+          alignSelf: "flex-start",
+          zIndex: 9,
         }}>
           <span style={{
             width: 38, height: 38, borderRadius: 10,
