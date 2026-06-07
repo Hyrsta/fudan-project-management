@@ -54,6 +54,7 @@ export type CustomTrustedSource = {
 export type TrustedSourceSettings = {
   selected_source_ids: string[];
   custom_sources: CustomTrustedSource[];
+  google_news_enabled: boolean;
 };
 
 export type TrustedSourcePayload = {
@@ -109,4 +110,91 @@ export type BriefResponse = {
   lens_focus: string[];
   section_titles: Record<string, string>;
   confidence: ReportConfidence;
+};
+
+// ---------------------------------------------------------------------------
+// Marketing site (public landing pages: Home / Product / Access / About).
+// ---------------------------------------------------------------------------
+
+export type PersonaLensId =
+  | "research_analyst"
+  | "financial_analyst"
+  | "executive_brief"
+  | "policy_intelligence"
+  | "academic_researcher"
+  | "risk_analyst";
+
+export type PersonaLens = {
+  value: PersonaLensId;
+  label: string;
+  short: string;
+  focus: string[];
+};
+
+export type RankingSignal = {
+  key: "c" | "f" | "t";
+  label: string;
+  w: number;
+  blurb: string;
+};
+
+export type CoverageModeValue = "auto" | "live" | "fallback";
+
+export type CoverageModeSpec = {
+  value: CoverageModeValue;
+  label: string;
+  flow: string;
+  blurb: string;
+};
+
+export type RoleSpec = {
+  value: "viewer" | "analyst" | "admin";
+  label: string;
+  token: string;
+  blurb: string;
+  perms: string[];
+};
+
+export type DemoSourceEvidence = {
+  n: string;
+  id: string;
+  src: string;
+  url: string;
+  cls: string;
+  cred: number;
+  fresh: number;
+  fit: number;
+  total: number;
+  why: string;
+  title: string;
+  when: string;
+};
+
+export type DemoConfidence = {
+  score: number;
+  level: string;
+  source_diversity: string;
+  freshness: string;
+  topic_fit: string;
+  rationale: string[];
+};
+
+export type DemoBrief = {
+  brief_id: string;
+  topic: string;
+  persona: PersonaLensId;
+  persona_label: string;
+  goal: string;
+  mode_used: "live" | "fallback";
+  section_generation_mode: string;
+  warnings: string[];
+  created_at: string;
+  confidence: DemoConfidence;
+  executive_summary: string;
+  key_takeaways: string[];
+  key_facts: string[];
+  framing_comparison: string;
+  insights: string[];
+  uncertainties: string[];
+  source_evidence: DemoSourceEvidence[];
 };

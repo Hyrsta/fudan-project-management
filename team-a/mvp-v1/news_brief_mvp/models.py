@@ -133,6 +133,7 @@ class TrustedSourceSettings(BaseModel):
 
     selected_source_ids: List[str] = Field(default_factory=list, max_length=24)
     custom_sources: List[CustomTrustedSource] = Field(default_factory=list, max_length=12)
+    google_news_enabled: bool = True
 
     @field_validator("selected_source_ids")
     @classmethod

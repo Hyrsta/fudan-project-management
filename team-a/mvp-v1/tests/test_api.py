@@ -85,9 +85,13 @@ class StubService:
         )
         self.handoff = self.response.to_handoff_artifact()
         self.last_request = None
+        self.last_summariser_key = None
+        self.last_provider_keys = None
 
-    def generate_brief(self, request_model):
+    def generate_brief(self, request_model, *, summariser_key=None, provider_keys=None):
         self.last_request = request_model
+        self.last_summariser_key = summariser_key
+        self.last_provider_keys = provider_keys
         return self.response
 
     def load_brief_response(self, brief_id: str):
@@ -264,7 +268,7 @@ def test_react_app_shell_is_served_for_client_side_routes(tmp_path) -> None:
     export_path.write_text("<html><body>Brief</body></html>")
     client = TestClient(create_app(service=StubService(export_path), artifact_root=tmp_path))
 
-    for path in ["/login", "/workspace", "/pricing"]:
+    for path in ["/login", "/workspace", "/product", "/access", "/about"]:
         response = client.get(path)
 
         assert response.status_code == 200
@@ -456,3 +460,64 @@ def test_workspace_navigation_controls_are_wired(tmp_path) -> None:
     assert 'id="profile-panel"' in response.text
     assert 'id="trusted-sources-panel"' in response.text
     assert 'href="#result-panel"' not in response.text
+
+
+def test_brief_forwards_summariser_key_header_to_service(tmp_path) -> None:
+    export_path = tmp_path / "brief.html"
+    export_path.write_text("<html><body>Brief</body></html>")
+    service = StubService(export_path)
+    client = TestClient(create_app(service=service, artifact_root=tmp_path))
+
+    response = client.post(
+        "/api/briefs",
+        headers={**ANALYST_HEADERS, "X-Summariser-Key": "sk-test-123"},
+        json={"topic": "AI chip export controls", "mode": "fallback", "persona": "research_analyst"},
+    )
+
+    assert response.status_code == 200
+    assert service.last_summariser_key == "sk-test-123"
+
+
+def test_brief_summariser_key_is_none_when_header_absent(tmp_path) -> None:
+    export_path = tmp_path / "brief.html"
+    export_path.write_text("<html><body>Brief</body></html>")
+    service = StubService(export_path)
+    client = TestClient(create_app(service=service, artifact_root=tmp_path))
+
+    response = client.post(
+        "/api/briefs",
+        headers=ANALYST_HEADERS,
+        json={"topic": "AI chip export controls", "mode": "fallback", "persona": "research_analyst"},
+    )
+
+    assert response.status_code == 200
+    assert service.last_summariser_key is None
+
+
+def test_news_providers_catalog_endpoint(tmp_path) -> None:
+    export_path = tmp_path / "brief.html"
+    export_path.write_text("<html></html>")
+    client = TestClient(create_app(service=StubService(export_path), artifact_root=tmp_path))
+    response = client.get("/api/news-providers", headers=ANALYST_HEADERS)
+    assert response.status_code == 200
+    payload = response.json()
+    ids = {item["id"] for item in payload["catalog"]}
+    assert {"guardian", "nyt"}.issubset(ids)
+
+
+def test_brief_forwards_provider_keys_to_service(tmp_path) -> None:
+    export_path = tmp_path / "brief.html"
+    export_path.write_text("<html></html>")
+    service = StubService(export_path)
+    client = TestClient(create_app(service=service, artifact_root=tmp_path))
+    response = client.post(
+        "/api/briefs",
+        headers={
+            **ANALYST_HEADERS,
+            "X-Provider-Guardian-Key": "guardian-key-abc",
+            "X-Provider-Nyt-Key": "nyt-key-xyz",
+        },
+        json={"topic": "AI chip export controls", "mode": "fallback", "persona": "research_analyst"},
+    )
+    assert response.status_code == 200
+    assert service.last_provider_keys == {"guardian": "guardian-key-abc", "nyt": "nyt-key-xyz"}

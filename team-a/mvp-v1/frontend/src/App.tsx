@@ -1,13 +1,17 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { fallbackConfig } from "./config";
-import { AppShell } from "./components/AppShell";
-import { BriefComposer } from "./components/BriefComposer";
-import { BriefHistory } from "./components/BriefHistory";
-import { BriefReport } from "./components/BriefReport";
-import { EmptyState } from "./components/EmptyState";
 import { LoginPage } from "./components/LoginPage";
-import { MarketingHomePage, PricingPage } from "./components/MarketingPages";
-import { TrustedSourcesPage } from "./components/TrustedSourcesPage";
+import { MarketingHome } from "./components/marketing/MarketingHome";
+import { MarketingProduct } from "./components/marketing/MarketingProduct";
+import { MarketingAccess } from "./components/marketing/MarketingAccess";
+import { MarketingAbout } from "./components/marketing/MarketingAbout";
+import { WorkspaceShell } from "./components/workspace/WorkspaceShell";
+import { WSComposer } from "./components/workspace/WSComposer";
+import { WSEmpty } from "./components/workspace/WSEmpty";
+import { WSHistory } from "./components/workspace/WSHistory";
+import { WSReport } from "./components/workspace/WSReport";
+import { WSSources, type NewsProviderSpec } from "./components/workspace/WSSources";
+import { PRODUCT } from "./marketingData";
 import type {
   AppConfig,
   AuthSession,
@@ -28,11 +32,21 @@ import { loadStoredAuthSession, persistAuthSession } from "./utils/auth";
 import { safeJson } from "./utils/http";
 
 type AppView = "briefing" | "history" | "sources";
-type AppRoute = "home" | "pricing" | "login" | "workspace";
+type AppRoute =
+  | "home"
+  | "product"
+  | "access"
+  | "about"
+  | "login"
+  | "workspace"
+  | "workspaceHistory"
+  | "workspaceSources"
+  | "briefDetail";
 
 const emptyTrustedSourceSettings: TrustedSourceSettings = {
   selected_source_ids: [],
   custom_sources: [],
+  google_news_enabled: true,
 };
 
 const emptyCustomSourceDraft: CustomTrustedSource = {
@@ -55,7 +69,11 @@ export default function App() {
   const [persona, setPersona] = useState("research_analyst");
   const [language, setLanguage] = useState<Language>(() => loadStoredLanguage());
   const [route, setRoute] = useState<AppRoute>(() => getCurrentRoute());
-  const [activeView, setActiveView] = useState<AppView>("briefing");
+  // activeView is purely derived from the URL — survives refresh and back/forward.
+  const activeView: AppView =
+    route === "workspaceHistory" ? "history"
+    : route === "workspaceSources" ? "sources"
+    : "briefing";
   const [isLoading, setIsLoading] = useState(false);
   const [isSavingTrustedSources, setIsSavingTrustedSources] = useState(false);
   const [error, setError] = useState("");
@@ -65,6 +83,126 @@ export default function App() {
   const trustedSourceSaveSequence = useRef(0);
   const t = useMemo(() => createTranslator(language), [language]);
 
+  const [modelKey, setModelKey] = useState<string>(
+    () => {
+      try { return localStorage.getItem("studio-model-key") || ""; }
+      catch { return ""; }
+    },
+  );
+  const [keyDraft, setKeyDraft] = useState("");
+  const [keySaved, setKeySaved] = useState(false);
+  const hasKey = Boolean(modelKey);
+
+  function saveKey() {
+    const v = keyDraft.trim();
+    if (!v) return;
+    setModelKey(v);
+    try { localStorage.setItem("studio-model-key", v); } catch {}
+    setKeyDraft("");
+    setKeySaved(true);
+    window.setTimeout(() => setKeySaved(false), 1400);
+  }
+
+  function removeKey() {
+    setModelKey("");
+    try { localStorage.removeItem("studio-model-key"); } catch {}
+  }
+
+  // ----- News-API provider keys (BYO, per-browser localStorage) -----
+  const PROVIDER_KEY_STORAGE_PREFIX = "studio-provider-key-";
+  // Parallel map: is the saved key currently *active*? Stored alongside the
+  // key so users can pause an aggregator without losing their key.
+  const PROVIDER_ENABLED_STORAGE_PREFIX = "studio-provider-enabled-";
+  const [providerCatalog, setProviderCatalog] = useState<NewsProviderSpec[]>([]);
+  const [providerKeys, setProviderKeys] = useState<Record<string, string>>({});
+  const [providerEnabled, setProviderEnabled] = useState<Record<string, boolean>>({});
+  const [providerDrafts, setProviderDrafts] = useState<Record<string, string>>({});
+  const [providerSavedFlash, setProviderSavedFlash] = useState<Record<string, boolean>>({});
+
+  function loadProviderKeysFromStorage(catalog: NewsProviderSpec[]): Record<string, string> {
+    const out: Record<string, string> = {};
+    for (const spec of catalog) {
+      try {
+        const v = localStorage.getItem(PROVIDER_KEY_STORAGE_PREFIX + spec.id) || "";
+        if (v) out[spec.id] = v;
+      } catch {}
+    }
+    return out;
+  }
+  function loadProviderEnabledFromStorage(catalog: NewsProviderSpec[]): Record<string, boolean> {
+    // Default: any key that exists is enabled. Only an explicit "false"
+    // localStorage entry counts as paused — so users upgrading from before
+    // this change automatically keep their keys active.
+    const out: Record<string, boolean> = {};
+    for (const spec of catalog) {
+      try {
+        const stored = localStorage.getItem(PROVIDER_ENABLED_STORAGE_PREFIX + spec.id);
+        out[spec.id] = stored === null ? true : stored !== "false";
+      } catch {
+        out[spec.id] = true;
+      }
+    }
+    return out;
+  }
+  function saveProviderKey(id: string) {
+    const v = (providerDrafts[id] || "").trim();
+    if (!v) return;
+    setProviderKeys((prev) => ({ ...prev, [id]: v }));
+    // A freshly-saved key is always active — even if it was previously
+    // paused, the user just re-entered it so the intent is clearly "use it".
+    setProviderEnabled((prev) => ({ ...prev, [id]: true }));
+    try {
+      localStorage.setItem(PROVIDER_KEY_STORAGE_PREFIX + id, v);
+      localStorage.setItem(PROVIDER_ENABLED_STORAGE_PREFIX + id, "true");
+    } catch {}
+    setProviderDrafts((prev) => ({ ...prev, [id]: "" }));
+    setProviderSavedFlash((prev) => ({ ...prev, [id]: true }));
+    window.setTimeout(() => {
+      setProviderSavedFlash((prev) => ({ ...prev, [id]: false }));
+    }, 1400);
+  }
+  function removeProviderKey(id: string) {
+    setProviderKeys((prev) => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+    setProviderEnabled((prev) => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+    try {
+      localStorage.removeItem(PROVIDER_KEY_STORAGE_PREFIX + id);
+      localStorage.removeItem(PROVIDER_ENABLED_STORAGE_PREFIX + id);
+    } catch {}
+  }
+  function toggleProviderEnabled(id: string) {
+    // Flips the active flag for a saved provider without touching the key.
+    // No-op if the provider has no key yet.
+    if (!providerKeys[id]) return;
+    setProviderEnabled((prev) => {
+      const next = !(prev[id] ?? true);
+      try { localStorage.setItem(PROVIDER_ENABLED_STORAGE_PREFIX + id, String(next)); } catch {}
+      return { ...prev, [id]: next };
+    });
+  }
+  function setProviderDraft(id: string, value: string) {
+    setProviderDrafts((prev) => ({ ...prev, [id]: value }));
+  }
+  function providerHeaderEntries(): Record<string, string> {
+    const h: Record<string, string> = {};
+    for (const [id, key] of Object.entries(providerKeys)) {
+      if (!key) continue;
+      // Paused providers keep their key in localStorage but stop
+      // contributing headers — the backend then skips them naturally.
+      if (providerEnabled[id] === false) continue;
+      const cap = id.charAt(0).toUpperCase() + id.slice(1);
+      h[`X-Provider-${cap}-Key`] = key;
+    }
+    return h;
+  }
+
   const activeRole = authSession?.role || config.rbac.default_role;
   const activeToken = config.rbac.enabled ? authSession?.token || "" : "";
   const roleMeta = useMemo(
@@ -72,6 +210,9 @@ export default function App() {
     [activeRole, config.rbac.roles],
   );
   const roleLabel = localizeRole(activeRole, language, roleMeta?.label || activeRole);
+  const accountName = authSession?.email
+    ? authSession.email.split("@")[0]
+    : roleLabel;
   const canDeleteBriefs = !config.rbac.enabled || activeRole === "admin";
   const canManageTrustedSources = !config.rbac.enabled || activeRole === "admin" || activeRole === "analyst";
 
@@ -99,10 +240,14 @@ export default function App() {
     if (!config.rbac.enabled || activeToken) {
       loadRecentBriefs(activeToken);
       loadTrustedSources(activeToken);
+      loadNewsProviders(activeToken);
     } else {
       setRecentBriefs([]);
       setTrustedSourcePayload(null);
       setTrustedSourceDraft(emptyTrustedSourceSettings);
+      setProviderCatalog([]);
+      setProviderKeys({});
+      setProviderEnabled({});
     }
   }, [activeToken, config.rbac.enabled]);
 
@@ -138,6 +283,18 @@ export default function App() {
     window.scrollTo({ top: 0, left: 0 });
   }
 
+  // On briefDetail route: ensure the loaded brief matches the URL's brief_id.
+  // Triggers a fetch when arriving via direct link, history "Open", or popstate.
+  useEffect(() => {
+    if (route !== "briefDetail") return;
+    if (config.rbac.enabled && !activeToken) return;
+    const urlBriefId = getCurrentBriefIdFromPath();
+    if (!urlBriefId) return;
+    if (brief && brief.brief_id === urlBriefId) return;
+    void fetchBriefById(urlBriefId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [route, activeToken, config.rbac.enabled]);
+
   useEffect(() => {
     if (route === "login" && authSession) {
       navigateTo("/workspace");
@@ -156,7 +313,6 @@ export default function App() {
     setRecentBriefs((await response.json()) as BriefResponse[]);
     setAuthSession(nextSession);
     setBrief(null);
-    setActiveView("briefing");
     navigateTo("/workspace");
     setToast(t("toast.signedIn"));
   }
@@ -168,7 +324,6 @@ export default function App() {
     setTrustedSourcePayload(null);
     setTrustedSourceDraft(emptyTrustedSourceSettings);
     setCustomSourceDraft(emptyCustomSourceDraft);
-    setActiveView("briefing");
     setError("");
     setTrustedSourcesError("");
     setLoginError("");
@@ -216,6 +371,14 @@ export default function App() {
     }
   }
 
+  function onToggleGoogleNews() {
+    const nextSettings: TrustedSourceSettings = {
+      ...trustedSourceDraft,
+      google_news_enabled: !trustedSourceDraft.google_news_enabled,
+    };
+    commitTrustedSources(nextSettings);
+  }
+
   function onToggleCatalogSource(sourceId: string) {
     const selected = new Set(trustedSourceDraft.selected_source_ids);
     if (selected.has(sourceId)) {
@@ -254,8 +417,15 @@ export default function App() {
       feed_url: feedUrl,
       weight: 0.96,
     };
+    // Newly-added custom outlet starts in the "on" state, mirroring how
+    // catalog outlets get their selection tracked in selected_source_ids.
+    // The same ID is the toggle key — see onToggleCatalogSource.
+    const nextSelected = trustedSourceDraft.selected_source_ids.includes(source.id)
+      ? trustedSourceDraft.selected_source_ids
+      : [...trustedSourceDraft.selected_source_ids, source.id];
     const nextSettings = {
       ...trustedSourceDraft,
+      selected_source_ids: nextSelected,
       custom_sources: [
         ...trustedSourceDraft.custom_sources.filter((item) => (item.id || item.name) !== source.id),
         source,
@@ -269,6 +439,9 @@ export default function App() {
   function removeCustomSource(sourceId: string) {
     const nextSettings = {
       ...trustedSourceDraft,
+      // Strip the same ID from selected_source_ids so the toggle book-keeping
+      // doesn't leak orphan IDs after a remove.
+      selected_source_ids: trustedSourceDraft.selected_source_ids.filter((id) => id !== sourceId),
       custom_sources: trustedSourceDraft.custom_sources.filter((item) => (item.id || item.name) !== sourceId),
     };
     commitTrustedSources(nextSettings);
@@ -342,6 +515,29 @@ export default function App() {
     return { [config.rbac.header_name || "X-API-Key"]: token };
   }
 
+  function briefHeaders(token = activeToken): HeadersInit {
+    const h: Record<string, string> = { ...(authHeaders(token) as Record<string, string>) };
+    if (modelKey) h["X-Summariser-Key"] = modelKey;
+    Object.assign(h, providerHeaderEntries());
+    return h;
+  }
+
+  async function loadNewsProviders(token = activeToken) {
+    if (config.rbac.enabled && !token) return;
+    try {
+      const response = await fetch("/api/news-providers", {
+        headers: authHeaders(token),
+      });
+      if (!response.ok) return;
+      const payload = (await response.json()) as { catalog: NewsProviderSpec[] };
+      setProviderCatalog(payload.catalog);
+      setProviderKeys(loadProviderKeysFromStorage(payload.catalog));
+      setProviderEnabled(loadProviderEnabledFromStorage(payload.catalog));
+    } catch {
+      // non-fatal — providers panel will be empty
+    }
+  }
+
   async function submitBrief(event: FormEvent) {
     event.preventDefault();
     setError("");
@@ -351,7 +547,7 @@ export default function App() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...authHeaders(),
+          ...briefHeaders(),
         },
         body: JSON.stringify({ topic, mode, persona, goal }),
       });
@@ -361,9 +557,9 @@ export default function App() {
       }
       const payload = (await response.json()) as BriefResponse;
       setBrief(payload);
-      setActiveView("briefing");
       setToast(t("toast.briefGenerated"));
       loadRecentBriefs();
+      navigateTo(`/workspace/brief/${encodeURIComponent(payload.brief_id)}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : t("error.generateFailed"));
     } finally {
@@ -373,28 +569,36 @@ export default function App() {
 
   async function openBrief(briefId: string) {
     setError("");
+    navigateTo(`/workspace/brief/${encodeURIComponent(briefId)}`);
+  }
+
+  async function fetchBriefById(briefId: string) {
+    setError("");
     try {
       const response = await fetch(`/api/briefs/${encodeURIComponent(briefId)}`, {
-        headers: authHeaders(),
+        headers: briefHeaders(),
       });
       if (!response.ok) {
         const payload = await safeJson(response);
         throw new Error(payload?.detail || t("error.requestFailed", { status: response.status }));
       }
       setBrief((await response.json()) as BriefResponse);
-      setActiveView("briefing");
-      setToast(t("toast.briefLoaded"));
     } catch (err) {
       setError(err instanceof Error ? err.message : t("error.openFailed"));
     }
   }
 
   if (route === "home") {
-    return <MarketingHomePage language={language} t={t} onLanguageChange={setLanguage} />;
+    return <MarketingHome language={language} t={t} onLanguageChange={setLanguage} />;
   }
-
-  if (route === "pricing") {
-    return <PricingPage language={language} t={t} onLanguageChange={setLanguage} />;
+  if (route === "product") {
+    return <MarketingProduct language={language} t={t} onLanguageChange={setLanguage} />;
+  }
+  if (route === "access") {
+    return <MarketingAccess language={language} t={t} onLanguageChange={setLanguage} />;
+  }
+  if (route === "about") {
+    return <MarketingAbout language={language} t={t} onLanguageChange={setLanguage} />;
   }
 
   if (config.rbac.enabled && !authSession) {
@@ -416,46 +620,84 @@ export default function App() {
 
   return (
     <>
-      <AppShell
+      <WorkspaceShell
         activeView={activeView}
-        roleLabel={roleLabel}
-        rbacEnabled={config.rbac.enabled}
         language={language}
         t={t}
-        onHint={setToast}
-        onViewChange={setActiveView}
+        roleLabel={roleLabel}
+        accountName={accountName}
+        productName={PRODUCT.name}
+        hasKey={hasKey}
+        keyDraft={keyDraft}
+        keySaved={keySaved}
+        rbacEnabled={config.rbac.enabled}
+        onViewChange={(v) => {
+          if (v === "history") navigateTo("/workspace/history");
+          else if (v === "sources") navigateTo("/workspace/sources");
+          else navigateTo("/workspace");
+        }}
         onLanguageChange={setLanguage}
-        onLogout={handleLogout}
+        onKeyDraftChange={setKeyDraft}
+        onSaveKey={saveKey}
+        onRemoveKey={removeKey}
+        onSignOut={handleLogout}
       >
-        {activeView === "briefing" && (
-          <>
-            <section className="briefing-view">
-              <BriefComposer
-                topic={topic}
-                goal={goal}
-                mode={mode}
-                persona={persona}
-                personaOptions={config.persona_options}
+        {activeView === "briefing" && route !== "briefDetail" && (
+          <div style={{ padding: "40px 56px 80px" }}>
+            <WSComposer
+              topic={topic}
+              goal={goal}
+              mode={mode}
+              persona={persona}
+              language={language}
+              t={t}
+              isLoading={isLoading}
+              canGenerate={!config.rbac.enabled || activeRole !== "viewer"}
+              error={error}
+              onTopicChange={setTopic}
+              onGoalChange={setGoal}
+              onModeChange={setMode}
+              onPersonaChange={setPersona}
+              onSubmit={submitBrief}
+            />
+          </div>
+        )}
+
+        {route === "briefDetail" && (
+          <div style={{ padding: "40px 56px 80px" }}>
+            <div style={{ marginBottom: 18, display: "flex", alignItems: "center", gap: 10 }}>
+              <button
+                type="button"
+                onClick={() => navigateTo("/workspace")}
+                className="a-mono"
+                style={{
+                  padding: "5px 11px", fontSize: 11, letterSpacing: "0.06em",
+                  textTransform: "uppercase", borderRadius: 6, cursor: "pointer",
+                  border: "1px solid var(--ab-rule)", background: "transparent",
+                  color: "var(--ab-ink-soft)",
+                }}
+              >
+                ← {t("briefDetail.backToCompose")}
+              </button>
+              <span style={{ flex: 1 }} />
+              {error && <span style={{ fontSize: 12.5, color: "var(--ab-accent)" }}>{error}</span>}
+            </div>
+            {brief ? (
+              <WSReport
+                brief={brief}
                 language={language}
                 t={t}
-                isLoading={isLoading}
-                error={error}
-                onTopicChange={setTopic}
-                onGoalChange={setGoal}
-                onModeChange={setMode}
-                onPersonaChange={setPersona}
-                onSubmit={submitBrief}
+                hasKey={hasKey}
+                canHandoff={!config.rbac.enabled || activeRole === "admin"}
               />
-            </section>
-
-            <section id="result-panel" className="result-panel">
-              {brief ? <BriefReport brief={brief} language={language} t={t} /> : <EmptyState t={t} />}
-            </section>
-          </>
+            ) : (
+              <WSEmpty t={t} />
+            )}
+          </div>
         )}
 
         {activeView === "history" && (
-          <BriefHistory
+          <WSHistory
             briefs={recentBriefs}
             canDelete={canDeleteBriefs}
             language={language}
@@ -466,22 +708,31 @@ export default function App() {
         )}
 
         {activeView === "sources" && (
-          <TrustedSourcesPage
+          <WSSources
             catalog={trustedSourcePayload?.catalog || []}
             settings={trustedSourceDraft}
             customDraft={customSourceDraft}
             canManage={canManageTrustedSources}
             isSaving={isSavingTrustedSources}
             error={trustedSourcesError}
-            language={language}
             t={t}
             onToggleCatalogSource={onToggleCatalogSource}
             onCustomDraftChange={updateCustomSourceDraft}
             onAddCustomSource={onAddCustomSource}
             onRemoveCustomSource={removeCustomSource}
+            onToggleGoogleNews={onToggleGoogleNews}
+            providerCatalog={providerCatalog}
+            providerKeys={providerKeys}
+            providerEnabled={providerEnabled}
+            providerDrafts={providerDrafts}
+            providerFlashSaved={providerSavedFlash}
+            onProviderDraftChange={setProviderDraft}
+            onSaveProviderKey={saveProviderKey}
+            onRemoveProviderKey={removeProviderKey}
+            onToggleProviderEnabled={toggleProviderEnabled}
           />
         )}
-      </AppShell>
+      </WorkspaceShell>
       {toast && <div className="toast-message">{toast}</div>}
     </>
   );
@@ -497,8 +748,19 @@ function slugify(value: string) {
 
 function getCurrentRoute(): AppRoute {
   const pathname = window.location.pathname.replace(/\/+$/, "") || "/";
-  if (pathname === "/pricing") return "pricing";
+  if (pathname === "/product") return "product";
+  if (pathname === "/access") return "access";
+  if (pathname === "/about") return "about";
   if (pathname === "/login") return "login";
   if (pathname === "/workspace") return "workspace";
+  if (pathname === "/workspace/history") return "workspaceHistory";
+  if (pathname === "/workspace/sources") return "workspaceSources";
+  if (pathname.startsWith("/workspace/brief/")) return "briefDetail";
   return "home";
+}
+
+function getCurrentBriefIdFromPath(): string | null {
+  const pathname = window.location.pathname.replace(/\/+$/, "") || "/";
+  const match = pathname.match(/^\/workspace\/brief\/([^/]+)$/);
+  return match ? decodeURIComponent(match[1]) : null;
 }

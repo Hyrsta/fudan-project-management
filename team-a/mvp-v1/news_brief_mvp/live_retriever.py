@@ -23,7 +23,14 @@ class GoogleNewsRSSRetriever:
     def __init__(self, source_registry: SourceRegistry):
         self.source_registry = source_registry
 
-    def fetch(self, topic: str, limit: int, timeout_seconds: float) -> List[ArticleRecord]:
+    def fetch(
+        self,
+        topic: str,
+        limit: int,
+        timeout_seconds: float,
+        *,
+        include_google_news: bool = True,
+    ) -> List[ArticleRecord]:
         results = []
         for feed in self.source_registry.direct_feeds:
             if len(results) >= limit:
@@ -41,7 +48,7 @@ class GoogleNewsRSSRetriever:
             except Exception:
                 continue
 
-        if len(results) < limit:
+        if include_google_news and len(results) < limit:
             try:
                 results.extend(
                     self._fetch_feed(

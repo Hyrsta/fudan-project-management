@@ -24,7 +24,7 @@
       "category": "wire",
       "region": "global",
       "weight": 0.98,
-      "subscription_note": "Public article pages and feeds where available."
+      "subscription_note": "No public RSS since June 2020; Reuters Connect / LSEG APIs are enterprise-only. Currently does not contribute articles — kept as a domain-trust signal for matchers."
     },
     {
       "id": "ap",
@@ -33,7 +33,7 @@
       "category": "wire",
       "region": "global",
       "weight": 0.95,
-      "subscription_note": "Public article pages and feeds where available."
+      "subscription_note": "AP does not publish official RSS and the Content API is enterprise-sales only. Currently does not contribute articles — kept as a domain-trust signal for matchers."
     },
     {
       "id": "bbc-news",
@@ -48,28 +48,40 @@
       "id": "financial-times",
       "name": "Financial Times",
       "domain": "ft.com",
+      "feed_url": "https://www.ft.com/rss/home",
       "category": "business",
       "region": "global",
       "weight": 0.92,
-      "subscription_note": "Subscription integrations should use official or user-authorized paths."
+      "subscription_note": "Public homepage feed; full article bodies are subject to FT subscription."
     },
     {
       "id": "wall-street-journal",
       "name": "Wall Street Journal",
       "domain": "wsj.com",
+      "feed_url": "https://feeds.a.dj.com/rss/RSSWorldNews.xml",
       "category": "business",
       "region": "us",
       "weight": 0.9,
-      "subscription_note": "Subscription integrations should use official or user-authorized paths."
+      "subscription_note": "Public world-news feed; full article bodies are subject to WSJ subscription."
+    },
+    {
+      "id": "cnbc",
+      "name": "CNBC",
+      "domain": "cnbc.com",
+      "feed_url": "https://www.cnbc.com/id/100003114/device/rss/rss.html",
+      "category": "business",
+      "region": "us",
+      "weight": 0.82
     },
     {
       "id": "bloomberg",
       "name": "Bloomberg",
       "domain": "bloomberg.com",
+      "feed_url": "https://feeds.bloomberg.com/markets/news.rss",
       "category": "business",
       "region": "global",
       "weight": 0.9,
-      "subscription_note": "Subscription integrations should use official or user-authorized paths."
+      "subscription_note": "Public Bloomberg Markets RSS; full article bodies are subject to Bloomberg subscription."
     },
     {
       "id": "techcrunch",

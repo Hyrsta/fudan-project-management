@@ -71,9 +71,24 @@ class ArtifactStore:
         if not path.exists():
             return _default_trusted_source_settings()
         try:
-            return TrustedSourceSettings.model_validate_json(path.read_text())
+            settings = TrustedSourceSettings.model_validate_json(path.read_text())
         except Exception:
             return _default_trusted_source_settings()
+        # Migration: before custom outlets were toggleable, they were treated
+        # as always-on. After the change, a custom outlet contributes iff its
+        # id is in selected_source_ids. Backfill any persisted custom whose id
+        # is missing so existing users don't see all of theirs flip to off.
+        selected = list(settings.selected_source_ids)
+        seen = set(selected)
+        changed = False
+        for source in settings.custom_sources:
+            if source.id and source.id not in seen:
+                selected.append(source.id)
+                seen.add(source.id)
+                changed = True
+        if changed:
+            settings = settings.model_copy(update={"selected_source_ids": selected})
+        return settings
 
     def save_trusted_source_settings(self, settings: TrustedSourceSettings) -> None:
         self.trusted_sources_path().write_text(settings.model_dump_json(indent=2))

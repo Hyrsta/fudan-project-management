@@ -56,8 +56,16 @@ def create_app(
     @app.get("/", response_class=HTMLResponse)
     @app.get("/login", response_class=HTMLResponse)
     @app.get("/workspace", response_class=HTMLResponse)
-    @app.get("/pricing", response_class=HTMLResponse)
-    def index(request: Request):
+    @app.get("/workspace/history", response_class=HTMLResponse)
+    @app.get("/workspace/sources", response_class=HTMLResponse)
+    @app.get("/workspace/brief/{brief_id}", response_class=HTMLResponse)
+    @app.get("/product", response_class=HTMLResponse)
+    @app.get("/access", response_class=HTMLResponse)
+    @app.get("/about", response_class=HTMLResponse)
+    def index(request: Request, brief_id: Optional[str] = None):
+        # brief_id is captured from /workspace/brief/{brief_id}; the React
+        # shell handles routing client-side, so the param is accepted but
+        # not used here.
         if react_index_path.exists():
             return FileResponse(react_index_path)
         return templates.TemplateResponse(request, "index.html", page_context(request))
@@ -91,6 +99,15 @@ def create_app(
                 for brief in app.state.service.list_recent_briefs(limit=limit)
             ]
         )
+
+    @app.get("/api/news-providers")
+    def news_providers(
+        _principal=Depends(require_permissions(PERMISSION_SOURCES_READ)),
+    ):
+        """Catalog of external news-API providers. Keys are BYO,
+        not stored server-side, supplied per request as X-Provider-<id>-Key."""
+        from .news_providers import provider_catalog
+        return JSONResponse(content={"catalog": provider_catalog()})
 
     @app.get("/api/trusted-sources")
     def trusted_sources(
@@ -129,9 +146,22 @@ def create_app(
             else {"topic": topic or "", "mode": mode, "persona": persona, "goal": goal}
         )
         request_model = BriefRequest.model_validate(payload)
+        summariser_key = request.headers.get("X-Summariser-Key") or None
+        # Provider keys arrive as X-Provider-<id>-Key headers, one per
+        # registered news-API provider (see news_providers.PROVIDER_REGISTRY).
+        from .news_providers import PROVIDER_REGISTRY
+        provider_keys = {}
+        for slug in PROVIDER_REGISTRY.keys():
+            key = request.headers.get(f"X-Provider-{slug.capitalize()}-Key") or None
+            if key:
+                provider_keys[slug] = key
 
         try:
-            brief = app.state.service.generate_brief(request_model)
+            brief = app.state.service.generate_brief(
+                request_model,
+                summariser_key=summariser_key,
+                provider_keys=provider_keys,
+            )
         except LiveRunFailed as exc:
             if request.headers.get("HX-Request") == "true":
                 return templates.TemplateResponse(

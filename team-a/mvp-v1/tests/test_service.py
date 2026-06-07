@@ -18,17 +18,17 @@ class FakeLiveRetriever:
     def __init__(self, articles):
         self.articles = articles
 
-    def fetch(self, topic: str, limit: int, timeout_seconds: float):
+    def fetch(self, topic: str, limit: int, timeout_seconds: float, *, include_google_news: bool = True):
         return list(self.articles)[:limit]
 
 
 class FailingLLM:
-    def generate_sections(self, topic: str, persona: str, articles, goal: str = ""):
+    def generate_sections(self, topic: str, persona: str, articles, goal: str = "", api_key=None):
         raise RuntimeError("LLM unavailable")
 
 
 class WorkingLLM:
-    def generate_sections(self, topic: str, persona: str, articles, goal: str = ""):
+    def generate_sections(self, topic: str, persona: str, articles, goal: str = "", api_key=None):
         return BriefSections(
             overview=f"Overview for {topic}",
             key_takeaways=[

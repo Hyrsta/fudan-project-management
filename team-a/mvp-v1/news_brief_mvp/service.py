@@ -10,6 +10,7 @@ from .data_loader import SourceFeed, SourceRegistry, load_fallback_dataset, load
 from .live_retriever import GoogleNewsRSSRetriever
 from .llm import OpenAICompatibleLLMClient
 from .local_sections import build_heuristic_sections
+from .news_providers import build_providers
 from .models import (
     ArticleCitation,
     ArticleRecord,
@@ -52,12 +53,21 @@ class BriefService:
         self.timeout_seconds = timeout_seconds
         self.source_registry = source_registry or getattr(live_retriever, "source_registry", SourceRegistry({}, []))
 
-    def generate_brief(self, request_model: BriefRequest) -> BriefResponse:
+    def generate_brief(
+        self,
+        request_model: BriefRequest,
+        *,
+        summariser_key: str | None = None,
+        provider_keys: dict | None = None,
+    ) -> BriefResponse:
         mode_used = "live"
         warnings: List[str] = []
         persona_definition = get_persona_definition(request_model.persona)
         trusted_settings = self.get_trusted_source_settings()
-        trusted_source_ids = trusted_settings.selected_source_ids + [source.id for source in trusted_settings.custom_sources]
+        # A custom outlet is "on" iff its id is in selected_source_ids — the
+        # frontend pushes the id there on add and strips it on remove or
+        # toggle-off. Storage layer migrates legacy persisted data.
+        trusted_source_ids = list(trusted_settings.selected_source_ids)
 
         if request_model.mode == "fallback":
             mode_used = "fallback"
@@ -70,7 +80,25 @@ class BriefService:
                     request_model.topic,
                     limit=self.retrieval_limit,
                     timeout_seconds=self.timeout_seconds,
+                    include_google_news=trusted_settings.google_news_enabled,
                 )
+                # External news-API providers: each gets its key from the
+                # request headers (via provider_keys dict). Unconfigured
+                # providers return [] cheaply.
+                for provider in build_providers(provider_keys or {}):
+                    if not provider.is_configured:
+                        continue
+                    try:
+                        live_articles.extend(
+                            provider.fetch(
+                                topic=request_model.topic,
+                                limit=self.retrieval_limit,
+                                timeout_seconds=self.timeout_seconds,
+                            )
+                        )
+                    except Exception:
+                        # one bad provider shouldn't kill the brief
+                        warnings.append(f"provider_{provider.spec.id}_failed")
             except Exception as exc:
                 if request_model.mode == "live":
                     raise LiveRunFailed("Live retrieval failed. Please retry the request.") from exc
@@ -96,6 +124,7 @@ class BriefService:
             articles=selected_articles,
             mode_used=mode_used,
             warnings=warnings,
+            summariser_key=summariser_key,
         )
 
         brief_id = f"brief-{uuid4().hex[:10]}"
@@ -212,7 +241,13 @@ class BriefService:
             return
         direct_feeds = list(self.source_registry.direct_feeds)
         weights = dict(self.source_registry.weights)
+        selected = set(settings.selected_source_ids)
+        # Only push a custom feed into the retriever's effective registry
+        # when its id is selected. An unticked custom outlet stays in the
+        # catalog but does not contribute to article fetches or weighting.
         for source in settings.custom_sources:
+            if source.id not in selected:
+                continue
             weights[source.name.lower()] = source.weight
             if source.feed_url:
                 direct_feeds.append(
@@ -256,6 +291,7 @@ class BriefService:
         articles: Sequence[ArticleRecord],
         mode_used: str,
         warnings: List[str],
+        summariser_key: str | None = None,
     ) -> tuple[BriefSections, SectionGenerationMode]:
         try:
             sections = self.llm_client.generate_sections(
@@ -263,6 +299,7 @@ class BriefService:
                 persona=persona,
                 goal=goal,
                 articles=articles,
+                api_key=summariser_key,
             )
             return sections, "llm"
         except Exception:
@@ -310,7 +347,12 @@ def _trusted_source_matchers(
         if not source:
             continue
         matchers.append({"name": source.name.lower(), "domain": _normalize_domain(source.domain)})
+    # Custom outlets contribute matchers iff their id is selected — the
+    # same gate that controls whether their feed is fetched at all.
+    selected = set(settings.selected_source_ids)
     for source in settings.custom_sources:
+        if source.id not in selected:
+            continue
         matchers.append({"name": source.name.lower(), "domain": _normalize_domain(source.domain)})
     return matchers
 
