@@ -281,7 +281,7 @@ function OutletRow(r: OutletRowProps) {
       ...rowFrameStyle,
       borderTop: r.first ? 0 : rowFrameStyle.borderTop,
       display: "grid",
-      gridTemplateColumns: "24px 1.6fr 150px 1fr 110px",
+      gridTemplateColumns: "24px 1.6fr 150px 1fr 148px",
       gap: 12,
       alignItems: "center",
       background: "transparent",
@@ -362,7 +362,7 @@ function GoogleNewsRow({
     <div style={{
       ...rowFrameStyle,
       display: "grid",
-      gridTemplateColumns: "24px 1.6fr 150px 1fr 110px",
+      gridTemplateColumns: "24px 1.6fr 150px 1fr 148px",
       gap: 12,
       alignItems: "center",
     }}>
@@ -404,6 +404,7 @@ function TogglePill({
       aria-pressed={on}
       style={{
         display: "inline-flex", alignItems: "center", gap: 8,
+        flexShrink: 0, whiteSpace: "nowrap",
         padding: "4px 4px 4px 11px", borderRadius: 999,
         border: `1px solid ${on ? "var(--ab-green)" : "var(--ab-rule)"}`,
         background: on ? "color-mix(in oklab, var(--ab-green) 12%, transparent)" : "transparent",
@@ -472,7 +473,7 @@ function ProviderRow({
     <div style={{
       ...rowFrameStyle,
       display: "grid",
-      gridTemplateColumns: "24px 1.6fr 150px 1fr 110px",
+      gridTemplateColumns: "24px 1.6fr 150px 1fr 148px",
       gap: 12,
       alignItems: "center",
     }}>
@@ -597,7 +598,7 @@ function ProviderRow({
           title={t("providers.getKey")}
           style={{
             fontSize: 9.5, letterSpacing: "0.04em", color: "var(--ab-ink-mute)",
-            textTransform: "uppercase",
+            textTransform: "uppercase", whiteSpace: "nowrap", flexShrink: 0,
             textDecoration: "underline",
             textDecorationColor: "color-mix(in oklab, var(--ab-ink) 24%, transparent)",
           }}
