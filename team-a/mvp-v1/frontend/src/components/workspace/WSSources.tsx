@@ -104,24 +104,21 @@ export function WSSources(p: Props) {
       {!p.canManage && <p style={{ marginBottom: 14, fontSize: 12.5, color: "var(--ab-accent)" }}>{p.t("sources.viewerNotice")}</p>}
       {p.error && <p style={{ marginBottom: 14, fontSize: 12.5, color: "var(--ab-accent)" }}>{p.error}</p>}
 
-      {/* ====== One unified list with two visible categories ============== */}
+      {/* ====== Outlets table ============================================= */}
       <div style={{ border: "1px solid var(--ab-rule)", borderRadius: 10, overflow: "hidden", background: "var(--ab-paper)" }}>
-
-        {/* --- Outlets section --- */}
         <SectionBand
           label={p.t("sources.outlets.title")}
           count={queryableCatalog.length + p.settings.custom_sources.length}
           subtitle={p.t("sources.outlets.subtitle")}
+          asHeader
         />
 
-        {/* Outlet rows (built-in catalog) */}
         {queryableCatalog.map((src, i) => {
           const on = selectedIds.has(src.id);
-          const isFirst = i === 0;
           return (
             <OutletRow
               key={src.id}
-              first={isFirst}
+              first={false}
               t={p.t}
               on={on}
               canManage={p.canManage}
@@ -134,7 +131,6 @@ export function WSSources(p: Props) {
           );
         })}
 
-        {/* Custom feed rows (user-added RSS) */}
         {p.settings.custom_sources.map((src) => (
           <OutletRow
             key={src.id || src.name}
@@ -151,52 +147,16 @@ export function WSSources(p: Props) {
             onRemove={() => p.onRemoveCustomSource(src.id || src.name)}
           />
         ))}
-
-        {/* --- Aggregators section --- */}
-        <SectionBand
-          label={p.t("sources.aggregators.title")}
-          count={1 /* google news */ + p.providerCatalog.length}
-          subtitle={p.t("sources.aggregators.subtitle")}
-        />
-
-        {/* Google News row */}
-        <GoogleNewsRow
-          t={p.t}
-          on={p.settings.google_news_enabled}
-          disabled={!p.canManage}
-          onToggle={p.onToggleGoogleNews}
-        />
-
-        {/* Aggregator/API rows */}
-        {p.providerCatalog.map((spec) => {
-          const draft = p.providerDrafts[spec.id] || "";
-          const hasKey = Boolean(p.providerKeys[spec.id]);
-          const flash = Boolean(p.providerFlashSaved[spec.id]);
-          return (
-            <ProviderRow
-              key={spec.id}
-              t={p.t}
-              spec={spec}
-              hasKey={hasKey}
-              draft={draft}
-              flash={flash}
-              canManage={p.canManage}
-              onDraftChange={(v) => p.onProviderDraftChange(spec.id, v)}
-              onSave={() => p.onSaveProviderKey(spec.id)}
-              onRemove={() => p.onRemoveProviderKey(spec.id)}
-            />
-          );
-        })}
       </div>
 
-      {/* Custom-source form */}
+      {/* ====== Add custom outlet form (only adds outlets, not aggregators) */}
       <div style={{
         border: "1px solid var(--ab-rule)", borderRadius: 10,
         padding: "16px 18px", marginTop: 14, opacity: p.canManage ? 1 : 0.6,
       }}>
         <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 12 }}>
           <span className="a-mono" style={{ fontSize: 10.5, color: "var(--ab-ink-mute)", letterSpacing: "0.08em" }}>
-            {p.t("sources.addCustom").toUpperCase()}
+            {p.t("sources.addCustomOutlet").toUpperCase()}
           </span>
           <span style={{ fontSize: 11.5, color: "var(--ab-ink-mute)" }}>{p.t("sources.customHint")}</span>
         </div>
@@ -236,6 +196,47 @@ export function WSSources(p: Props) {
         </div>
         {localErr && <p style={{ marginTop: 10, fontSize: 12.5, color: "var(--ab-accent)" }}>{localErr}</p>}
       </div>
+
+      {/* ====== Aggregators table (visual gap above) ====================== */}
+      <div style={{
+        marginTop: 32,
+        border: "1px solid var(--ab-rule)", borderRadius: 10, overflow: "hidden", background: "var(--ab-paper)",
+      }}>
+        <SectionBand
+          label={p.t("sources.aggregators.title")}
+          count={1 /* google news */ + p.providerCatalog.length}
+          subtitle={p.t("sources.aggregators.subtitle")}
+          asHeader
+        />
+
+        <GoogleNewsRow
+          t={p.t}
+          on={p.settings.google_news_enabled}
+          disabled={!p.canManage}
+          onToggle={p.onToggleGoogleNews}
+        />
+
+        {p.providerCatalog.map((spec) => {
+          const draft = p.providerDrafts[spec.id] || "";
+          const hasKey = Boolean(p.providerKeys[spec.id]);
+          const flash = Boolean(p.providerFlashSaved[spec.id]);
+          return (
+            <ProviderRow
+              key={spec.id}
+              t={p.t}
+              spec={spec}
+              hasKey={hasKey}
+              draft={draft}
+              flash={flash}
+              canManage={p.canManage}
+              onDraftChange={(v) => p.onProviderDraftChange(spec.id, v)}
+              onSave={() => p.onSaveProviderKey(spec.id)}
+              onRemove={() => p.onRemoveProviderKey(spec.id)}
+            />
+          );
+        })}
+      </div>
+
     </div>
   );
 }
@@ -552,16 +553,18 @@ function SectionBand({
   label,
   count,
   subtitle,
+  asHeader = false,
 }: {
   label: string;
   count: number;
   subtitle?: string;
+  asHeader?: boolean;
 }) {
   return (
     <div style={{
       padding: "12px 16px 11px",
       background: "var(--ab-paper-2)",
-      borderTop: "1px solid var(--ab-rule)",
+      borderTop: asHeader ? 0 : "1px solid var(--ab-rule)",
       borderBottom: "1px solid var(--ab-rule)",
       display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14,
     }}>
