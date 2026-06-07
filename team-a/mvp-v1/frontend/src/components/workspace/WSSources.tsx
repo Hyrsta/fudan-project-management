@@ -363,7 +363,9 @@ function GoogleNewsRow({
       <span className="a-mono" style={{ fontSize: 10.5, color: "var(--ab-ink-soft)", letterSpacing: "0.04em" }}>
         {t("sources.webSearch.googleNewsRegion").toUpperCase()}
       </span>
-      <span className="a-mono" style={{ fontSize: 11, color: "var(--ab-ink-mute)" }}>—</span>
+      <span className="a-mono" style={{ fontSize: 11, color: "var(--ab-ink-mute)", letterSpacing: "0.04em" }}>
+        {t("sources.webSearch.noKeyNeeded").toUpperCase()}
+      </span>
       <div style={{ justifySelf: "flex-end" }}>
         <TogglePill t={t} on={on} disabled={disabled} onClick={onToggle} />
       </div>

@@ -76,7 +76,7 @@ export function WSHistory({ briefs, canDelete, language, t, onOpenBrief, onDelet
               display: "grid", gridTemplateColumns: COLS, padding: "12px 16px",
               alignItems: "center",
               borderBottom: i < briefs.length - 1 ? "1px solid var(--ab-rule-soft)" : 0,
-              background: i === 0 ? "color-mix(in oklab, var(--ab-green) 6%, transparent)" : "transparent",
+              background: "transparent",
             }}>
               <button type="button" onClick={() => onOpenBrief(b.brief_id)} style={{
                 display: "block", padding: 0, border: 0, background: "transparent",
