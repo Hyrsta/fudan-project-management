@@ -104,8 +104,15 @@ export function WSSources(p: Props) {
       {!p.canManage && <p style={{ marginBottom: 14, fontSize: 12.5, color: "var(--ab-accent)" }}>{p.t("sources.viewerNotice")}</p>}
       {p.error && <p style={{ marginBottom: 14, fontSize: 12.5, color: "var(--ab-accent)" }}>{p.error}</p>}
 
-      {/* ====== One unified list =========================================== */}
+      {/* ====== One unified list with two visible categories ============== */}
       <div style={{ border: "1px solid var(--ab-rule)", borderRadius: 10, overflow: "hidden", background: "var(--ab-paper)" }}>
+
+        {/* --- Outlets section --- */}
+        <SectionBand
+          label={p.t("sources.outlets.title")}
+          count={queryableCatalog.length + p.settings.custom_sources.length}
+          subtitle={p.t("sources.outlets.subtitle")}
+        />
 
         {/* Outlet rows (built-in catalog) */}
         {queryableCatalog.map((src, i) => {
@@ -144,6 +151,13 @@ export function WSSources(p: Props) {
             onRemove={() => p.onRemoveCustomSource(src.id || src.name)}
           />
         ))}
+
+        {/* --- Aggregators section --- */}
+        <SectionBand
+          label={p.t("sources.aggregators.title")}
+          count={1 /* google news */ + p.providerCatalog.length}
+          subtitle={p.t("sources.aggregators.subtitle")}
+        />
 
         {/* Google News row */}
         <GoogleNewsRow
@@ -248,7 +262,7 @@ function OutletRow(r: OutletRowProps) {
       ...rowFrameStyle,
       borderTop: r.first ? 0 : rowFrameStyle.borderTop,
       display: "grid",
-      gridTemplateColumns: "24px 1.6fr 150px 90px 1fr 110px",
+      gridTemplateColumns: "24px 1.6fr 150px 1fr 110px",
       gap: 12,
       alignItems: "center",
       background: r.customTint ? "color-mix(in oklab, var(--ab-green) 5%, transparent)" : "transparent",
@@ -274,15 +288,6 @@ function OutletRow(r: OutletRowProps) {
       </div>
       <span className="a-mono" style={{ fontSize: 10.5, color: "var(--ab-ink-soft)", letterSpacing: "0.04em" }}>
         {r.meta}
-      </span>
-      <span className="a-mono" style={{
-        padding: "2px 8px", borderRadius: 4, fontSize: 9.5,
-        letterSpacing: "0.06em", fontWeight: 600,
-        background: "var(--ab-paper-2)", color: "var(--ab-ink-mute)",
-        border: "1px solid var(--ab-rule)",
-        justifySelf: "start",
-      }}>
-        {r.t("sources.typeOutlet").toUpperCase()}
       </span>
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
         <div style={{ flex: 1, height: 4, background: "var(--ab-rule-soft)", borderRadius: 2, position: "relative" }}>
@@ -334,7 +339,7 @@ function GoogleNewsRow({
     <div style={{
       ...rowFrameStyle,
       display: "grid",
-      gridTemplateColumns: "24px 1.6fr 150px 90px 1fr 110px",
+      gridTemplateColumns: "24px 1.6fr 150px 1fr 110px",
       gap: 12,
       alignItems: "center",
       background: "var(--ab-paper-2)",
@@ -352,15 +357,6 @@ function GoogleNewsRow({
       </div>
       <span className="a-mono" style={{ fontSize: 10.5, color: "var(--ab-ink-soft)", letterSpacing: "0.04em" }}>
         {t("sources.webSearch.googleNewsRegion").toUpperCase()}
-      </span>
-      <span className="a-mono" style={{
-        padding: "2px 8px", borderRadius: 4, fontSize: 9.5,
-        letterSpacing: "0.06em", fontWeight: 600,
-        background: "var(--ab-paper)", color: "var(--ab-ink-mute)",
-        border: "1px solid var(--ab-rule)",
-        justifySelf: "start",
-      }}>
-        {t("sources.typeAggregator").toUpperCase()}
       </span>
       <span className="a-mono" style={{ fontSize: 11, color: "var(--ab-ink-mute)" }}>—</span>
       <div style={{ justifySelf: "flex-end" }}>
@@ -427,7 +423,7 @@ function ProviderRow({
     <div style={{
       ...rowFrameStyle,
       display: "grid",
-      gridTemplateColumns: "24px 1.6fr 150px 90px 1fr 110px",
+      gridTemplateColumns: "24px 1.6fr 150px 1fr 110px",
       gap: 12,
       alignItems: "center",
     }}>
@@ -444,15 +440,6 @@ function ProviderRow({
       </div>
       <span className="a-mono" style={{ fontSize: 10.5, color: "var(--ab-ink-soft)", letterSpacing: "0.04em" }}>
         {t(`providers.body${spec.body_access === "full" ? "Full" : spec.body_access === "metadata" ? "Metadata" : "Snippet"}` as never).toUpperCase()}
-      </span>
-      <span className="a-mono" style={{
-        padding: "2px 8px", borderRadius: 4, fontSize: 9.5,
-        letterSpacing: "0.06em", fontWeight: 600,
-        background: "var(--ab-paper-2)", color: "var(--ab-ink-mute)",
-        border: "1px solid var(--ab-rule)",
-        justifySelf: "start",
-      }}>
-        {t("sources.typeAggregator").toUpperCase()}
       </span>
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
         {showInline ? (
@@ -540,6 +527,43 @@ function ProviderRow({
         </a>
         <TagPill on={hasKey} text={hasKey ? t("providers.statusActive") : t("providers.statusInactive")} />
       </div>
+    </div>
+  );
+}
+
+function SectionBand({
+  label,
+  count,
+  subtitle,
+}: {
+  label: string;
+  count: number;
+  subtitle?: string;
+}) {
+  return (
+    <div style={{
+      padding: "12px 16px 11px",
+      background: "var(--ab-paper-2)",
+      borderTop: "1px solid var(--ab-rule)",
+      borderBottom: "1px solid var(--ab-rule)",
+      display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14,
+    }}>
+      <div style={{ minWidth: 0 }}>
+        <div className="a-mono" style={{
+          fontSize: 10, letterSpacing: "0.10em", textTransform: "uppercase",
+          fontWeight: 600, color: "var(--ab-ink-soft)",
+        }}>{label}</div>
+        {subtitle && (
+          <div style={{ fontSize: 11.5, color: "var(--ab-ink-mute)", marginTop: 2 }}>
+            {subtitle}
+          </div>
+        )}
+      </div>
+      <span className="a-mono" style={{
+        padding: "2px 9px", borderRadius: 999, fontSize: 9.5, letterSpacing: "0.06em", fontWeight: 600,
+        background: "transparent", color: "var(--ab-ink-soft)",
+        border: "1px solid var(--ab-rule)",
+      }}>{count}</span>
     </div>
   );
 }
