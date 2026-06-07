@@ -119,13 +119,6 @@ export function WSHistory({ briefs, canDelete, language, t, onOpenBrief, onDelet
           );
         })}
       </div>
-      {!canDelete && (
-        <p className="a-mono" style={{
-          marginTop: 10, fontSize: 10.5, color: "var(--ab-ink-mute)", letterSpacing: "0.04em",
-        }}>
-          {t("history.deleteGated")}
-        </p>
-      )}
     </div>
   );
 }

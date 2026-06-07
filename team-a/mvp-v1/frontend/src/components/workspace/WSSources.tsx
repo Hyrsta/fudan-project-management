@@ -248,12 +248,6 @@ export function WSSources(p: Props) {
         {localErr && <p style={{ marginTop: 10, fontSize: 12.5, color: "var(--ab-accent)" }}>{localErr}</p>}
       </div>
 
-      <div style={{ marginTop: 12, display: "flex", alignItems: "center" }}>
-        <span style={{ flex: 1 }} />
-        <span className="a-mono" style={{ fontSize: 10.5, color: "var(--ab-ink-mute)", letterSpacing: "0.04em" }}>
-          PUT /api/trusted-sources
-        </span>
-      </div>
     </div>
   );
 }

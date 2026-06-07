@@ -153,12 +153,6 @@ export function WSProviders(p: Props) {
           );
         })}
       </div>
-      <div style={{ marginTop: 16, display: "flex", alignItems: "center" }}>
-        <span style={{ flex: 1 }} />
-        <span className="a-mono" style={{ fontSize: 10.5, color: "var(--ab-ink-mute)", letterSpacing: "0.04em" }}>
-          GET /api/news-providers · POST /api/briefs with X-Provider-&lt;id&gt;-Key
-        </span>
-      </div>
     </div>
   );
 }
