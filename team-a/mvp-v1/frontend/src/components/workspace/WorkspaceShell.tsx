@@ -27,11 +27,6 @@ type Props = {
 };
 
 export function WorkspaceShell(p: Props) {
-  const today = new Date().toLocaleDateString(
-    p.language === "zh" ? "zh-CN" : "en-US",
-    { weekday: "long", year: "numeric", month: "long", day: "numeric" },
-  );
-
   const navItems: Array<[WorkspaceView, RailIconKind, string]> = [
     ["briefing", "search", p.t("ws.sectionBriefing")],
     ["history", "bookmark", p.t("ws.sectionHistory")],
@@ -42,23 +37,7 @@ export function WorkspaceShell(p: Props) {
 
   return (
     <div className="a-root" style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-      {/* Top masthead band — height-matched to the marketing nav (.a-nav) */}
-      <div className="ws-mast" style={{
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "10px 56px", gap: 24,
-        borderBottom: "1px solid var(--ab-rule)",
-        background: "var(--ab-paper)",
-        fontFamily: "var(--ab-font-mono)", fontSize: 12, letterSpacing: "0.02em",
-        color: "var(--ab-ink-soft)",
-      }}>
-        <span>{today}</span>
-        <div style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-          <span>{sectionLabel}</span>
-          <span>·</span>
-          <span>{p.t("ws.localFirst")}</span>
-        </div>
-        <span aria-hidden="true" />
-      </div>
+
 
       <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
         {/* Dark left rail */}

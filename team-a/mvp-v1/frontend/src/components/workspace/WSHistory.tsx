@@ -94,8 +94,11 @@ export function WSHistory({ briefs, canDelete, language, t, onOpenBrief, onDelet
                 <button
                   type="button"
                   onClick={() => onOpenBrief(b.brief_id)}
-                  className="a-btn a-btn-ghost"
-                  style={{ padding: "4px 9px", fontSize: 11 }}
+                  style={{
+                    padding: "4px 8px", fontSize: 11,
+                    border: "1px solid var(--ab-rule)", background: "transparent",
+                    cursor: "pointer", color: "var(--ab-ink-soft)",
+                  }}
                 >
                   {t("history.open")} →
                 </button>
