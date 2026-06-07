@@ -157,7 +157,6 @@ export function WSSources(p: Props) {
               tagline={src.domain || src.feed_url}
               meta={"CUSTOM"}
               weight={0.96}
-              customTint
               onToggle={() => p.onToggleCatalogSource(key)}
               onRemove={() => p.onRemoveCustomSource(key)}
             />
@@ -268,7 +267,6 @@ type OutletRowProps = {
   tagline: string;
   meta: string;
   weight: number;
-  customTint?: boolean;
   onToggle: () => void;
   onRemove?: () => void;
 };
@@ -282,7 +280,7 @@ function OutletRow(r: OutletRowProps) {
       gridTemplateColumns: "24px 1.6fr 150px 1fr 110px",
       gap: 12,
       alignItems: "center",
-      background: r.customTint ? "color-mix(in oklab, var(--ab-green) 5%, transparent)" : "transparent",
+      background: "transparent",
     }}>
       <button
         type="button"
