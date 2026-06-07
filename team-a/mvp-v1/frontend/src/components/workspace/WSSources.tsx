@@ -29,11 +29,13 @@ type Props = {
   onToggleGoogleNews: () => void;
   providerCatalog: NewsProviderSpec[];
   providerKeys: Record<string, string>;
+  providerEnabled: Record<string, boolean>;
   providerDrafts: Record<string, string>;
   providerFlashSaved: Record<string, boolean>;
   onProviderDraftChange: (id: string, value: string) => void;
   onSaveProviderKey: (id: string) => void;
   onRemoveProviderKey: (id: string) => void;
+  onToggleProviderEnabled: (id: string) => void;
 };
 
 // One unified container; each row picks its own internal layout.
@@ -71,9 +73,14 @@ export function WSSources(p: Props) {
     + p.settings.custom_sources.filter((s) => selectedIds.has(s.id || s.name)).length;
   const outletsTotal =
     queryableCatalog.length + p.settings.custom_sources.length;
+  // An aggregator is "on" iff it has a key AND that key is not currently
+  // paused (enabled !== false). Paused keys stay in localStorage but don't
+  // contribute to briefs and shouldn't count toward the on-tally.
   const aggregatorsOn =
     (p.settings.google_news_enabled ? 1 : 0)
-    + p.providerCatalog.filter((c) => Boolean(p.providerKeys[c.id])).length;
+    + p.providerCatalog.filter(
+      (c) => Boolean(p.providerKeys[c.id]) && p.providerEnabled[c.id] !== false,
+    ).length;
   const aggregatorsTotal =
     1 /* Google News */ + p.providerCatalog.length;
 
@@ -234,6 +241,7 @@ export function WSSources(p: Props) {
         {p.providerCatalog.map((spec) => {
           const draft = p.providerDrafts[spec.id] || "";
           const hasKey = Boolean(p.providerKeys[spec.id]);
+          const enabled = p.providerEnabled[spec.id] !== false;
           const flash = Boolean(p.providerFlashSaved[spec.id]);
           return (
             <ProviderRow
@@ -241,12 +249,14 @@ export function WSSources(p: Props) {
               t={p.t}
               spec={spec}
               hasKey={hasKey}
+              enabled={enabled}
               draft={draft}
               flash={flash}
               canManage={p.canManage}
               onDraftChange={(v) => p.onProviderDraftChange(spec.id, v)}
               onSave={() => p.onSaveProviderKey(spec.id)}
               onRemove={() => p.onRemoveProviderKey(spec.id)}
+              onToggleEnabled={() => p.onToggleProviderEnabled(spec.id)}
             />
           );
         })}
@@ -434,17 +444,19 @@ type ProviderRowProps = {
   t: TFunction;
   spec: NewsProviderSpec;
   hasKey: boolean;
+  enabled: boolean;
   draft: string;
   flash: boolean;
   canManage: boolean;
   onDraftChange: (value: string) => void;
   onSave: () => void;
   onRemove: () => void;
+  onToggleEnabled: () => void;
 };
 
 function ProviderRow({
-  t, spec, hasKey, draft, flash, canManage,
-  onDraftChange, onSave, onRemove,
+  t, spec, hasKey, enabled, draft, flash, canManage,
+  onDraftChange, onSave, onRemove, onToggleEnabled,
 }: ProviderRowProps) {
   // Editor stays collapsed by default — even when a key is already saved.
   // After save we collapse explicitly, so the row returns to the compact
@@ -531,15 +543,30 @@ function ProviderRow({
           </>
         ) : hasKey ? (
           // ----- Compact saved view (no input field) -----
+          //   chip colour mirrors the enabled state:
+          //     enabled  → green "● SAVED"
+          //     paused   → grey  "○ PAUSED"
+          // both states are followed by REPLACE + REMOVE.
           <>
-            <span className="a-mono" style={{
-              padding: "2px 9px", borderRadius: 999, fontSize: 10,
-              letterSpacing: "0.04em", fontWeight: 600,
-              background: "var(--ab-green-soft)", color: "var(--ab-green-deep)",
-              border: "1px solid color-mix(in oklab, var(--ab-green) 30%, transparent)",
-            }}>
-              ● {t("model.saved").toUpperCase()}
-            </span>
+            {enabled ? (
+              <span className="a-mono" style={{
+                padding: "2px 9px", borderRadius: 999, fontSize: 10,
+                letterSpacing: "0.04em", fontWeight: 600,
+                background: "var(--ab-green-soft)", color: "var(--ab-green-deep)",
+                border: "1px solid color-mix(in oklab, var(--ab-green) 30%, transparent)",
+              }}>
+                ● {t("model.saved").toUpperCase()}
+              </span>
+            ) : (
+              <span className="a-mono" style={{
+                padding: "2px 9px", borderRadius: 999, fontSize: 10,
+                letterSpacing: "0.04em", fontWeight: 600,
+                background: "transparent", color: "var(--ab-ink-soft)",
+                border: "1px solid var(--ab-rule)",
+              }}>
+                ○ {t("sources.paused").toUpperCase()}
+              </span>
+            )}
             <button
               type="button"
               onClick={() => setOpen(true)}
@@ -605,14 +632,15 @@ function ProviderRow({
         </a>
         <TogglePill
           t={t}
-          on={hasKey}
+          // "On" iff a key is saved AND the user hasn't paused it.
+          on={hasKey && enabled}
           disabled={!canManage}
           onClick={() => {
-            if (hasKey) {
-              onRemove();
-            } else {
-              setOpen(true);
-            }
+            // Without a key: open the editor so the user can add one.
+            // With a key: flip the active flag (don't destroy the key —
+            // the explicit REMOVE button is the only deletion path now).
+            if (hasKey) onToggleEnabled();
+            else setOpen(true);
           }}
         />
       </div>

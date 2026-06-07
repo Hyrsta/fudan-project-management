@@ -110,8 +110,12 @@ export default function App() {
 
   // ----- News-API provider keys (BYO, per-browser localStorage) -----
   const PROVIDER_KEY_STORAGE_PREFIX = "studio-provider-key-";
+  // Parallel map: is the saved key currently *active*? Stored alongside the
+  // key so users can pause an aggregator without losing their key.
+  const PROVIDER_ENABLED_STORAGE_PREFIX = "studio-provider-enabled-";
   const [providerCatalog, setProviderCatalog] = useState<NewsProviderSpec[]>([]);
   const [providerKeys, setProviderKeys] = useState<Record<string, string>>({});
+  const [providerEnabled, setProviderEnabled] = useState<Record<string, boolean>>({});
   const [providerDrafts, setProviderDrafts] = useState<Record<string, string>>({});
   const [providerSavedFlash, setProviderSavedFlash] = useState<Record<string, boolean>>({});
 
@@ -125,11 +129,32 @@ export default function App() {
     }
     return out;
   }
+  function loadProviderEnabledFromStorage(catalog: NewsProviderSpec[]): Record<string, boolean> {
+    // Default: any key that exists is enabled. Only an explicit "false"
+    // localStorage entry counts as paused — so users upgrading from before
+    // this change automatically keep their keys active.
+    const out: Record<string, boolean> = {};
+    for (const spec of catalog) {
+      try {
+        const stored = localStorage.getItem(PROVIDER_ENABLED_STORAGE_PREFIX + spec.id);
+        out[spec.id] = stored === null ? true : stored !== "false";
+      } catch {
+        out[spec.id] = true;
+      }
+    }
+    return out;
+  }
   function saveProviderKey(id: string) {
     const v = (providerDrafts[id] || "").trim();
     if (!v) return;
     setProviderKeys((prev) => ({ ...prev, [id]: v }));
-    try { localStorage.setItem(PROVIDER_KEY_STORAGE_PREFIX + id, v); } catch {}
+    // A freshly-saved key is always active — even if it was previously
+    // paused, the user just re-entered it so the intent is clearly "use it".
+    setProviderEnabled((prev) => ({ ...prev, [id]: true }));
+    try {
+      localStorage.setItem(PROVIDER_KEY_STORAGE_PREFIX + id, v);
+      localStorage.setItem(PROVIDER_ENABLED_STORAGE_PREFIX + id, "true");
+    } catch {}
     setProviderDrafts((prev) => ({ ...prev, [id]: "" }));
     setProviderSavedFlash((prev) => ({ ...prev, [id]: true }));
     window.setTimeout(() => {
@@ -142,7 +167,25 @@ export default function App() {
       delete next[id];
       return next;
     });
-    try { localStorage.removeItem(PROVIDER_KEY_STORAGE_PREFIX + id); } catch {}
+    setProviderEnabled((prev) => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+    try {
+      localStorage.removeItem(PROVIDER_KEY_STORAGE_PREFIX + id);
+      localStorage.removeItem(PROVIDER_ENABLED_STORAGE_PREFIX + id);
+    } catch {}
+  }
+  function toggleProviderEnabled(id: string) {
+    // Flips the active flag for a saved provider without touching the key.
+    // No-op if the provider has no key yet.
+    if (!providerKeys[id]) return;
+    setProviderEnabled((prev) => {
+      const next = !(prev[id] ?? true);
+      try { localStorage.setItem(PROVIDER_ENABLED_STORAGE_PREFIX + id, String(next)); } catch {}
+      return { ...prev, [id]: next };
+    });
   }
   function setProviderDraft(id: string, value: string) {
     setProviderDrafts((prev) => ({ ...prev, [id]: value }));
@@ -151,6 +194,9 @@ export default function App() {
     const h: Record<string, string> = {};
     for (const [id, key] of Object.entries(providerKeys)) {
       if (!key) continue;
+      // Paused providers keep their key in localStorage but stop
+      // contributing headers — the backend then skips them naturally.
+      if (providerEnabled[id] === false) continue;
       const cap = id.charAt(0).toUpperCase() + id.slice(1);
       h[`X-Provider-${cap}-Key`] = key;
     }
@@ -201,6 +247,7 @@ export default function App() {
       setTrustedSourceDraft(emptyTrustedSourceSettings);
       setProviderCatalog([]);
       setProviderKeys({});
+      setProviderEnabled({});
     }
   }, [activeToken, config.rbac.enabled]);
 
@@ -485,6 +532,7 @@ export default function App() {
       const payload = (await response.json()) as { catalog: NewsProviderSpec[] };
       setProviderCatalog(payload.catalog);
       setProviderKeys(loadProviderKeysFromStorage(payload.catalog));
+      setProviderEnabled(loadProviderEnabledFromStorage(payload.catalog));
     } catch {
       // non-fatal — providers panel will be empty
     }
@@ -675,11 +723,13 @@ export default function App() {
             onToggleGoogleNews={onToggleGoogleNews}
             providerCatalog={providerCatalog}
             providerKeys={providerKeys}
+            providerEnabled={providerEnabled}
             providerDrafts={providerDrafts}
             providerFlashSaved={providerSavedFlash}
             onProviderDraftChange={setProviderDraft}
             onSaveProviderKey={saveProviderKey}
             onRemoveProviderKey={removeProviderKey}
+            onToggleProviderEnabled={toggleProviderEnabled}
           />
         )}
       </WorkspaceShell>
