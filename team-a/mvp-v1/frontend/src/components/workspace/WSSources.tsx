@@ -438,10 +438,22 @@ function ProviderRow({
   t, spec, hasKey, draft, flash, canManage,
   onDraftChange, onSave, onRemove,
 }: ProviderRowProps) {
-  const [open, setOpen] = useState(hasKey);
-  // Auto-open the inline key editor when the user has not yet configured one
-  // — saves a click compared to "open" then "enter key".
+  // Editor stays collapsed by default — even when a key is already saved.
+  // After save we collapse explicitly, so the row returns to the compact
+  // "● SAVED" view instead of leaving a stale input field behind.
+  const [open, setOpen] = useState(false);
   const showInline = open || draft !== "";
+
+  function handleSave() {
+    if (!canManage || !draft.trim()) return;
+    onSave();
+    setOpen(false);
+  }
+  function handleCancel() {
+    onDraftChange("");
+    setOpen(false);
+  }
+
   return (
     <div style={{
       ...rowFrameStyle,
@@ -461,13 +473,14 @@ function ProviderRow({
       </span>
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
         {showInline ? (
+          // ----- Editor: input + Save + Cancel (Remove still available via toggle) -----
           <>
             <input
               type="password"
               value={draft}
               disabled={!canManage}
               onChange={(e) => onDraftChange(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter" && canManage) onSave(); }}
+              onKeyDown={(e) => { if (e.key === "Enter") handleSave(); }}
               placeholder={hasKey ? "••••••••" : t("providers.placeholder")}
               autoComplete="off"
               spellCheck={false}
@@ -481,7 +494,7 @@ function ProviderRow({
             />
             <button
               type="button"
-              onClick={onSave}
+              onClick={handleSave}
               disabled={!canManage || !draft.trim()}
               style={{
                 padding: "5px 9px", fontSize: 11, borderRadius: 5,
@@ -493,24 +506,49 @@ function ProviderRow({
             >
               {flash ? t("model.saved") : t("model.save")}
             </button>
-            {hasKey && (
-              <button
-                type="button"
-                onClick={onRemove}
-                disabled={!canManage}
-                className="a-mono"
-                style={{
-                  padding: "4px 7px", fontSize: 10, letterSpacing: "0.04em",
-                  border: "1px solid var(--ab-rule)", background: "transparent",
-                  cursor: canManage ? "pointer" : "not-allowed",
-                  color: "var(--ab-accent)", borderRadius: 4,
-                }}
-              >
-                {t("model.remove")}
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="a-mono"
+              title={t("common.cancel")}
+              aria-label={t("common.cancel")}
+              style={{
+                padding: "4px 7px", fontSize: 12, lineHeight: 1,
+                border: "1px solid var(--ab-rule)", background: "transparent",
+                cursor: "pointer", color: "var(--ab-ink-soft)", borderRadius: 4,
+              }}
+            >
+              ×
+            </button>
+          </>
+        ) : hasKey ? (
+          // ----- Compact saved view (no input field) -----
+          <>
+            <span className="a-mono" style={{
+              padding: "2px 9px", borderRadius: 999, fontSize: 10,
+              letterSpacing: "0.04em", fontWeight: 600,
+              background: "var(--ab-green-soft)", color: "var(--ab-green-deep)",
+              border: "1px solid color-mix(in oklab, var(--ab-green) 30%, transparent)",
+            }}>
+              ● {t("model.saved").toUpperCase()}
+            </span>
+            <button
+              type="button"
+              onClick={() => setOpen(true)}
+              disabled={!canManage}
+              className="a-mono"
+              style={{
+                padding: "3px 8px", fontSize: 10, letterSpacing: "0.04em",
+                border: "1px solid var(--ab-rule)", background: "transparent",
+                cursor: canManage ? "pointer" : "not-allowed",
+                color: "var(--ab-ink-soft)", borderRadius: 4,
+              }}
+            >
+              {t("sources.replaceKey").toUpperCase()}
+            </button>
           </>
         ) : (
+          // ----- No key yet -----
           <button
             type="button"
             onClick={() => setOpen(true)}

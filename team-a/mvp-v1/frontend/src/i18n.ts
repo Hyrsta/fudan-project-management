@@ -82,6 +82,7 @@ const english = {
   "sources.outletsOn": "{on} / {total} outlets",
   "sources.aggregatorsOn": "{on} / {total} aggregators",
   "sources.addKey": "Add key",
+  "sources.replaceKey": "Replace",
   "sources.outlets.title": "Outlets",
   "sources.outlets.subtitle": "Single publishers. Mark the ones you trust to boost their ranking.",
   "sources.aggregators.title": "Aggregators",
@@ -225,6 +226,7 @@ const english = {
   "about.p3": "Same shape, every brief",
   "about.p3c": "Every brief reads the same way, from the first one to the hundredth. Reviewers learn it once, and the citations and source rankings stay in the same places, every time.",
   // === marketing common ===
+  "common.cancel": "Cancel",
   "common.default": "Default",
   "common.example": "Example brief",
   // === marketing product (long-form) ===
@@ -421,6 +423,7 @@ const chinese: Record<TranslationKey, string> = {
   "sources.outletsOn": "媒体 {on} / {total}",
   "sources.aggregatorsOn": "聚合器 {on} / {total}",
   "sources.addKey": "添加密钥",
+  "sources.replaceKey": "替换",
   "sources.outlets.title": "媒体",
   "sources.outlets.subtitle": "单一发行方。勾选你信任的来源,提升其排名权重。",
   "sources.aggregators.title": "聚合器",
@@ -564,6 +567,7 @@ const chinese: Record<TranslationKey, string> = {
   "about.p3": "每份简报,同样的形状",
   "about.p3c": "每份简报读起来都一样,从第一份到第一百份。审阅者只需熟悉一次,引用与来源排序永远在同样的位置。",
   // === marketing common ===
+  "common.cancel": "取消",
   "common.default": "默认",
   "common.example": "示例简报",
   // === marketing product (long-form) ===
