@@ -20,7 +20,7 @@ type Props = {
   onRemoveCustomSource: (sourceId: string) => void;
 };
 
-const COLS = "24px 1.7fr 150px 64px 1fr 100px";
+const COLS = "24px 1.7fr 150px 1fr 100px";
 
 export function WSSources(p: Props) {
   const [localErr, setLocalErr] = useState("");
@@ -78,7 +78,6 @@ export function WSSources(p: Props) {
           <span></span>
           <span>{p.t("sources.col.source")}</span>
           <span>{p.t("sources.col.cat")}</span>
-          <span>{p.t("sources.col.feed")}</span>
           <span>{p.t("sources.col.weight")}</span>
           <span style={{ textAlign: "right" }}>{p.t("sources.col.state")}</span>
         </div>
@@ -116,17 +115,6 @@ export function WSSources(p: Props) {
               </div>
               <span className="a-mono" style={{ fontSize: 10.5, color: "var(--ab-ink-soft)", letterSpacing: "0.04em" }}>
                 {(src.category || "").toUpperCase()} · {(src.region || "").toUpperCase()}
-              </span>
-              <span>
-                {src.feed_url ? (
-                  <span className="a-mono" style={{
-                    padding: "2px 9px", borderRadius: 999, fontSize: 10, letterSpacing: "0.04em", fontWeight: 600,
-                    background: "var(--ab-green-soft)", color: "var(--ab-green-deep)",
-                    border: "1px solid color-mix(in oklab, var(--ab-green) 30%, transparent)",
-                  }}>RSS</span>
-                ) : (
-                  <span className="a-mono" style={{ fontSize: 10.5, color: "var(--ab-ink-mute)" }}>–</span>
-                )}
               </span>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <div style={{ flex: 1, height: 4, background: "var(--ab-rule-soft)", borderRadius: 2, position: "relative" }}>
@@ -175,17 +163,6 @@ export function WSSources(p: Props) {
               <code className="a-mono" style={{ fontSize: 10.5, color: "var(--ab-ink-mute)" }}>{src.domain || src.feed_url}</code>
             </div>
             <span className="a-mono" style={{ fontSize: 10.5, color: "var(--ab-ink-soft)" }}>CUSTOM</span>
-            <span>
-              {src.feed_url ? (
-                <span className="a-mono" style={{
-                  padding: "2px 9px", borderRadius: 999, fontSize: 10, letterSpacing: "0.04em", fontWeight: 600,
-                  background: "var(--ab-green-soft)", color: "var(--ab-green-deep)",
-                  border: "1px solid color-mix(in oklab, var(--ab-green) 30%, transparent)",
-                }}>RSS</span>
-              ) : (
-                <span className="a-mono" style={{ fontSize: 10.5, color: "var(--ab-ink-mute)" }}>–</span>
-              )}
-            </span>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <div style={{ flex: 1, height: 4, background: "var(--ab-rule-soft)", borderRadius: 2, position: "relative" }}>
                 <div style={{ position: "absolute", inset: 0, width: "96%", background: "var(--ab-green)", borderRadius: 2 }} />
