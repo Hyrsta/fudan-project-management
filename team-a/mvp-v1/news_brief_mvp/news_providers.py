@@ -255,7 +255,9 @@ class GNewsProvider(NewsProvider):
                     "max": min(limit, 25),
                     "lang": "en",
                     "sortby": "publishedAt",
-                    "token": self.api_key,
+                    # GNews v4 uses `apikey`; the older v3 `token` parameter
+                    # silently fails on the v4 endpoint we hit (BASE_URL).
+                    "apikey": self.api_key,
                 },
                 headers={"User-Agent": "team-a-final-news-brief/1.0"},
             )

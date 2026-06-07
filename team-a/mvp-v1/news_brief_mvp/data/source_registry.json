@@ -48,7 +48,7 @@
       "id": "financial-times",
       "name": "Financial Times",
       "domain": "ft.com",
-      "feed_url": "https://www.ft.com/?format=rss",
+      "feed_url": "https://www.ft.com/rss/home",
       "category": "business",
       "region": "global",
       "weight": 0.92,
@@ -77,10 +77,11 @@
       "id": "bloomberg",
       "name": "Bloomberg",
       "domain": "bloomberg.com",
+      "feed_url": "https://feeds.bloomberg.com/markets/news.rss",
       "category": "business",
       "region": "global",
       "weight": 0.9,
-      "subscription_note": "Subscription integrations should use official or user-authorized paths."
+      "subscription_note": "Public Bloomberg Markets RSS; full article bodies are subject to Bloomberg subscription."
     },
     {
       "id": "techcrunch",
