@@ -117,3 +117,16 @@ def test_editorial_workspace_chrome_polish_css_present() -> None:
     styles = (FRONTEND_SRC / "styles.css").read_text()
     assert ".ws-rail-button:hover" in styles
     assert ".ws-account-signout:hover" in styles
+
+
+def test_marketing_product_coverage_flow_keys_present() -> None:
+    # Regression guard: MarketingProduct.tsx renders t("coverage.<mode>.flow")
+    # for each coverage mode. These keys were once pruned as "unused" (they were
+    # unused by the *workspace composer* tooltip, but the Product page still
+    # consumes them), which silently crashed the Product page because the
+    # translator calls .replace() on the undefined lookup. Require all three in
+    # BOTH locales so the regression cannot recur.
+    i18n = (FRONTEND_SRC / "i18n.ts").read_text()
+    for mode in ("auto", "live", "fallback"):
+        key = f'"coverage.{mode}.flow":'
+        assert i18n.count(key) >= 2, f"{key} must exist in both EN and ZH dictionaries"
